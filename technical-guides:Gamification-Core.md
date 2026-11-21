@@ -67,14 +67,13 @@ do modulů přes `require('./gamification/<modul>') as typeof import(...)`.
 XPSourceType.HABIT_COMPLETION: 25 XP    // Scheduled day completion
 XPSourceType.HABIT_BONUS: 15 XP         // Non-scheduled day completion
 
-// Streak milestones  
-XPSourceType.HABIT_STREAK_MILESTONE:
-- 7 days: 75 XP
-- 14 days: 100 XP  
-- 30 days: 150 XP
-- 50 days: 200 XP
-- 100 days: 300 XP
 ```
+
+> ⚠️ **Série návyku XP NEDÁVÁ.** V konstantách leží nepoužité hodnoty `XP_REWARDS.HABIT.STREAK_*`
+> (75/100/150/200/300 XP za 7/14/30/50/100 dní) a zdroj `HABIT_STREAK_MILESTONE`, ale žádný kód je nikdy
+> nevyplácel. **Rozhodnutí Petra 2026-11-16: nevyplácet** („to jsem původně nezamýšlel“). Nikde to
+> neslibovat ani nekreslit; konstanty se smažou při úklidu (`design-migration-plan.md`, E26).
+> Série **deníku** XP dává – viz níže.
 
 ### Journal System XP (Position-Based)
 ```typescript
@@ -84,6 +83,9 @@ Position 2: 20 XP (XPSourceType.JOURNAL_ENTRY)
 Position 3: 20 XP (XPSourceType.JOURNAL_ENTRY)
 Position 4-13: 8 XP each (XPSourceType.JOURNAL_BONUS)
 Position 14+: 0 XP (ANTI-SPAM RULE)
+
+// XP dnes (jen čtení, pro zobrazení): GamificationService.getTodayXP()
+// – čistý součet dnešního XP, nikdy záporný; čte stejný denní záznam jako limity
 
 // Bonus milestones (on top of entry XP)
 Entry #4 (first bonus): +25 XP (⭐ First Bonus Milestone)

@@ -24,11 +24,15 @@
  * limit hides nothing. Reduce motion: the note fades, nothing slides.
  *
  * GOING LIVE (1:1) — see PREVOD.md:
- * - The batch is what one evaluation unlocks: AchievementService already emits all
- *   unlocks of one `updateUserAchievements` together (achievementService.ts, the
- *   `unlockedAchievements.length > 1` event). Map one batch to one `momentFor`.
- * - The BIG moment stays ONE modal from ModalQueueContext. The quiet note is not a
- *   modal: it never shows while a modal is up, it waits until the queue is empty.
+ * - The batch is what one action unlocks. The service reports unlocks ONE BY ONE
+ *   (`achievementUnlocked` per trophy, plus `multipleAchievementsUnlocked`) and
+ *   pays their XP in a single `addXP`; AchievementContext must collect the events
+ *   of one moment into a batch and map it to one `momentFor`
+ *   (design-migration-plan.md, E8 — corrected 2026-11-15).
+ * - The BIG moment stays ONE window from the ModalQueueContext QUEUE (its order
+ *   and "one at a time"), drawn as a view in the window layer — not an RN <Modal>
+ *   (design-migration-plan.md, 6.0). The quiet note is not a window: it never
+ *   shows while a window is up, it waits until the queue is empty.
  * - The level-up modal disappears for ordinary levels (R-10); the XP-animation
  *   guards in technical-guides:Gamification-UI.md keep their meaning.
  * - XP is credited when the moment ends (Continue, or the note leaving) — as today.

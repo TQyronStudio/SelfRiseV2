@@ -57,6 +57,7 @@ import Animated, {
   useAnimatedReaction,
   useAnimatedStyle,
   useDerivedValue,
+  useReducedMotion,
   useSharedValue,
   withDelay,
   withSequence,
@@ -96,22 +97,35 @@ import {
   labSun,
 } from './labTokens';
 import { RollingNumber } from './RollingNumber';
-import { FlameState, StreakFlame } from './StreakFlame';
+import { StreakFlame } from './StreakFlame';
+import {
+  AdSimulation,
+  ConfirmSheet,
+  iceColors,
+  useJournalT,
+  WarmUpControls,
+} from './journalParts';
 import { DetailRect, JournalDetailConcept } from './JournalDetailConcept';
 import { ChallengeDetailConcept, Stars } from './ChallengeDetailConcept';
 import { challengePace, challengeShare } from './challengeLogic';
 import { useChallengeText, useLabChallenge } from './challengeMock';
+import { HabitStatsCard } from './HabitStatsConcept';
+import {
+  ForYouCard,
+  HomeCustomizeSheet,
+  InsightsCard,
+} from './HomeSectionsConcept';
+import {
+  DEFAULT_HOME_SECTIONS,
+  HomeSection,
+  visibleSections,
+} from './homeLayoutLogic';
 import { useLabPageActive } from './labCover';
 import { useLabXpAward, XpPop } from './xpFlight';
 import { useLabToday } from './habitsMock';
 import { useLabJournal } from './journalMock';
 import { useIntro, useIntroWindow } from './introTimeline';
-import {
-  ScrollCard,
-  ScrollFrameProvider,
-  seenDelay,
-  useCardSeen,
-} from './scrollChoreography';
+import { ScrollCard, ScrollFrameProvider } from './scrollChoreography';
 import { MOCK_COPY, MOCK_HABITS, MOCK_STATS, MockHabit } from './mockCopy';
 
 const SCREEN_PADDING = labSpace.xl;
@@ -140,7 +154,14 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
   const { done, toggle } = useLabToday();
   const journal = useLabJournal();
   const [celebrateKey, setCelebrateKey] = useState(0);
-  const [flame, setFlame] = useState<FlameState>('fire');
+  // The frozen streak and its warm-up are shared with the Journal (kolo 43): a
+  // frozen streak shows on Home, and one ad here pays a day there too.
+  const { frozen, flame, streak: journalStreak } = journal;
+  const ice = iceColors(mode);
+  const jt = useJournalT();
+  const reducedMotion = useReducedMotion();
+  const [ad, setAd] = useState(false);
+  const [confirmFresh, setConfirmFresh] = useState(false);
   const [detailOrigin, setDetailOrigin] = useState<DetailRect | null>(null);
   const [pageSize, setPageSize] = useState({ width: 0, height: 0 });
   const pageRef = useRef<View>(null);
@@ -174,8 +195,15 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
     300
   );
   const xpWord = copy.xpChipWord;
-  const sectionStart = (i: number) =>
-    timeline.sections[Math.min(i, timeline.sections.length - 1)]?.[0] ?? 0;
+  // Later sections enter together with the last window (the timeline is capped).
+  const sectionWindow = (i: number) =>
+    timeline.sections[Math.min(i, timeline.sections.length - 1)] ??
+    timeline.hero;
+  const [sections, setSections] = useState<HomeSection[]>(() =>
+    DEFAULT_HOME_SECTIONS.map(s => ({ ...s }))
+  );
+  const [customizing, setCustomizing] = useState(false);
+  const shownSections = visibleSections(sections);
 
   // --- The day: intro windows × today's progress -------------------------------
   const sunIntro = useIntroWindow(timeline.sun);
@@ -427,6 +455,7 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
                   tint={c.textMuted}
                   background={c.surface}
                   label="Customize"
+                  onPress={() => setCustomizing(true)}
                 />
               </Rise>
             </View>
@@ -562,296 +591,370 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
             </Rise>
           </ScrollCard>
 
-          {/* The next small step. */}
-          <ScrollCard>
-            <Rise
-              window={timeline.sections[0] ?? timeline.hero}
-              style={styles.quickRow}
-            >
-              <QuickTile
-                icon="add"
-                label={copy.quick.addHabit}
-                tint={c.primary}
-                background={c.primarySoft}
-              />
-              <QuickTile
-                icon="heart"
-                label={copy.quick.gratitude}
-                tint={c.habit.pink}
-                background={`${c.habit.pink}22`}
-              />
-              <QuickTile
-                icon="star"
-                label={copy.quick.selfPraise}
-                tint={c.successText}
-                background={c.successSoft}
-              />
-              <QuickTile
-                icon="flag"
-                label={copy.quick.addGoal}
-                tint={c.flame}
-                background={c.flameSoft}
-              />
-            </Rise>
-          </ScrollCard>
-
-          <ScrollCard>
-            <Rise window={timeline.sections[1] ?? timeline.hero}>
-              {/* The count lives in the hero only — once on the screen is enough. */}
-              <SectionHeader title={copy.todaysHabits} />
-              <Surface
-                style={{
-                  paddingVertical: labSpace.sm,
-                  paddingHorizontal: labSpace.md,
-                }}
-              >
-                {MOCK_HABITS.map((habit, i) => (
-                  <View key={habit.id}>
-                    {i > 0 && <Divider style={{ marginLeft: 60 }} />}
-                    <HabitRow
-                      habit={habit}
-                      done={!!done[habit.id]}
-                      onToggle={() => toggle(habit.id)}
-                    />
-                  </View>
-                ))}
-              </Surface>
-            </Rise>
-          </ScrollCard>
-
-          {/* Journal streak */}
-          <ScrollCard>
-            <Rise window={timeline.sections[2] ?? timeline.hero}>
-              {/* The original hides while its detail is open — one card, not two. */}
-              <View
-                ref={journalCardRef}
-                collapsable={false}
-                style={{
-                  marginTop: labSpace.lg,
-                  opacity: detailOrigin ? 0 : 1,
-                }}
-              >
-                <PressableScale
-                  pressScale={CARD_PRESS}
-                  haptic={null}
-                  onPress={openJournal}
-                  accessibilityLabel={copy.journalStreak}
-                >
-                  <Surface>
-                    <View style={styles.spaceBetween}>
-                      <LabText variant="titleSm">{copy.journalStreak}</LabText>
-                      <Ionicons
-                        name="chevron-forward"
-                        size={18}
-                        color={c.textFaint}
+          {/* Below the hero: the user's sections, in the user's order (kolo 42). */}
+          {shownSections.map((id, i) => {
+            const win = sectionWindow(i);
+            switch (id) {
+              case 'quickActions':
+                return (
+                  <ScrollCard key={id}>
+                    <Rise window={win} style={styles.quickRow}>
+                      <QuickTile
+                        icon="add"
+                        label={copy.quick.addHabit}
+                        tint={c.primary}
+                        background={c.primarySoft}
                       />
-                    </View>
-                    <View style={styles.streakRow}>
-                      <StreakFlame
-                        state={flame}
-                        onStateChange={setFlame}
-                        size={56}
-                        label={copy.flameHint}
+                      <QuickTile
+                        icon="heart"
+                        label={copy.quick.gratitude}
+                        tint={c.habit.pink}
+                        background={`${c.habit.pink}22`}
                       />
-                      <LabText variant="display" style={styles.streakNumber}>
-                        {journal.stats.currentStreak}
-                      </LabText>
-                      <LabText
-                        variant="label"
-                        tone="muted"
-                        style={{ marginLeft: labSpace.sm, marginBottom: 10 }}
+                      <QuickTile
+                        icon="star"
+                        label={copy.quick.selfPraise}
+                        tint={c.successText}
+                        background={c.successSoft}
+                      />
+                      <QuickTile
+                        icon="flag"
+                        label={copy.quick.addGoal}
+                        tint={c.flame}
+                        background={c.flameSoft}
+                      />
+                    </Rise>
+                  </ScrollCard>
+                );
+              case 'todayHabits':
+                return (
+                  <ScrollCard key={id}>
+                    <Rise window={win}>
+                      {/* The count lives in the hero only — once on the screen is enough. */}
+                      <SectionHeader title={copy.todaysHabits} />
+                      <Surface
+                        style={{
+                          paddingVertical: labSpace.sm,
+                          paddingHorizontal: labSpace.md,
+                        }}
                       >
-                        {copy.days}
-                      </LabText>
-                      <View style={{ flex: 1 }} />
-                      {flame === 'fire' && (
-                        <Chip
-                          icon="checkmark-circle"
-                          label={copy.streakActive}
-                          tone="success"
-                        />
-                      )}
-                      {flame === 'ice' && (
-                        <Chip
-                          icon="snow"
-                          label={copy.streakFrozen}
-                          tone="primary"
-                        />
-                      )}
-                      {flame === 'warming' && (
-                        <Chip
-                          icon="sunny"
-                          label={copy.streakWarming}
-                          tone="reward"
-                        />
-                      )}
-                    </View>
-                    <LabText
-                      variant="caption"
-                      tone="faint"
-                      style={{ marginTop: 2 }}
-                    >
-                      {copy.flameHint}
-                    </LabText>
-                    <Divider style={{ marginTop: labSpace.lg }} />
-                    <View style={styles.journalMeta}>
-                      <View style={styles.dotsRow}>
-                        {[0, 1, 2].map(i => (
-                          <View
-                            key={i}
-                            style={[
-                              styles.dot,
-                              {
-                                backgroundColor:
-                                  i < journal.todayCount ? c.primary : c.track,
-                              },
-                            ]}
-                          />
+                        {MOCK_HABITS.map((habit, i) => (
+                          <View key={habit.id}>
+                            {i > 0 && <Divider style={{ marginLeft: 60 }} />}
+                            <HabitRow
+                              habit={habit}
+                              done={!!done[habit.id]}
+                              onToggle={() => toggle(habit.id)}
+                            />
+                          </View>
                         ))}
-                        <LabText
-                          variant="caption"
-                          tone="muted"
-                          style={{ marginLeft: labSpace.sm }}
-                        >
-                          {copy.entriesToday(journal.todayCount)}
-                        </LabText>
-                      </View>
-                      <View style={styles.badgesRow}>
-                        <Badge emoji="⭐" count={journal.stats.stars} />
-                        <Badge emoji="🔥" count={journal.stats.flames} />
-                        <Badge emoji="👑" count={journal.stats.crowns} />
-                      </View>
-                    </View>
-                    <PressableScale
-                      style={[
-                        styles.quietButton,
-                        { backgroundColor: c.primarySoft },
-                      ]}
-                      accessibilityLabel={copy.writeEntry}
-                    >
-                      <Ionicons
-                        name="create-outline"
-                        size={18}
-                        color={c.primary}
-                        style={{ marginRight: labSpace.sm }}
-                      />
-                      <LabText variant="bodyStrong" tone="primary">
-                        {copy.writeEntry}
-                      </LabText>
-                    </PressableScale>
-                  </Surface>
-                </PressableScale>
-              </View>
-            </Rise>
-          </ScrollCard>
-
-          {/* Monthly challenge */}
-          <ScrollCard>
-            <Rise window={timeline.sections[3] ?? timeline.hero}>
-              {/* The original hides while its detail is open — one card, not two. */}
-              <View
-                ref={challengeCardRef}
-                collapsable={false}
-                style={{
-                  marginTop: labSpace.lg,
-                  opacity: challengeOrigin ? 0 : 1,
-                }}
-              >
-                <PressableScale
-                  pressScale={CARD_PRESS}
-                  haptic={null}
-                  onPress={openChallenge}
-                  accessibilityLabel={challengeWords.title}
-                >
-                  <Surface>
-                    <View style={styles.spaceBetween}>
-                      <LabText
-                        variant="overline"
-                        tone="primary"
-                        style={{ flexShrink: 1 }}
+                      </Surface>
+                    </Rise>
+                  </ScrollCard>
+                );
+              case 'journalStreak':
+                return (
+                  <ScrollCard key={id}>
+                    <Rise window={win}>
+                      {/* The original hides while its detail is open — one card, not two. */}
+                      <View
+                        ref={journalCardRef}
+                        collapsable={false}
+                        style={{
+                          marginTop: labSpace.lg,
+                          opacity: detailOrigin ? 0 : 1,
+                        }}
                       >
-                        {copy.challengeOverline}
-                      </LabText>
-                      <Stars count={challenge.stars} />
-                    </View>
-                    <LabText variant="title" style={{ marginTop: labSpace.sm }}>
-                      {challengeWords.title}
-                    </LabText>
-                    <LabText
-                      variant="body"
-                      tone="muted"
-                      style={{ marginTop: labSpace.xs }}
-                    >
-                      {challengeWords.description}
-                    </LabText>
-                    <ProgressBar
-                      // A new situation (lab switch) fills from the start again.
-                      key={challenge.templateId + challenge.day}
-                      progress={challengeShare(challenge.requirements)}
-                      colors={
-                        challengeDone
-                          ? [c.success, c.success]
-                          : c.primaryGradient
-                      }
-                      delay={sectionStart(3) + 150}
-                      style={{ marginTop: labSpace.lg }}
-                    />
-                    <View
-                      style={[styles.spaceBetween, { marginTop: labSpace.sm }]}
-                    >
-                      <LabText variant="caption">
-                        {challengeDone
-                          ? copy.challenge.done
-                          : challengeFirst
-                            ? copy.challenge.count(
-                                challengeFirst.done,
-                                challengeFirst.target
-                              )
-                            : ''}
-                      </LabText>
-                      <LabText variant="caption" tone="muted">
-                        {copy.challengeDay(challenge.day, challenge.days)}
-                      </LabText>
-                    </View>
-                  </Surface>
-                </PressableScale>
-              </View>
-            </Rise>
-          </ScrollCard>
-
-          {/* This week */}
-          <ScrollCard>
-            <Rise window={timeline.sections[4] ?? timeline.hero}>
-              <Surface style={{ marginTop: labSpace.lg }}>
-                <View style={styles.spaceBetween}>
-                  <LabText variant="titleSm">{copy.thisWeek}</LabText>
-                  <Chip tone="primary">
-                    <RollingNumber
-                      text={copy.consistent(73)}
-                      variant="caption"
-                      delay={sectionStart(4) + 150}
-                      style={{
-                        color: chipColors(c, 'primary').fg,
-                        fontFamily: labFonts.semibold,
-                      }}
-                    />
-                  </Chip>
-                </View>
-                <View style={styles.weekRow}>
-                  {MOCK_STATS.week.map((value, i) => (
-                    <WeekBar
-                      key={i}
-                      delay={sectionStart(4) + 150 + i * 45}
-                      value={value}
-                      max={MOCK_STATS.weekTotal}
-                      label={copy.weekdays[i] ?? ''}
-                      isToday={i === MOCK_STATS.todayIndex}
-                    />
-                  ))}
-                </View>
-              </Surface>
-            </Rise>
-          </ScrollCard>
+                        <PressableScale
+                          pressScale={CARD_PRESS}
+                          haptic={null}
+                          onPress={openJournal}
+                          accessibilityLabel={copy.journalStreak}
+                        >
+                          <Surface
+                            style={
+                              frozen
+                                ? {
+                                    backgroundColor: ice.soft,
+                                    borderColor: ice.ring,
+                                  }
+                                : undefined
+                            }
+                          >
+                            <View style={styles.spaceBetween}>
+                              <LabText variant="titleSm">
+                                {copy.journalStreak}
+                              </LabText>
+                              <Ionicons
+                                name="chevron-forward"
+                                size={18}
+                                color={c.textFaint}
+                              />
+                            </View>
+                            <View style={styles.streakRow}>
+                              <StreakFlame
+                                state={flame}
+                                onStateChange={journal.onFlame}
+                                size={56}
+                                label={copy.flameHint}
+                              />
+                              <LabText
+                                variant="display"
+                                style={[
+                                  styles.streakNumber,
+                                  frozen ? { color: ice.fg } : null,
+                                ]}
+                              >
+                                {journalStreak}
+                              </LabText>
+                              <LabText
+                                variant="label"
+                                tone="muted"
+                                style={{
+                                  marginLeft: labSpace.sm,
+                                  marginBottom: 10,
+                                }}
+                              >
+                                {copy.days}
+                              </LabText>
+                              <View style={{ flex: 1 }} />
+                              {flame === 'fire' && (
+                                <Chip
+                                  icon="checkmark-circle"
+                                  label={copy.streakActive}
+                                  tone="success"
+                                />
+                              )}
+                              {flame === 'ice' && (
+                                <Chip
+                                  icon="snow"
+                                  label={copy.streakFrozen}
+                                  tone="primary"
+                                />
+                              )}
+                              {flame === 'warming' && (
+                                <Chip
+                                  icon="sunny"
+                                  label={copy.streakWarming}
+                                  tone="reward"
+                                />
+                              )}
+                            </View>
+                            {frozen ? (
+                              // Frozen: the rescue sits right here — one ad = one
+                              // day, no trip to the Journal first.
+                              <>
+                                <LabText
+                                  variant="body"
+                                  style={{ marginTop: labSpace.sm }}
+                                >
+                                  {jt('journal.warmUp.frozenMessage', {
+                                    count: frozen.days,
+                                    adsNeeded: frozen.days - frozen.paid,
+                                  })}
+                                </LabText>
+                                <WarmUpControls
+                                  days={frozen.days}
+                                  paid={frozen.paid}
+                                  warming={flame === 'warming'}
+                                  onWarmUp={() => setAd(true)}
+                                  onStartFresh={() => setConfirmFresh(true)}
+                                />
+                              </>
+                            ) : (
+                              <>
+                                <LabText
+                                  variant="caption"
+                                  tone="faint"
+                                  style={{ marginTop: 2 }}
+                                >
+                                  {copy.flameHint}
+                                </LabText>
+                                <Divider style={{ marginTop: labSpace.lg }} />
+                                <View style={styles.journalMeta}>
+                                  <View style={styles.dotsRow}>
+                                    {[0, 1, 2].map(i => (
+                                      <View
+                                        key={i}
+                                        style={[
+                                          styles.dot,
+                                          {
+                                            backgroundColor:
+                                              i < journal.todayCount
+                                                ? c.primary
+                                                : c.track,
+                                          },
+                                        ]}
+                                      />
+                                    ))}
+                                    <LabText
+                                      variant="caption"
+                                      tone="muted"
+                                      style={{ marginLeft: labSpace.sm }}
+                                    >
+                                      {copy.entriesToday(journal.todayCount)}
+                                    </LabText>
+                                  </View>
+                                  <View style={styles.badgesRow}>
+                                    <Badge
+                                      emoji="⭐"
+                                      count={journal.stats.stars}
+                                    />
+                                    <Badge
+                                      emoji="🔥"
+                                      count={journal.stats.flames}
+                                    />
+                                    <Badge
+                                      emoji="👑"
+                                      count={journal.stats.crowns}
+                                    />
+                                  </View>
+                                </View>
+                                <PressableScale
+                                  style={[
+                                    styles.quietButton,
+                                    { backgroundColor: c.primarySoft },
+                                  ]}
+                                  accessibilityLabel={copy.writeEntry}
+                                >
+                                  <Ionicons
+                                    name="create-outline"
+                                    size={18}
+                                    color={c.primary}
+                                    style={{ marginRight: labSpace.sm }}
+                                  />
+                                  <LabText variant="bodyStrong" tone="primary">
+                                    {copy.writeEntry}
+                                  </LabText>
+                                </PressableScale>
+                              </>
+                            )}
+                          </Surface>
+                        </PressableScale>
+                      </View>
+                    </Rise>
+                  </ScrollCard>
+                );
+              case 'monthlyChallenges':
+                return (
+                  <ScrollCard key={id}>
+                    <Rise window={win}>
+                      {/* The original hides while its detail is open — one card, not two. */}
+                      <View
+                        ref={challengeCardRef}
+                        collapsable={false}
+                        style={{
+                          marginTop: labSpace.lg,
+                          opacity: challengeOrigin ? 0 : 1,
+                        }}
+                      >
+                        <PressableScale
+                          pressScale={CARD_PRESS}
+                          haptic={null}
+                          onPress={openChallenge}
+                          accessibilityLabel={challengeWords.title}
+                        >
+                          <Surface>
+                            <View style={styles.spaceBetween}>
+                              <LabText
+                                variant="overline"
+                                tone="primary"
+                                style={{ flexShrink: 1 }}
+                              >
+                                {copy.challengeOverline}
+                              </LabText>
+                              <Stars count={challenge.stars} />
+                            </View>
+                            <LabText
+                              variant="title"
+                              style={{ marginTop: labSpace.sm }}
+                            >
+                              {challengeWords.title}
+                            </LabText>
+                            <LabText
+                              variant="body"
+                              tone="muted"
+                              style={{ marginTop: labSpace.xs }}
+                            >
+                              {challengeWords.description}
+                            </LabText>
+                            <ProgressBar
+                              // A new situation (lab switch) fills from the start again.
+                              key={challenge.templateId + challenge.day}
+                              progress={challengeShare(challenge.requirements)}
+                              colors={
+                                challengeDone
+                                  ? [c.success, c.success]
+                                  : c.primaryGradient
+                              }
+                              delay={win[0] + 150}
+                              style={{ marginTop: labSpace.lg }}
+                            />
+                            <View
+                              style={[
+                                styles.spaceBetween,
+                                { marginTop: labSpace.sm },
+                              ]}
+                            >
+                              <LabText variant="caption">
+                                {challengeDone
+                                  ? copy.challenge.done
+                                  : challengeFirst
+                                    ? copy.challenge.count(
+                                        challengeFirst.done,
+                                        challengeFirst.target
+                                      )
+                                    : ''}
+                              </LabText>
+                              <LabText variant="caption" tone="muted">
+                                {copy.challengeDay(
+                                  challenge.day,
+                                  challenge.days
+                                )}
+                              </LabText>
+                            </View>
+                          </Surface>
+                        </PressableScale>
+                      </View>
+                    </Rise>
+                  </ScrollCard>
+                );
+              case 'habitStats':
+                // 7 days / 30 days / year in one card (kolo 41)
+                return (
+                  <ScrollCard key={id}>
+                    <Rise window={win}>
+                      <Surface style={{ marginTop: labSpace.lg }}>
+                        <HabitStatsCard
+                          todayDone={doneCount}
+                          todayScheduled={total}
+                        />
+                      </Surface>
+                    </Rise>
+                  </ScrollCard>
+                );
+              case 'insights':
+                return (
+                  <ScrollCard key={id}>
+                    <Rise window={win}>
+                      <Surface style={{ marginTop: labSpace.lg }}>
+                        <InsightsCard />
+                      </Surface>
+                    </Rise>
+                  </ScrollCard>
+                );
+              case 'recommendations':
+                return (
+                  <ScrollCard key={id}>
+                    <Rise window={win}>
+                      <Surface style={{ marginTop: labSpace.lg }}>
+                        <ForYouCard />
+                      </Surface>
+                    </Rise>
+                  </ScrollCard>
+                );
+            }
+          })}
         </RNAnimated.ScrollView>
 
         {/* Compact header: takes over from the large greeting once it scrolls away. */}
@@ -895,6 +998,33 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
             size={pageSize}
             bottomInset={bottomInset}
             onClosed={() => setChallengeOrigin(null)}
+          />
+        )}
+        {confirmFresh && (
+          <ConfirmSheet
+            title={jt('journal.warmUp.startFresh.title')}
+            message={jt('journal.warmUp.startFresh.message')}
+            confirm={jt('common.startFresh')}
+            icon="refresh"
+            bottomInset={bottomInset}
+            onClosed={() => setConfirmFresh(false)}
+            onConfirm={journal.startFresh}
+          />
+        )}
+        {ad && (
+          <AdSimulation
+            onDone={() => {
+              setAd(false);
+              journal.payWarmUpDay(reducedMotion);
+            }}
+          />
+        )}
+        {customizing && (
+          <HomeCustomizeSheet
+            sections={sections}
+            onChange={setSections}
+            bottomInset={bottomInset}
+            onClosed={() => setCustomizing(false)}
           />
         )}
       </View>
@@ -1134,78 +1264,7 @@ function Badge({ emoji, count }: { emoji: string; count: number }) {
   );
 }
 
-const BAR_HEIGHT = 84;
-
 /** One day of the week. The bar slides up (translateY) inside its track — no squashed corners. */
-function WeekBar({
-  delay,
-  value,
-  max,
-  label,
-  isToday,
-}: {
-  delay: number;
-  value: number | null;
-  max: number;
-  label: string;
-  isToday: boolean;
-}) {
-  const { c } = useLab();
-  const fill = useSharedValue(0);
-  const target = value === null ? 0 : value / max;
-
-  const { seen, seenAfter } = useCardSeen();
-  const startIn = seenDelay(seenAfter, delay);
-
-  useEffect(() => {
-    if (!seen) return;
-    fill.value = withDelay(
-      startIn,
-      withTiming(target, {
-        duration: labMotion.slow + 100,
-        easing: Easing.out(Easing.cubic),
-      })
-    );
-  }, [target, startIn, fill, seen]);
-
-  const barStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: (1 - fill.value) * BAR_HEIGHT }],
-  }));
-
-  return (
-    <View style={styles.weekColumn}>
-      <View style={[styles.weekTrack, { backgroundColor: c.track }]}>
-        <Animated.View style={[StyleSheet.absoluteFill, barStyle]}>
-          {isToday ? (
-            <LinearGradient
-              colors={c.primaryGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={styles.weekFill}
-            />
-          ) : (
-            <View
-              style={[
-                styles.weekFill,
-                { backgroundColor: c.primary, opacity: 0.32 },
-              ]}
-            />
-          )}
-        </Animated.View>
-      </View>
-      <LabText
-        variant="caption"
-        tone={isToday ? 'primary' : 'muted'}
-        style={[
-          { marginTop: labSpace.sm },
-          isToday && { fontFamily: labFonts.bold },
-        ]}
-      >
-        {label}
-      </LabText>
-    </View>
-  );
-}
 
 const styles = StyleSheet.create({
   glow: {
@@ -1337,25 +1396,6 @@ const styles = StyleSheet.create({
     marginTop: labSpace.lg,
     paddingVertical: labSpace.md,
     borderRadius: labRadius.pill,
-  },
-  weekRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: labSpace.xl,
-  },
-  weekColumn: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  weekTrack: {
-    width: 22,
-    height: BAR_HEIGHT,
-    borderRadius: 11,
-    overflow: 'hidden',
-  },
-  weekFill: {
-    flex: 1,
-    borderRadius: 11,
   },
   compactHeader: {
     position: 'absolute',

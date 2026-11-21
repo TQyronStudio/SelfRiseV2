@@ -51,9 +51,11 @@ export function StreakFlame({
 
   const source = state === 'fire' ? FIRE : state === 'ice' ? ICE : ICE_TO_FIRE;
   const loop = state !== 'warming';
-  // A loop nobody sees rests: tabs stay mounted when the user leaves (R-32).
+  // A flame nobody sees rests: tabs stay mounted when the user leaves (R-32).
+  // That includes the warming: Home and the Journal share one streak (kolo 43),
+  // so only the flame on screen plays it — one ignition, one success haptic.
   const onScreen = useLabPageActive();
-  const still = reducedMotion || (loop && !onScreen);
+  const still = reducedMotion || !onScreen;
 
   return (
     <PressableScale

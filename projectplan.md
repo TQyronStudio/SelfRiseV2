@@ -163,6 +163,7 @@ fáze 8 (do 15. 1. 2027). Další krok: commit → EAS build → interní testov
 ### ✨ Prémiový vzhled – design systém a pohyb (od 2026-10-22)
 
 - [ ] **Plně implementováno** – audit, dva směry, rozhodnutí a plán po fázích: @premium-design-plan.md
+  - Převod nového designu z laboratoře do ostré appky – pořadí etap, brány a karty etap: @design-migration-plan.md
 
 ---
 

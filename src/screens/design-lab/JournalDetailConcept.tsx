@@ -31,8 +31,9 @@ import { Chip, LabText, PressableScale, useLab } from './labPrimitives';
 import { DetailScroll } from './dragToClose';
 import { useLabBack, useLabCover } from './labCover';
 import { labRadius, labSpace } from './labTokens';
-import { MOCK_COPY, MOCK_STATS } from './mockCopy';
+import { MOCK_COPY } from './mockCopy';
 import { StreakFlame } from './StreakFlame';
+import { useLabJournal } from './journalMock';
 
 export interface DetailRect {
   x: number;
@@ -67,6 +68,8 @@ export function JournalDetailConcept({
   const { c, lang } = useLab();
   useLabCover();
   const copy = MOCK_COPY[lang];
+  // The same streak as the Home card it grew from — frozen there, frozen here.
+  const journal = useLabJournal();
   const p = useSharedValue(0);
 
   useEffect(() => {
@@ -159,28 +162,32 @@ export function JournalDetailConcept({
 
             <View style={styles.streakRow}>
               <StreakFlame
-                state="fire"
+                state={journal.frozen ? 'ice' : 'fire'}
                 onStateChange={() => undefined}
                 size={72}
-                label={copy.streakActive}
+                label={journal.frozen ? copy.streakFrozen : copy.streakActive}
               />
               <View style={{ marginLeft: labSpace.md }}>
                 <LabText
                   variant="display"
                   style={{ fontSize: 56, lineHeight: 62 }}
                 >
-                  {MOCK_STATS.journalStreak}
+                  {journal.streak}
                 </LabText>
                 <LabText variant="label" tone="muted">
                   {copy.days}
                 </LabText>
               </View>
               <View style={{ flex: 1 }} />
-              <Chip
-                icon="checkmark-circle"
-                label={copy.streakActive}
-                tone="success"
-              />
+              {journal.frozen ? (
+                <Chip icon="snow" label={copy.streakFrozen} tone="primary" />
+              ) : (
+                <Chip
+                  icon="checkmark-circle"
+                  label={copy.streakActive}
+                  tone="success"
+                />
+              )}
             </View>
 
             <LabText variant="title" style={{ marginTop: labSpace.xxl }}>

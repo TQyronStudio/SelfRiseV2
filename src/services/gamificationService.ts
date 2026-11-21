@@ -2213,6 +2213,21 @@ export class GamificationService {
   }
 
   /**
+   * XP earned today, for display only (the "+145 XP today" chip on Home and the
+   * "Today" row of the level panel). Net of XP taken back, never negative. Reads
+   * the same daily record the limits use — it adds no bookkeeping of its own.
+   */
+  static async getTodayXP(): Promise<number> {
+    try {
+      const daily = await this.getDailyXPData();
+      return Math.max(0, Math.round(daily.totalXP));
+    } catch (error) {
+      console.error('GamificationService.getTodayXP error:', error);
+      return 0;
+    }
+  }
+
+  /**
    * Get today's XP tracking data
    */
   private static async getDailyXPData(): Promise<DailyXPData> {

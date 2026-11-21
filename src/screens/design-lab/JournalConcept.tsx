@@ -51,7 +51,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import {
   notification,
   NotificationFeedbackType,
@@ -104,12 +103,12 @@ import {
   SlidePage,
   typeLook,
   useJournalT,
+  WarmUpControls,
 } from './journalParts';
 import { JournalHistoryConcept } from './JournalHistoryConcept';
 import { JournalStatsConcept } from './JournalStatsConcept';
 
 const SCREEN_PADDING = labSpace.xl;
-const FROZEN_PREVIEW_DAYS = 2;
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -139,16 +138,8 @@ export function JournalConcept({ bottomInset }: { bottomInset: number }) {
   const [page, setPage] = useState<'history' | 'stats' | null>(null);
   const [ad, setAd] = useState(false);
   const [confirmFresh, setConfirmFresh] = useState(false);
-  const [flame, setFlame] = useState<FlameState>('fire');
-  /** "Start Fresh" preview: the streak starts again from 0. */
-  const [freshStart, setFreshStart] = useState(false);
-
-  const frozen = journal.frozen;
-  const streak = freshStart
-    ? count >= DAILY_GOAL
-      ? 1
-      : 0
-    : journal.stats.currentStreak;
+  // The frozen streak and its warm-up are shared with Home (journalMock, kolo 43).
+  const { frozen, flame, streak, onFlame } = journal;
 
   // --- Native-driven scroll (see scrollChoreography.tsx for why) -------------------
   const scrollRef = useRef<ScrollView>(null);
@@ -246,27 +237,9 @@ export function JournalConcept({ bottomInset }: { bottomInset: number }) {
     if (back > 0) award(-back);
   };
 
-  const onFlame = (next: FlameState) => {
-    if (next === 'ice') {
-      setFreshStart(false);
-      journal.setFrozen({ days: FROZEN_PREVIEW_DAYS, paid: 0 });
-      setFlame('ice');
-    } else if (next === 'fire') {
-      journal.setFrozen(null);
-      setFlame('fire');
-    }
-    // 'warming' from a tap on the ice is ignored: only paying warms the streak.
-  };
-
   const adWatched = () => {
     setAd(false);
-    if (!frozen) return;
-    const paid = frozen.paid + 1;
-    journal.setFrozen({ ...frozen, paid });
-    if (paid >= frozen.days) {
-      if (reducedMotion) onFlame('fire');
-      else setFlame('warming');
-    }
+    journal.payWarmUpDay(reducedMotion);
   };
 
   const sectionWindow = (i: number) =>
@@ -511,11 +484,7 @@ export function JournalConcept({ bottomInset }: { bottomInset: number }) {
             icon="refresh"
             bottomInset={bottomInset}
             onClosed={() => setConfirmFresh(false)}
-            onConfirm={() => {
-              journal.setFrozen(null);
-              setFlame('fire');
-              setFreshStart(true);
-            }}
+            onConfirm={journal.startFresh}
           />
         )}
 
@@ -880,11 +849,10 @@ function FrozenCard({
   onWarmUp: () => void;
   onStartFresh: () => void;
 }) {
-  const { c, lang, mode } = useLab();
+  const { lang, mode } = useLab();
   const t = useJournalT();
   const ice = iceColors(mode);
   const left = days - paid;
-  const done = left <= 0;
   return (
     <Animated.View entering={FadeInDown.duration(300)}>
       <Surface
@@ -906,73 +874,13 @@ function FrozenCard({
         <LabText variant="body" style={{ marginTop: labSpace.sm }}>
           {t('journal.warmUp.frozenMessage', { count: days, adsNeeded: left })}
         </LabText>
-        <View style={styles.debtRow}>
-          {Array.from({ length: days }, (_, i) => {
-            const warm = i < paid;
-            return (
-              <View
-                key={i}
-                style={[
-                  styles.debtDay,
-                  {
-                    backgroundColor: warm ? c.rewardSoft : c.surface,
-                    borderColor: warm ? c.reward : ice.ring,
-                  },
-                ]}
-              >
-                <Ionicons
-                  name={warm ? 'sunny' : 'snow'}
-                  size={14}
-                  color={warm ? c.rewardText : ice.fg}
-                />
-              </View>
-            );
-          })}
-          <View style={{ flex: 1 }} />
-          <LabText variant="caption" style={{ color: ice.fg }}>
-            {t('journal.warmUp.adsProgress', { watched: paid, total: days })}
-          </LabText>
-        </View>
-        <PressableScale
-          {...(done || warming ? null : { onPress: onWarmUp })}
-          accessibilityLabel={t('journal.warmUp.warmUpButton', {
-            current: paid,
-            total: days,
-          })}
-          style={styles.warmButton}
-        >
-          <LinearGradient
-            colors={done ? [c.reward, c.reward] : [ice.fg, ice.ring]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[StyleSheet.absoluteFill, { borderRadius: labRadius.pill }]}
-          />
-          <Ionicons
-            name={done ? 'checkmark' : 'play'}
-            size={16}
-            color="#FFFFFF"
-            style={{ marginRight: labSpace.sm }}
-          />
-          <LabText variant="bodyStrong" style={{ color: '#FFFFFF' }}>
-            {done
-              ? t('journal.warmUp.warmUpComplete')
-              : t('journal.warmUp.warmUpButton', {
-                  current: paid,
-                  total: days,
-                })}
-          </LabText>
-        </PressableScale>
-        {!done && (
-          <PressableScale
-            onPress={onStartFresh}
-            accessibilityLabel={t('common.startFresh')}
-            style={styles.freshButton}
-          >
-            <LabText variant="label" tone="muted">
-              {t('common.startFresh')}
-            </LabText>
-          </PressableScale>
-        )}
+        <WarmUpControls
+          days={days}
+          paid={paid}
+          warming={warming}
+          onWarmUp={onWarmUp}
+          onStartFresh={onStartFresh}
+        />
         <LabText
           variant="caption"
           tone="muted"
@@ -1257,35 +1165,6 @@ const styles = StyleSheet.create({
   frozenHead: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  debtRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: labSpace.sm,
-    marginTop: labSpace.md,
-  },
-  debtDay: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  warmButton: {
-    flexDirection: 'row',
-    height: 48,
-    marginTop: labSpace.lg,
-    borderRadius: labRadius.pill,
-    alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  freshButton: {
-    alignSelf: 'center',
-    paddingVertical: labSpace.sm,
-    paddingHorizontal: labSpace.lg,
-    marginTop: labSpace.xs,
   },
   quoteHead: {
     flexDirection: 'row',

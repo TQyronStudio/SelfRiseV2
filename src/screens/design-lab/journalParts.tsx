@@ -299,6 +299,7 @@ export function BottomSheet({
   bottomInset,
   onClosed,
   keyboardAware = false,
+  draggable = true,
   label,
   children,
 }: {
@@ -306,6 +307,8 @@ export function BottomSheet({
   bottomInset: number;
   onClosed: () => void;
   keyboardAware?: boolean;
+  /** false for a sheet whose rows are dragged themselves (reordering). */
+  draggable?: boolean;
   label: string;
   children: (dismiss: Dismiss) => ReactNode;
 }) {
@@ -352,7 +355,7 @@ export function BottomSheet({
     axis: 'y',
     range: 520,
     close: dismiss,
-    enabled: !keyboardAware,
+    enabled: draggable && !keyboardAware,
   });
 
   return (
@@ -388,6 +391,105 @@ export function BottomSheet({
         </Animated.View>
       </GestureDetector>
     </View>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Warm-up of a frozen streak — the same controls on Home and in the Journal
+// ---------------------------------------------------------------------------
+
+/**
+ * The missed days (snow → sun as each is paid), the one main action (one ad =
+ * one day) and a quiet "Start Fresh". Shared by the Journal's frozen card and the
+ * Home streak card (kolo 43), so both look and behave the same.
+ */
+export function WarmUpControls({
+  days,
+  paid,
+  warming,
+  onWarmUp,
+  onStartFresh,
+}: {
+  days: number;
+  paid: number;
+  warming: boolean;
+  onWarmUp: () => void;
+  onStartFresh: () => void;
+}) {
+  const { c, mode } = useLab();
+  const t = useJournalT();
+  const ice = iceColors(mode);
+  const done = days - paid <= 0;
+  return (
+    <>
+      <View style={styles.debtRow}>
+        {Array.from({ length: days }, (_, i) => {
+          const warm = i < paid;
+          return (
+            <View
+              key={i}
+              style={[
+                styles.debtDay,
+                {
+                  backgroundColor: warm ? c.rewardSoft : c.surface,
+                  borderColor: warm ? c.reward : ice.ring,
+                },
+              ]}
+            >
+              <Ionicons
+                name={warm ? 'sunny' : 'snow'}
+                size={14}
+                color={warm ? c.rewardText : ice.fg}
+              />
+            </View>
+          );
+        })}
+        <View style={{ flex: 1 }} />
+        <LabText variant="caption" style={{ color: ice.fg }}>
+          {t('journal.warmUp.adsProgress', { watched: paid, total: days })}
+        </LabText>
+      </View>
+      <PressableScale
+        {...(done || warming ? null : { onPress: onWarmUp })}
+        accessibilityLabel={t('journal.warmUp.warmUpButton', {
+          current: paid,
+          total: days,
+        })}
+        style={styles.warmButton}
+      >
+        <LinearGradient
+          colors={done ? [c.reward, c.reward] : [ice.fg, ice.ring]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[StyleSheet.absoluteFill, { borderRadius: labRadius.pill }]}
+        />
+        <Ionicons
+          name={done ? 'checkmark' : 'play'}
+          size={16}
+          color="#FFFFFF"
+          style={{ marginRight: labSpace.sm }}
+        />
+        <LabText variant="bodyStrong" style={{ color: '#FFFFFF' }}>
+          {done
+            ? t('journal.warmUp.warmUpComplete')
+            : t('journal.warmUp.warmUpButton', {
+                current: paid,
+                total: days,
+              })}
+        </LabText>
+      </PressableScale>
+      {!done && (
+        <PressableScale
+          onPress={onStartFresh}
+          accessibilityLabel={t('common.startFresh')}
+          style={styles.freshButton}
+        >
+          <LabText variant="label" tone="muted">
+            {t('common.startFresh')}
+          </LabText>
+        </PressableScale>
+      )}
+    </>
   );
 }
 
@@ -1268,6 +1370,35 @@ function Ray({
 }
 
 const styles = StyleSheet.create({
+  debtRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: labSpace.sm,
+    marginTop: labSpace.md,
+  },
+  debtDay: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  warmButton: {
+    flexDirection: 'row',
+    height: 48,
+    marginTop: labSpace.lg,
+    borderRadius: labRadius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  freshButton: {
+    alignSelf: 'center',
+    paddingVertical: labSpace.sm,
+    paddingHorizontal: labSpace.lg,
+    marginTop: labSpace.xs,
+  },
   page: {
     boxShadow: '-8px 0px 24px rgba(0, 0, 0, 0.12)',
   },

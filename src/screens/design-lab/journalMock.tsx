@@ -13,6 +13,10 @@
  * an ad, 15 complete days → a 24-day streak; a 2-entry day broke the run before, and
  * a 31-day run earlier is the longest.
  *
+ * The frozen streak and its warm-up are ONE state for Home and the Journal (kolo 43):
+ * frozen on one, frozen on the other; an ad paid on Home warms the Journal too.
+ * Going live this is the shared warm-up hook E11 pulls out of GratitudeStreakCard.
+ *
  * GOING LIVE: do NOT port. This is stage scenery; the app's real logic lives in
  * GratitudeContext / SQLiteGratitudeStorage (and is tested).
  */
@@ -27,6 +31,7 @@ import React, {
 import { XP_REWARDS } from '@/src/constants/gamification';
 import { addDays, dateKey, startOfDay } from './habitsMock';
 import { LabLang } from './mockCopy';
+import type { FlameState } from './StreakFlame';
 
 export type EntryType = 'gratitude' | 'self-praise';
 
@@ -273,7 +278,20 @@ interface LabJournal {
   /** Frozen streak preview (the debt gate): null = streak is warm. */
   frozen: FrozenPreview | null;
   setFrozen: (next: FrozenPreview | null) => void;
+  /** The flame of the streak — the same on Home and in the Journal. */
+  flame: FlameState;
+  /** The streak to show (0 / 1 after "Start Fresh"). */
+  streak: number;
+  /** Lab tap on a flame: fire → frozen preview; the warmed flame → fire. */
+  onFlame: (next: FlameState) => void;
+  /** One ad watched = one missed day paid; the last one warms the streak. */
+  payWarmUpDay: (reducedMotion: boolean) => void;
+  /** "Start Fresh": the debt is gone, the streak starts again from 0. */
+  startFresh: () => void;
 }
+
+/** Missed days in the frozen-streak preview (1 ad = 1 day). */
+const FROZEN_PREVIEW_DAYS = 2;
 
 const LabJournalContext = createContext<LabJournal | null>(null);
 
@@ -283,6 +301,8 @@ export function LabJournalProvider({ children }: { children: ReactNode }) {
     historyEntries(today)
   );
   const [frozen, setFrozen] = useState<FrozenPreview | null>(null);
+  const [flame, setFlame] = useState<FlameState>('fire');
+  const [freshStart, setFreshStart] = useState(false);
   const paid = useMemo(
     () => new Set(PAID_BACK.map(back => dateKey(addDays(today, -(back + 1))))),
     [today]
@@ -401,6 +421,46 @@ export function LabJournalProvider({ children }: { children: ReactNode }) {
     [byDay, entries]
   );
 
+  // --- The frozen streak and its warm-up (shared by Home and the Journal) -------
+  const onFlame = useCallback((next: FlameState) => {
+    if (next === 'ice') {
+      setFreshStart(false);
+      setFrozen({ days: FROZEN_PREVIEW_DAYS, paid: 0 });
+      setFlame('ice');
+    } else if (next === 'fire') {
+      setFrozen(null);
+      setFlame('fire');
+    }
+    // 'warming' from a tap on the ice is ignored: only paying warms the streak.
+  }, []);
+
+  const payWarmUpDay = useCallback(
+    (reducedMotion: boolean) => {
+      // Nothing to pay (warm, or an ad from the other tab already paid the last day).
+      if (!frozen || frozen.paid >= frozen.days) return;
+      const paidNow = frozen.paid + 1;
+      setFrozen({ ...frozen, paid: paidNow });
+      if (paidNow >= frozen.days) {
+        if (reducedMotion) onFlame('fire');
+        else setFlame('warming');
+      }
+    },
+    [frozen, onFlame]
+  );
+
+  const startFresh = useCallback(() => {
+    setFrozen(null);
+    setFlame('fire');
+    setFreshStart(true);
+  }, []);
+
+  const todayCount = byDay.get(todayKey)?.length ?? 0;
+  const streak = freshStart
+    ? todayCount >= DAILY_GOAL
+      ? 1
+      : 0
+    : stats.currentStreak;
+
   const value = useMemo(
     () => ({
       today,
@@ -415,6 +475,11 @@ export function LabJournalProvider({ children }: { children: ReactNode }) {
       remove,
       frozen,
       setFrozen,
+      flame,
+      streak,
+      onFlame,
+      payWarmUpDay,
+      startFresh,
     }),
     [
       today,
@@ -429,6 +494,11 @@ export function LabJournalProvider({ children }: { children: ReactNode }) {
       edit,
       remove,
       frozen,
+      flame,
+      streak,
+      onFlame,
+      payWarmUpDay,
+      startFresh,
     ]
   );
 

@@ -176,6 +176,44 @@ interface Copy {
     labMoments: string;
     moments: Record<'milestone' | 'finish' | 'kept' | 'lost', string>;
   };
+  /** Home's insights, the "For you" card and the customise sheet (HomeSectionsConcept.tsx). */
+  homeSections: {
+    insights: string;
+    insightsPeriod: string;
+    trendUp: (points: number) => string;
+    trendUpText: string;
+    strongest: string;
+    strongestText: (name: string, rate: number) => string;
+    focus: string;
+    focusText: (name: string, rate: number) => string;
+    forYou: string;
+    write: string;
+    another: string;
+    position: (index: number, count: number) => string;
+    customizeHint: string;
+    names: Record<'todayHabits' | 'insights', string>;
+  };
+  /** Home's habit statistics card (HabitStatsConcept.tsx). */
+  homeStats: {
+    title: string;
+    periods: Record<'week' | 'month' | 'year', string>;
+    vsPrevious: (
+      trend: 'up' | 'down' | 'same',
+      points: number,
+      period: 'week' | 'month'
+    ) => string;
+    completed: string;
+    bonus: string;
+    planned: string;
+    bestDay: string;
+    today: string;
+    ofPlanned: (done: number, planned: number) => string;
+    bonusCount: (count: number) => string;
+    restDay: string;
+    activeDays: (active: number, total: number) => string;
+    less: string;
+    more: string;
+  };
   /** The remaining celebrations (otherMoments.tsx). */
   moments: {
     chapterOverline: string;
@@ -508,6 +546,45 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
         kept: 'Month end · star kept',
         lost: 'Month end · star lost',
       },
+    },
+    homeSections: {
+      insights: 'Insights',
+      insightsPeriod: 'Last 4 weeks',
+      trendUp: points => `Up ${points} points`,
+      trendUpText: 'You complete more of what you plan than a month ago.',
+      strongest: 'Strongest habit',
+      strongestText: (name, rate) => `${name} — ${rate} % this month.`,
+      focus: 'Worth a look',
+      focusText: (name, rate) =>
+        `${name} is at ${rate} % this month. A lighter schedule might help.`,
+      forYou: 'For you',
+      write: 'Write it down',
+      another: 'Another suggestion',
+      position: (index, count) => `${index} of ${count}`,
+      customizeHint:
+        'Drag to change the order. Your day always stays on top.',
+      names: { todayHabits: 'Today’s habits', insights: 'Insights' },
+    },
+    homeStats: {
+      title: 'Your habits',
+      periods: { week: '7 days', month: '30 days', year: 'Year' },
+      vsPrevious: (trend, points, period) => {
+        const before =
+          period === 'week' ? 'the week before' : 'the 30 days before';
+        if (trend === 'same') return `Same as ${before}`;
+        return `${points} ${points === 1 ? 'point' : 'points'} ${trend === 'up' ? 'better' : 'lower'} than ${before}`;
+      },
+      completed: 'Completed',
+      bonus: 'Bonus',
+      planned: 'Planned',
+      bestDay: 'Best day',
+      today: 'Today',
+      ofPlanned: (done, planned) => `${done} of ${planned}`,
+      bonusCount: count => `${count} bonus`,
+      restDay: 'Nothing planned',
+      activeDays: (active, total) => `${active} of ${total} days active`,
+      less: 'Less',
+      more: 'More',
     },
     moments: {
       chapterOverline: 'New chapter',
@@ -861,6 +938,45 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
         kept: 'Monatsende · Stern bleibt',
         lost: 'Monatsende · Stern weg',
       },
+    },
+    homeSections: {
+      insights: 'Einblicke',
+      insightsPeriod: 'Letzte 4 Wochen',
+      trendUp: points => `${points} Punkte besser`,
+      trendUpText: 'Du schaffst mehr von dem, was du planst, als vor einem Monat.',
+      strongest: 'Stärkste Routine',
+      strongestText: (name, rate) => `${name} – ${rate} % in diesem Monat.`,
+      focus: 'Einen Blick wert',
+      focusText: (name, rate) =>
+        `${name} liegt bei ${rate} % in diesem Monat. Ein leichterer Plan könnte helfen.`,
+      forYou: 'Für dich',
+      write: 'Aufschreiben',
+      another: 'Anderer Vorschlag',
+      position: (index, count) => `${index} von ${count}`,
+      customizeHint:
+        'Ziehen, um die Reihenfolge zu ändern. Dein Tag bleibt immer oben.',
+      names: { todayHabits: 'Heutige Routinen', insights: 'Einblicke' },
+    },
+    homeStats: {
+      title: 'Deine Routinen',
+      periods: { week: '7 Tage', month: '30 Tage', year: 'Jahr' },
+      vsPrevious: (trend, points, period) => {
+        const before =
+          period === 'week' ? 'die Woche davor' : 'die 30 Tage davor';
+        if (trend === 'same') return `Wie ${before}`;
+        return `${points} ${points === 1 ? 'Punkt' : 'Punkte'} ${trend === 'up' ? 'besser' : 'schlechter'} als ${before}`;
+      },
+      completed: 'Erledigt',
+      bonus: 'Bonus',
+      planned: 'Geplant',
+      bestDay: 'Bester Tag',
+      today: 'Heute',
+      ofPlanned: (done, planned) => `${done} von ${planned}`,
+      bonusCount: count => `${count} Bonus`,
+      restDay: 'Nichts geplant',
+      activeDays: (active, total) => `${active} von ${total} Tagen aktiv`,
+      less: 'Weniger',
+      more: 'Mehr',
     },
     moments: {
       chapterOverline: 'Neues Kapitel',

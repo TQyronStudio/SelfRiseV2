@@ -559,7 +559,14 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
           apod.), které appka nevyplácí; nikde se neukazují, při převodu je smazat
   - [x] **Zbylé oslavy** – kolo 39 (na zařízení neviděno); R-39 až R-41 schváleny
   - [x] **Přehled úrovní** (`levels-overview`) – kolo 35 (na zařízení neviděno)
-  - [ ] **Přizpůsobení Home** (tlačítko v laboratoři zatím nic neotevírá)
+  - [x] **Home – chybějící sekce a přizpůsobení** (dluh L-2 v @design-migration-plan.md)
+    - [x] **Statistiky návyků (grafy)** – kolo 41 (na zařízení neviděno)
+    - [x] Historie série – na Home **zrušena** (stejný graf je ve Statistikách deníku, P35); kolo 42, Petr
+          potvrdil 2026-11-21. Karta série na Home zůstává a zamrzlou sérii zachrání na místě (kolo 43)
+    - [x] Doporučení, výkon a trendy návyků – karta **Přehledy** a karta **Pro tebe**, kolo 42 (na zařízení
+          neviděno)
+    - [x] Okno přizpůsobení Home, horní řádek (vstup do Síně trofejí, přizpůsobení) – kolo 42. Ukazatel
+          násobiče do horního řádku nepatří, je na odznaku (O-4, dluh L-10)
   - [ ] **Jak SelfRise funguje** (`how-it-works`, v laboratoři vede na ostrou verzi)
   - [ ] **Drobnosti** – bublinky nápovědy, chybové okno, stránka „nenalezeno“
 - [ ] **Revize s nadhledem (2026-11-10, Petr: „se vším souhlasím“ kromě pohledu „den 1“)** – jen čtení, nic se
@@ -595,6 +602,43 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
         `Gamification-UI.md` má nové pravidlo, hlídá to test `levelMilestonePromises.test.ts` (+ negativní
         zkouška). Skutečné odměny zůstávají: trofeje za úroveň 10, 25, 50 a tajná za 100. Přehled úrovní
         v laboratoři je u milníků jmenuje (kromě tajné)
+- [x] **Kolo 43 – Zamrzlá série se zachraňuje přímo na Home** (`journalMock.tsx`, `journalParts.tsx`,
+      `HomeConcept.tsx`; Petr: „když má zamrznutou řadu, hned si toho všimne a je tam tlačítko pro
+      reklamu“). Laboratoř to neuměla: karta na Home ukázala jen štítek a o zamrznutí v Deníku nevěděla.
+      Teď mají Home a Deník **jeden stav série** (zamrznutí, placení, zahřátí, „Začít znovu“). Zamrzlá karta
+      na Home zledovatí, řekne, kolik dní chybí, ukáže dny dluhu a hlavní tlačítko na reklamu; po posledním
+      dni se led rozpraskne a plamen chytne – na Home i v Deníku. „Začít znovu“ je tichý odkaz s potvrzením.
+      Ovládání je **jedna sdílená komponenta** (`WarmUpControls`) pro obě místa; detail série z Home ukazuje
+      stejný stav. Plamen mimo obrazovku teď stojí i při zahřátí – jinak by se zapálil a zavibroval dvakrát.
+      Ověřeno: `tsc`, lint, celá sada; nezávislá revize (2 drobnosti opraveny: štítek „aktivní“ v detailu
+      u zamrzlé série, přeplacení dne dvěma reklamami z obou záložek); kulisy bez vlastního testu (skutečná
+      pravidla jsou v `GratitudeContext` a mají testy); na zařízení neviděno
+- [x] **Kolo 42 – Home: zbytek sekcí a přizpůsobení** (`HomeSectionsConcept.tsx`, `homeLayoutLogic.ts`;
+      dokončení dluhu L-2, Petr: „ať je celý hotový“). Z deseti sekcí dnešního Home je sedm: **Přehledy**
+      nahrazují Výkon i Trendy (dvě karty říkaly totéž) – nejvýš tři věty, které na kartě statistik nejsou:
+      směr za čtyři týdny, nejsilnější návyk a ten, který stojí za pohled (laskavě, teplou barvou, nikdy
+      červeně). **Pro tebe** místo řady doporučení ukáže vždy jedno s jednou akcí a tichým „další“; texty
+      jsou dnešní texty appky. **Historie série na Home není** – stejný graf je ve Statistikách deníku
+      (P35). Karty Úroveň a Násobič zmizely už dřív (R-31, O-4). Tlačítko přizpůsobení v horním řádku
+      otevře sheet: každá sekce jde skrýt a přetáhnout za úchyt, hrdina dne zůstává nahoře (R-4b), dole
+      „Obnovit výchozí“. Sheet se tažením nezavírá (tahají se v něm řádky). **Převod uloženého rozložení**
+      (`migrateHomeSections`): pořadí i skryté sekce uživatele zůstanou, sloučená karta stojí na místě první
+      ze svých částí a je vidět, když byla vidět aspoň jedna; dnešní návyky přibudou hned za rychlé akce.
+      Ověřeno: 11 testů pravidel + 6 negativních zkoušek (jedna napoprvé prošla, test byl doplněn), `tsc`,
+      lint, celá sada; nezávislá revize bez nálezu (drobnost – uložený název „constructor“ prošel jako
+      sekce – opravena i s testem); na zařízení neviděno
+- [x] **Kolo 41 – Home: statistiky návyků jako jedna karta se třemi obdobími** (`HabitStatsConcept.tsx`,
+      `homeChartsLogic.ts`; první část dluhu L-2, Petr: „především grafy“). Nahrazuje tři grafy pod jedním
+      přepínačem (týden, 30 dní, rok) i starou kartu „This week“. Nahoře číslo období a **jedna věta, co
+      znamená** („4 body lepší než týden předtím“); 7 a 30 dní jako sloupce – plán stojí vzadu jako tichý
+      sloupec, splněné ho vyplní, bonus sedí nahoře zlatě; vynechaný den je jen nevyplněný sloupec, žádná
+      červená. Rok jako kalendář odstínů jedné barvy na jednom plátně. Ťuknutí na den řekne jeho čísla pod
+      grafem; dnešní sloupec roste, když na Home odškrtneš návyk. Pod grafem tři fakta (splněno, bonus,
+      nejlepší den). Použit skill `dataviz`: barvy řad i stupně roku prošly jeho validátorem pro světlý
+      i tmavý povrch (první návrh stupňů neprošel – nejsvětlejší byl pod 2:1 – a je opravený), text nikdy
+      nenese barvu řady, legenda u dvou řad. Míra je vzorec appky (všechna splnění včetně bonusů / plán,
+      může být nad 100 %). Ověřeno: 13 testů pravidel + 5 negativních zkoušek, `tsc`, celá sada; bez
+      nezávislé revize; na zařízení neviděno
 - [x] **Kolo 40 – Pocit z ovládání: záložky žijí dál (R-32) a tažné zavírání (R-33)** (`DesignLabScreen.tsx`,
       `dragToClose.tsx`, `dragToCloseLogic.ts`). **Záložky:** stránka se postaví při první návštěvě, přehraje
       nájezd jednou a pak už je přepnutí okamžité – záložka si drží stav i polohu rolování. Skryté záložky
@@ -626,9 +670,10 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
       Spouští se tlačítkem trofeje v panelu laboratoře (scénáře 6–10). Tiché oznámení umí být bez XP.
       Ověřeno: 9 testů pravidel + 5 negativních zkoušek (jedna odhalila nadbytečný řádek – odstraněn),
       `tsc`, celá sada; bez nezávislé revize; na zařízení neviděno.
-      **Nález k rozhodnutí (Petr):** stejně nedodělané je XP za sérii návyku – konstanty 75/100/150/200/300
-      XP za 7/14/30/50/100 dní existují (`XP_REWARDS.HABIT.STREAK_*`) a průvodce je uvádí jako zdroj XP, ale
-      žádný kód je nevyplácí.
+      **XP za sérii návyku: Petr 2026-11-16 rozhodl nevyplácet** („to jsem původně nezamýšlel“) – konstanty
+      `XP_REWARDS.HABIT.STREAK_*` se smažou při úklidu, průvodce je opravený. Další rozhodnutí z téhož dne
+      (násobič na odznaku, bonus za velký cíl podle úsilí, „dnešní XP“, jeden velký update, velká okna jen
+      tlačítkem, karta deníku vede do Deníku) jsou v @design-migration-plan.md kap. 4.3.
       **Otevřené pro převod:** vstup do stupně a velká trofej ze stejné akce mají být jeden moment (dnes by
       šly po sobě); běžící násobič není mimo panel úrovně nikde vidět; tlačítko pro zapnutí násobiče nemá
       v novém Home místo (patří k bodu „Přizpůsobení Home“)
@@ -819,6 +864,11 @@ Laboratoř ukazuje *jak* to vypadá. Do skutečné appky jen za těchto podmíne
   opona čeká na ně (@technical-guides:Startup-Orchestrator.md, pravidlo „nikdy dva modaly").
 - **Nikdy neprodlouží čekání na data:** opona se zvedá, až je databáze načtená; nic se kvůli ní
   nezpomalí.
+
+> **Převod do ostré appky má od 2026-11-15 vlastní úplný plán: @design-migration-plan.md** – pořadí
+> etap E0–E30, brány, karty etap se soubory, co chybí v laboratoři (L-1 až L-10) a tabulka stavu.
+> Fáze F2–F6 níže zůstávají jako původní osnova; postupuje se podle nového plánu a **kde se liší, platí
+> nový plán** (např. F5 „převést RN `Animated` → Reanimated“ neplatí – rozhoduje brána B1; Lottie se nemaže).
 
 ### F2 – Základ: tokeny, fonty, primitiva (bez viditelné změny; 1–2 posezení)
 - [ ] Větev `design-v2` (pokud R-5 = ano)
@@ -1105,6 +1155,15 @@ s touto kapitolou kontroluje každá obrazovka. Pravidla se po schválení přes
 69. **Tažení a rolování se dělí podle polohy obsahu.** U začátku obsahu patří tah dolů oknu, jinde seznamu;
     okno s textovým polem se tažením nikdy nezavírá. Jedna sdílená pravidla pro stránky, sheety i detaily
     (`dragToCloseLogic.ts`) – ne vlastní prahy v každé komponentě (kolo 40).
+70. **Graf bez věty „a co z toho“ je ozdoba.** Tři grafy pod sebou říkaly třikrát totéž; jeden graf
+    s přepínačem období a nad ním číslo s jednou větou (lepší / horší než minule) říká víc. Stav dne v grafu
+    nese výška a tvar, ne červená; barvy grafu se ověřují validátorem, ne okem (kolo 41, skill `dataviz`).
+71. **Sloučit sekce smí návrh, ne uživatelova data.** Když se z deseti sekcí stane sedm, uložené pořadí
+    a skryté sekce se převádějí pravidlem s testem (sloučená karta na místě první části, vidět, když byla
+    vidět aspoň jedna) – nikdy návrat k výchozímu rozložení (kolo 42).
+72. **Záchrana patří tam, kde je vidět ohrožení.** Zamrzlá série na Home bez tlačítka znamená cestu navíc
+    a část lidí ji neujde. Jeden stav pro všechna místa, kde se série ukazuje, a jedna komponenta záchrany –
+    nikdy dvě kopie, které se rozejdou (kolo 43).
 49. **Co obrazovka slibuje, musí kód plnit.** Sbírky ukazovaly bonus XP, který nikdo nevyplácí, a čtyři z nich
     čekaly na neexistující trofeje; dvě trofeje blokoval strop formuláře. Při převodu ke každému slibu
     dohledat kód, který ho plní, a odkazy na katalog hlídat testem (kolo 28).

@@ -18,8 +18,8 @@
  *   SQLiteGoalStorage. The completion modal stays ONE modal from ModalQueueContext.
  * - Today's 4 icon buttons per card → "⋯" sheet (same decision as habits, R-4c).
  * - Templates live inside the composer ("Start from an idea") — the separate
- *   "Use Template" button and modal go (R-19). Keep the onboarding target
- *   `add-goal-button` on the "+" button.
+ *   "Use Template" button and modal go (R-19). (The old `add-goal-button`
+ *   nativeID is a leftover nothing reads — do not carry it over.)
  * - Reorder stays the shared ReorderableList (technical-guides:Habits.md).
  */
 import React, { useMemo, useRef, useState } from 'react';
