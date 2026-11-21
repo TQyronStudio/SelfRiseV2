@@ -52,6 +52,7 @@ import {
   useLab,
 } from './labPrimitives';
 import { DetailScroll } from './dragToClose';
+import { HelpLink } from './labHelp';
 import { useLabBack, useLabCover } from './labCover';
 import {
   labFonts,
@@ -442,6 +443,8 @@ export function HabitDetailConcept({
                 label={t('habits.calendar.legendScheduled')}
                 habitColor={habitColor}
               />
+              {/* The golden check is a rule nobody can see: say it (kolo 48). */}
+              <HelpLink topic="makeUp" />
             </View>
 
             {/* How make-up works */}

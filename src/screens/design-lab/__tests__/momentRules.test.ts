@@ -1,5 +1,7 @@
 import { JOURNAL_STREAK_MILESTONES } from '../../../utils/journalStreakMilestones';
+import { getXPRequiredForLevel } from '../../../services/levelCalculation';
 import {
+  chapterOfAction,
   streakMomentSize,
   STREAK_WINDOW_DAYS,
   tierEntered,
@@ -71,5 +73,22 @@ describe('journal streak: window or quiet note', () => {
     STREAK_WINDOW_DAYS.forEach(days =>
       expect(JOURNAL_STREAK_MILESTONES as readonly number[]).toContain(days)
     );
+  });
+});
+
+describe('one action, one moment: a new chapter takes the trophies along', () => {
+  const start21 = getXPRequiredForLevel(21);
+
+  it("finds the chapter an action's XP opens", () => {
+    expect(chapterOfAction(start21 - 100, 500)).toEqual({
+      level: 21,
+      tier: 'rare',
+    });
+  });
+
+  it('stays null inside a tier, and for nothing gained', () => {
+    expect(chapterOfAction(start21 + 10, 500)).toBeNull();
+    expect(chapterOfAction(start21 - 100, 50)).toBeNull();
+    expect(chapterOfAction(start21 - 100, 0)).toBeNull();
   });
 });

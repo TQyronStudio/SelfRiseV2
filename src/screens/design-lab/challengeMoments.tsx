@@ -59,8 +59,11 @@ import {
   challengeReward,
   challengeShare,
   COMPLETION_MULTIPLIER,
+  milestonesCrossed,
+  StarCategory,
   starAfter,
   StarLevel,
+  warmUpStepDown,
 } from './challengeLogic';
 import {
   CHALLENGE_LEVELS,
@@ -129,7 +132,24 @@ const NEXT = {
   category: 'journal',
 } as const;
 
-export type ChallengeMomentKind = 'milestone' | 'finish' | 'kept' | 'lost';
+export type ChallengeMomentKind =
+  'milestone' | 'milestones' | 'finish' | 'warmUpThird' | 'kept' | 'lost';
+
+/** Two warm-ups before this one: the app steps a category down (computed once). */
+const WARM_UP_THIRD_STEP_DOWN = warmUpStepDown(2, CHALLENGE_LEVELS);
+
+/** A warm-up challenge, finished — the third in a row for 'warmUpThird'. */
+const FINISHED_WARMUP: LabChallenge = {
+  templateId: 'habits_consistency_master',
+  category: 'habits',
+  stars: 1,
+  warmUp: true,
+  requirements: [{ done: 12, target: 12 }],
+  day: 24,
+  days: 31,
+  daily: [],
+  streakBefore: 0,
+};
 
 export function useChallengeMoments(): (kind: ChallengeMomentKind) => void {
   const { lang } = useLab();
@@ -152,6 +172,27 @@ export function useChallengeMoments(): (kind: ChallengeMomentKind) => void {
           title: copy.challenge.milestoneNote(milestone.at, words.title),
           xp: milestone.xp,
         });
+      } else if (kind === 'milestones') {
+        // One big log, 45 % → 80 %: the app emits two milestone events; the
+        // user gets ONE note with both and the XP of both (kolo 46, L-8).
+        const crossed = milestonesCrossed(45, 80);
+        showNote({
+          icon: 'flag',
+          overline: copy.challengeOverline,
+          title: copy.challenge.milestonesNote(
+            crossed.map(m => m.at),
+            words.title
+          ),
+          xp: crossed.reduce((sum, m) => sum + m.xp, 0),
+        });
+      } else if (kind === 'warmUpThird') {
+        showWindow(done => (
+          <ChallengeDoneWindow
+            challenge={FINISHED_WARMUP}
+            stepDown={WARM_UP_THIRD_STEP_DOWN}
+            onClosed={done}
+          />
+        ));
       } else if (kind === 'finish') {
         showWindow(done => (
           <ChallengeDoneWindow challenge={FINISHED} onClosed={done} />
@@ -333,9 +374,16 @@ export function PrimaryButton({
 
 export function ChallengeDoneWindow({
   challenge,
+  stepDown = null,
   onClosed,
 }: {
   challenge: LabChallenge;
+  /**
+   * The third warm-up in a row: the app lowers its highest category by a star
+   * (starRatingService, reason `warmup_penalty`). Said here, in the same window —
+   * never a window of its own (kolo 46, L-8).
+   */
+  stepDown?: { category: StarCategory; from: StarLevel; to: StarLevel } | null;
   onClosed: () => void;
 }) {
   const { c, lang, mode } = useLab();
@@ -368,11 +416,19 @@ export function ChallengeDoneWindow({
       200,
       withTiming(1, { duration: 1100, easing: Easing.out(Easing.cubic) })
     );
+    if (stepDown) {
+      // A step down is news, said calmly: the same soft warning as a lost star.
+      const id = setTimeout(
+        () => notification(NotificationFeedbackType.Warning),
+        STAR_BEAT
+      );
+      return () => clearTimeout(id);
+    }
     if (after === challenge.stars) return undefined;
     // The new star lands with a beat of its own.
     const id = setTimeout(() => impact(ImpactFeedbackStyle.Heavy), STAR_BEAT);
     return () => clearTimeout(id);
-  }, [ring, after, challenge.stars]);
+  }, [ring, after, challenge.stars, stepDown]);
   const ringStyle = useAnimatedStyle(() => ({
     opacity: 1 - ring.value,
     transform: [{ scale: 0.9 + 1.2 * ring.value }],
@@ -463,6 +519,28 @@ export function ChallengeDoneWindow({
                   )
                 : text.topLevel}
           </LabText>
+
+          {stepDown && (
+            <View style={momentStyles.stepDown}>
+              <Ionicons
+                name="arrow-down-circle-outline"
+                size={16}
+                color={c.textMuted}
+                style={{ marginTop: 2 }}
+              />
+              <LabText
+                variant="label"
+                tone="muted"
+                style={{ marginLeft: labSpace.sm, flexShrink: 1 }}
+              >
+                {text.warmUpStepDown(
+                  text.categoryName[stepDown.category],
+                  stepDown.to,
+                  starName(stepDown.to)
+                )}
+              </LabText>
+            </View>
+          )}
 
           <View
             style={[momentStyles.earned, { backgroundColor: c.surfaceRaised }]}
@@ -741,6 +819,11 @@ export const momentStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: labSpace.md,
+  },
+  stepDown: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     marginTop: labSpace.md,
   },
   recapRing: {

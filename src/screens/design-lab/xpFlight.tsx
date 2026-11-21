@@ -61,6 +61,8 @@ import Animated, {
   withSequence,
   withSpring,
   withTiming,
+  ZoomIn,
+  ZoomOut,
 } from 'react-native-reanimated';
 import {
   Canvas,
@@ -632,6 +634,14 @@ interface LevelBadgeProps {
   open?: boolean;
   /** A tap on the "LEVEL UP" tag would do something right now. */
   tagTappable?: boolean;
+  /**
+   * The XP multiplier on the badge (kolo 44, O-4): a gold tag with the factor while
+   * one runs, a still gold dot while one is ready to switch on. Rules: multiplierLogic.ts.
+   */
+  mark?:
+    | { kind: 'tag'; factor: string; label: string }
+    | { kind: 'dot'; label: string }
+    | null;
 }
 
 export function LevelBadge({
@@ -639,6 +649,7 @@ export function LevelBadge({
   openness,
   open = false,
   tagTappable = true,
+  mark = null,
 }: LevelBadgeProps) {
   const { c, mode } = useLab();
   // The hit must read on a white badge too: deep gold in light mode, bright gold in dark.
@@ -737,6 +748,21 @@ export function LevelBadge({
 
   // The ring grows into the panel's big ring from its own top-left corner, so its
   // centre moves only a few px: sparks still in the air land on it, slightly off.
+  // Built once, like `openStyle`: a re-render must not swap the node mid-animation.
+  const markFade = useMemo(
+    () =>
+      openness
+        ? {
+            opacity: openness.interpolate({
+              inputRange: [0, 0.3],
+              outputRange: [1, 0],
+              extrapolate: 'clamp',
+            }),
+          }
+        : null,
+    [openness]
+  );
+
   const openStyle = useMemo(() => {
     if (!openness) return null;
     const grow = (BADGE * (LEVEL_BADGE_OPEN_SCALE - 1)) / 2;
@@ -777,7 +803,9 @@ export function LevelBadge({
             {...(onPress ? { onPress } : null)}
             // The panel plays its own haptic — only when the tap does something.
             haptic={null}
-            accessibilityLabel={`Level ${level}`}
+            accessibilityLabel={
+              mark ? `Level ${level}. ${mark.label}` : `Level ${level}`
+            }
             pressScale={0.92}
             style={styles.badgeHit}
           >
@@ -882,6 +910,32 @@ export function LevelBadge({
               </View>
             </RNAnimated.View>
           </PressableScale>
+          {/* The multiplier sits on the ring's edge; it gives way as the panel opens
+              (the panel says it in words). Cut out of the ring by the page colour. */}
+          {mark && (
+            <RNAnimated.View
+              pointerEvents="none"
+              // One pin the size of the badge for both marks: switching dot → tag
+              // must not move the outgoing dot while it zooms out.
+              style={[styles.markPin, markFade]}
+            >
+              <Animated.View
+                key={mark.kind}
+                entering={ZoomIn.springify().damping(14)}
+                exiting={ZoomOut.duration(160)}
+                style={[
+                  mark.kind === 'tag' ? styles.markTag : styles.markDot,
+                  { borderColor: c.canvas },
+                ]}
+              >
+                {mark.kind === 'tag' && (
+                  <Text maxFontSizeMultiplier={1} style={styles.markTagText}>
+                    {mark.factor}
+                  </Text>
+                )}
+              </Animated.View>
+            </RNAnimated.View>
+          )}
         </RNAnimated.View>
       </View>
       <LevelUpTag
@@ -1073,6 +1127,42 @@ const styles = StyleSheet.create({
   badgeNumber: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  markPin: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: BADGE,
+    height: BADGE,
+  },
+  markTag: {
+    position: 'absolute',
+    right: -9,
+    bottom: -3,
+    minWidth: 26,
+    height: 19,
+    paddingHorizontal: 5,
+    borderRadius: 10,
+    borderWidth: 2,
+    backgroundColor: GOLD,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  markTagText: {
+    fontFamily: labFonts.bold,
+    fontSize: 11,
+    lineHeight: 13,
+    color: '#4A2F00',
+  },
+  markDot: {
+    position: 'absolute',
+    right: 1,
+    top: 1,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 2,
+    backgroundColor: GOLD_DEEP,
   },
   tag: {
     marginLeft: labSpace.sm,

@@ -105,6 +105,7 @@ import {
   useJournalT,
   WarmUpControls,
 } from './journalParts';
+import { HelpLink } from './labHelp';
 import { JournalHistoryConcept } from './JournalHistoryConcept';
 import { JournalStatsConcept } from './JournalStatsConcept';
 
@@ -563,9 +564,15 @@ function TodayCard({
       />
       <View style={styles.todayRow}>
         <View style={{ flex: 1 }}>
-          <LabText variant="overline" tone="primary">
-            {t('journal.today')}
-          </LabText>
+          <View style={styles.todayHead}>
+            <LabText variant="overline" tone="primary">
+              {t('journal.today')}
+            </LabText>
+            {/* Three a day, ⭐ 🔥 👑 at 4 / 8 / 13 (kolo 48). */}
+            <View style={{ marginLeft: labSpace.md }}>
+              <HelpLink topic="journalDay" />
+            </View>
+          </View>
           <View style={styles.countRow}>
             <RollingNumber text={`${count}`} variant="number" />
             <LabText
@@ -870,6 +877,8 @@ function FrozenCard({
           >
             {t('journal.warmUp.title')}
           </LabText>
+          <View style={{ flex: 1 }} />
+          <HelpLink topic="frozen" />
         </View>
         <LabText variant="body" style={{ marginTop: labSpace.sm }}>
           {t('journal.warmUp.frozenMessage', { count: days, adsNeeded: left })}
@@ -1163,6 +1172,10 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   frozenHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  todayHead: {
     flexDirection: 'row',
     alignItems: 'center',
   },

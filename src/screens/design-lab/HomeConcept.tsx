@@ -54,6 +54,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   Easing,
+  FadeIn,
   useAnimatedReaction,
   useAnimatedStyle,
   useDerivedValue,
@@ -110,6 +111,7 @@ import { ChallengeDetailConcept, Stars } from './ChallengeDetailConcept';
 import { challengePace, challengeShare } from './challengeLogic';
 import { useChallengeText, useLabChallenge } from './challengeMock';
 import { HabitStatsCard } from './HabitStatsConcept';
+import { ChallengeCardPlaceholder } from './ChallengeCardStates';
 import {
   ForYouCard,
   HomeCustomizeSheet,
@@ -171,7 +173,15 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
     null
   );
   const challengeCardRef = useRef<View>(null);
-  const { challenge } = useLabChallenge();
+  const {
+    challenge,
+    cardState: challengeCard,
+    retrying: challengeRetrying,
+    retry: retryChallenge,
+  } = useLabChallenge();
+  // Did the card wait for its challenge? Then the challenge fades in when it comes.
+  const challengeWaited = useRef(false);
+  if (challengeCard !== 'ready') challengeWaited.current = true;
   const challengeWords = useChallengeText(challenge);
   const challengeDone =
     challengePace(challenge.requirements, challenge.day, challenge.days)
@@ -848,73 +858,93 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
                           opacity: challengeOrigin ? 0 : 1,
                         }}
                       >
-                        <PressableScale
-                          pressScale={CARD_PRESS}
-                          haptic={null}
-                          onPress={openChallenge}
-                          accessibilityLabel={challengeWords.title}
-                        >
-                          <Surface>
-                            <View style={styles.spaceBetween}>
-                              <LabText
-                                variant="overline"
-                                tone="primary"
-                                style={{ flexShrink: 1 }}
-                              >
-                                {copy.challengeOverline}
-                              </LabText>
-                              <Stars count={challenge.stars} />
-                            </View>
-                            <LabText
-                              variant="title"
-                              style={{ marginTop: labSpace.sm }}
+                        {challengeCard !== 'ready' ? (
+                          // Loading / preparing / failed — the card keeps its
+                          // place and shape (kolo 45, L-7).
+                          <ChallengeCardPlaceholder
+                            state={challengeCard}
+                            retrying={challengeRetrying}
+                            onRetry={retryChallenge}
+                          />
+                        ) : (
+                          <Animated.View
+                            // The challenge arriving after a wait fades in; on a
+                            // normal start the card is simply there.
+                            {...(challengeWaited.current
+                              ? { entering: FadeIn.duration(320) }
+                              : null)}
+                          >
+                            <PressableScale
+                              pressScale={CARD_PRESS}
+                              haptic={null}
+                              onPress={openChallenge}
+                              accessibilityLabel={challengeWords.title}
                             >
-                              {challengeWords.title}
-                            </LabText>
-                            <LabText
-                              variant="body"
-                              tone="muted"
-                              style={{ marginTop: labSpace.xs }}
-                            >
-                              {challengeWords.description}
-                            </LabText>
-                            <ProgressBar
-                              // A new situation (lab switch) fills from the start again.
-                              key={challenge.templateId + challenge.day}
-                              progress={challengeShare(challenge.requirements)}
-                              colors={
-                                challengeDone
-                                  ? [c.success, c.success]
-                                  : c.primaryGradient
-                              }
-                              delay={win[0] + 150}
-                              style={{ marginTop: labSpace.lg }}
-                            />
-                            <View
-                              style={[
-                                styles.spaceBetween,
-                                { marginTop: labSpace.sm },
-                              ]}
-                            >
-                              <LabText variant="caption">
-                                {challengeDone
-                                  ? copy.challenge.done
-                                  : challengeFirst
-                                    ? copy.challenge.count(
-                                        challengeFirst.done,
-                                        challengeFirst.target
-                                      )
-                                    : ''}
-                              </LabText>
-                              <LabText variant="caption" tone="muted">
-                                {copy.challengeDay(
-                                  challenge.day,
-                                  challenge.days
-                                )}
-                              </LabText>
-                            </View>
-                          </Surface>
-                        </PressableScale>
+                              <Surface>
+                                <View style={styles.spaceBetween}>
+                                  <LabText
+                                    variant="overline"
+                                    tone="primary"
+                                    style={{ flexShrink: 1 }}
+                                  >
+                                    {copy.challengeOverline}
+                                  </LabText>
+                                  <Stars count={challenge.stars} />
+                                </View>
+                                <LabText
+                                  variant="title"
+                                  style={{ marginTop: labSpace.sm }}
+                                >
+                                  {challengeWords.title}
+                                </LabText>
+                                <LabText
+                                  variant="body"
+                                  tone="muted"
+                                  style={{ marginTop: labSpace.xs }}
+                                >
+                                  {challengeWords.description}
+                                </LabText>
+                                <ProgressBar
+                                  // A new situation (lab switch) fills from the start again.
+                                  key={challenge.templateId + challenge.day}
+                                  progress={challengeShare(
+                                    challenge.requirements
+                                  )}
+                                  colors={
+                                    challengeDone
+                                      ? [c.success, c.success]
+                                      : c.primaryGradient
+                                  }
+                                  delay={win[0] + 150}
+                                  style={{ marginTop: labSpace.lg }}
+                                />
+                                <View
+                                  style={[
+                                    styles.spaceBetween,
+                                    { marginTop: labSpace.sm },
+                                  ]}
+                                >
+                                  <LabText variant="caption">
+                                    {challengeDone
+                                      ? copy.challenge.done
+                                      : challengeFirst
+                                        ? copy.challenge.count(
+                                            challengeFirst.done,
+                                            challengeFirst.target
+                                          )
+                                        : ''}
+                                  </LabText>
+                                  <LabText variant="caption" tone="muted">
+                                    {copy.challengeDay(
+                                      challenge.day,
+                                      challenge.days
+                                    )}
+                                  </LabText>
+                                </View>
+                              </Surface>
+                            </PressableScale>
+                          </Animated.View>
+                        )}
                       </View>
                     </Rise>
                   </ScrollCard>

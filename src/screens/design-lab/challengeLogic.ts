@@ -203,3 +203,80 @@ export function starAfter(
   const down = Math.max(1, stars - 1) as StarLevel;
   return { stars: down, change: down < stars ? 'down' : 'same', failures: 0 };
 }
+
+// ---------------------------------------------------------------------------
+// The Home card's states (kolo 45, lab debt L-7)
+// ---------------------------------------------------------------------------
+
+export type ChallengeCardState = 'ready' | 'loading' | 'preparing' | 'error';
+
+/**
+ * Which face the Home card shows. Known data always wins: a refresh in the
+ * background (or a refresh that fails) keeps the card the user already sees —
+ * today's app flips the whole card to "Loading…" on every refresh. The skeleton
+ * is for the first load only; "preparing" is the month before its challenge
+ * exists (the lifecycle manager makes it, the card then fills itself).
+ */
+export function challengeCardState({
+  hasChallenge,
+  loading,
+  failed,
+}: {
+  hasChallenge: boolean;
+  loading: boolean;
+  failed: boolean;
+}): ChallengeCardState {
+  if (hasChallenge) return 'ready';
+  if (failed) return 'error';
+  if (loading) return 'loading';
+  return 'preparing';
+}
+
+/** The skeleton waits this long: a fast load never flashes it. */
+export const SKELETON_DELAY_MS = 250;
+
+// ---------------------------------------------------------------------------
+// Moments that must not come one after another (kolo 46, lab debt L-8)
+// ---------------------------------------------------------------------------
+
+/**
+ * The milestones one log crossed. The app emits `monthly_milestone_reached` per
+ * milestone, so a big log (20 % → 80 %) would slide out two notes in a row; they
+ * become ONE note with the sum of their XP.
+ */
+export function milestonesCrossed(
+  beforePercent: number,
+  afterPercent: number
+): { at: number; xp: number }[] {
+  return CHALLENGE_MILESTONES.filter(
+    m => beforePercent < m.at && afterPercent >= m.at
+  ).map(m => ({ at: m.at, xp: m.xp }));
+}
+
+/** Warm-ups in a row that make the app step one category down (starRatingService). */
+export const WARMUPS_FOR_STEP_DOWN = 3;
+
+/** Tie order of the app's findHighestStarCategory: Consistency first. */
+const STEP_DOWN_ORDER = ['consistency', 'habits', 'journal', 'goals'] as const;
+export type StarCategory = (typeof STEP_DOWN_ORDER)[number];
+
+/**
+ * After the third warm-up challenge in a row the app lowers the HIGHEST star level
+ * by one (ties: Consistency, Habits, Journal, Goals) — a category that may not be
+ * the warm-up's own. Null when nothing changes: not the third one, or every
+ * category is already at one star (the app then keeps 1★).
+ */
+export function warmUpStepDown(
+  warmUpsBefore: number,
+  levels: Record<StarCategory, StarLevel>
+): { category: StarCategory; from: StarLevel; to: StarLevel } | null {
+  if (warmUpsBefore + 1 < WARMUPS_FOR_STEP_DOWN) return null;
+  const top = Math.max(...STEP_DOWN_ORDER.map(k => levels[k]));
+  if (top <= 1) return null;
+  const category = STEP_DOWN_ORDER.find(k => levels[k] === top)!;
+  return {
+    category,
+    from: top as StarLevel,
+    to: (top - 1) as StarLevel,
+  };
+}

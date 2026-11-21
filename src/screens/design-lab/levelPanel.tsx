@@ -71,6 +71,10 @@ import {
   timeLeftParts,
 } from './levelPanelLogic';
 import { formatThousands, MOCK_COPY, MOCK_STATS } from './mockCopy';
+import { useLabMultiplier } from './multiplierMock';
+import { HelpLink } from './labHelp';
+import { XP_MULTIPLIERS } from '@/src/constants/gamification';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   LAB_START_XP,
   LEVEL_BADGE_OPEN_DROP,
@@ -287,8 +291,7 @@ export function LevelPanel({
   // Everything earned in this lab session went through the badge. (Home's chip
   // counts only habits in the mock — live, both read one source.)
   const xpToday = MOCK_STATS.xpToday + (settledXp - LAB_START_XP);
-  const multiplier = MOCK_STATS.multiplier;
-  const left = timeLeftParts(multiplier.minutesLeft);
+  const multiplier = useLabMultiplier();
 
   const announcement = `${copy.level(level)}. ${title}. ${toNext}`;
   useEffect(() => {
@@ -428,19 +431,13 @@ export function LevelPanel({
                   </LabText>
                 </View>
                 <Divider />
-                <View style={styles.row}>
-                  <LabText
-                    variant="label"
-                    tone="muted"
-                    numberOfLines={1}
-                    style={styles.rowLabel}
-                  >
-                    {text.multiplier(multiplier.factor)}
-                  </LabText>
-                  <LabText variant="numberSm">
-                    {text.timeLeft(left.value, left.unit)}
-                  </LabText>
-                </View>
+                <MultiplierPart
+                  onBeforeHelp={panel.close}
+                  onActivate={() => {
+                    panel.close();
+                    multiplier.activate();
+                  }}
+                />
                 {/* The lab's quiet button (Home → "Write an entry"), not a bare row. */}
                 <PressableScale
                   onPress={openLevels}
@@ -466,6 +463,164 @@ export function LevelPanel({
     </View>
   );
 }
+
+// ---------------------------------------------------------------------------
+// The XP multiplier (kolo 44, L-10, O-4) — rules in multiplierLogic.ts
+// ---------------------------------------------------------------------------
+
+/**
+ * Running: the factor and the time left. Ready: the seven days and the one gold
+ * button of the panel. Building: the seven days and today's three — what makes a
+ * harmony day, so the user knows what to do today, not only how far it is.
+ */
+function MultiplierPart({
+  onActivate,
+  onBeforeHelp,
+}: {
+  onActivate: () => void;
+  /** The help sheet opens over the tabs: the panel goes first. */
+  onBeforeHelp: () => void;
+}) {
+  const { c, lang } = useLab();
+  const text = MOCK_COPY[lang].levelPanel;
+  const { status, today, print } = useLabMultiplier();
+
+  if (status.kind === 'running') {
+    const left = timeLeftParts(status.minutesLeft);
+    return (
+      <View style={styles.row}>
+        <LabText
+          variant="label"
+          tone="muted"
+          numberOfLines={1}
+          style={styles.rowLabel}
+        >
+          {text.multiplier(print(status.factor))}
+        </LabText>
+        <LabText variant="numberSm">
+          {text.timeLeft(left.value, left.unit)}
+        </LabText>
+      </View>
+    );
+  }
+
+  const required = XP_MULTIPLIERS.HARMONY_STREAK_DAYS_REQUIRED;
+  const days = status.kind === 'ready' ? required : status.days;
+  const factor = print(XP_MULTIPLIERS.HARMONY_STREAK_MULTIPLIER);
+  const parts = [
+    { key: 'habits', label: text.parts.habits, done: today.habits },
+    { key: 'journal', label: text.parts.journal, done: today.journal },
+    { key: 'goals', label: text.parts.goals, done: today.goals },
+  ];
+
+  return (
+    <View style={styles.harmony}>
+      <View style={styles.row}>
+        <LabText
+          variant="label"
+          tone="muted"
+          numberOfLines={1}
+          style={styles.rowLabel}
+        >
+          {text.harmony}
+        </LabText>
+        {/* What a harmony day is and what the multiplier does (kolo 48). */}
+        <HelpLink topic="multiplier" before={onBeforeHelp} />
+        <View style={{ flex: 1 }} />
+        <LabText variant="numberSm" numberOfLines={1}>
+          {status.kind === 'building' && status.cooldownDays > 0
+            ? text.harmonyNext(status.cooldownDays)
+            : text.harmonyDays(days, required)}
+        </LabText>
+      </View>
+      {/* Seven days in a row: a sequence, so seven segments. */}
+      <View
+        style={styles.segments}
+        accessible
+        accessibilityLabel={`${text.harmony}: ${text.harmonyDays(days, required)}`}
+      >
+        {Array.from({ length: required }, (_, i) => (
+          <View
+            key={i}
+            style={[
+              styles.segment,
+              { backgroundColor: i < days ? LEVEL_GOLD[1] : c.track },
+            ]}
+          />
+        ))}
+      </View>
+
+      {status.kind === 'ready' ? (
+        <PressableScale
+          onPress={onActivate}
+          accessibilityRole="button"
+          accessibilityLabel={text.switchOn(
+            factor,
+            XP_MULTIPLIERS.HARMONY_STREAK_DURATION
+          )}
+          style={styles.switchOn}
+        >
+          <LinearGradient
+            colors={LEVEL_GOLD}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={[StyleSheet.absoluteFill, { borderRadius: labRadius.pill }]}
+          />
+          <Ionicons
+            name="flash"
+            size={16}
+            color={GOLD_INK}
+            style={{ marginRight: labSpace.sm }}
+          />
+          <LabText variant="bodyStrong" style={{ color: GOLD_INK }}>
+            {text.switchOn(factor, XP_MULTIPLIERS.HARMONY_STREAK_DURATION)}
+          </LabText>
+        </PressableScale>
+      ) : (
+        <>
+          <View style={styles.parts}>
+            {parts.map(part => (
+              <View
+                key={part.key}
+                style={styles.part}
+                accessible
+                accessibilityLabel={
+                  part.done
+                    ? text.partDone(part.label)
+                    : text.partOpen(part.label)
+                }
+              >
+                <Ionicons
+                  name={part.done ? 'checkmark-circle' : 'ellipse-outline'}
+                  size={16}
+                  color={part.done ? c.successText : c.textFaint}
+                />
+                <LabText
+                  variant="caption"
+                  tone={part.done ? 'text' : 'muted'}
+                  numberOfLines={1}
+                  style={{ marginLeft: 4, flexShrink: 1 }}
+                >
+                  {part.label}
+                </LabText>
+              </View>
+            ))}
+          </View>
+          <LabText
+            variant="caption"
+            tone="faint"
+            style={{ marginTop: labSpace.xs }}
+          >
+            {text.harmonyHint}
+          </LabText>
+        </>
+      )}
+    </View>
+  );
+}
+
+/** Text on gold — the ink of the multiplier window's medal. */
+const GOLD_INK = '#4A2F00';
 
 const styles = StyleSheet.create({
   scrim: {
@@ -518,6 +673,37 @@ const styles = StyleSheet.create({
   rowLabel: {
     flexShrink: 1,
     marginRight: labSpace.md,
+  },
+  harmony: {
+    paddingBottom: labSpace.md,
+  },
+  segments: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  segment: {
+    flex: 1,
+    height: 6,
+    borderRadius: 3,
+  },
+  parts: {
+    flexDirection: 'row',
+    gap: labSpace.md,
+    marginTop: labSpace.md,
+  },
+  part: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+  },
+  switchOn: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: labSpace.md,
+    borderRadius: labRadius.pill,
+    overflow: 'hidden',
   },
   link: {
     minHeight: 48,

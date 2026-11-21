@@ -43,7 +43,12 @@ import {
 } from '@/src/services/hapticsService';
 import { getLevelInfo } from '@/src/services/levelCalculation';
 import { getJournalStreakReward } from '@/src/utils/journalStreakMilestones';
-import { useLabMoments } from './celebrationDirector';
+import {
+  LabTrophy,
+  useLabCelebrate,
+  useLabMoments,
+} from './celebrationDirector';
+import { Medal } from './AchievementCelebrationConcept';
 import {
   momentStyles,
   PrimaryButton,
@@ -55,7 +60,7 @@ import { LabText, typeStyle, useLab } from './labPrimitives';
 import { labFonts, labSpace, labTier, LabTierId } from './labTokens';
 import { LEVEL_TIERS, tierFill, tierOf } from './levelsJourney';
 import { LabLang, MOCK_COPY } from './mockCopy';
-import { streakMomentSize, tierEntered } from './momentRules';
+import { chapterOfAction, streakMomentSize, tierEntered } from './momentRules';
 import { StreakFlame } from './StreakFlame';
 import { useLabXpAward } from './xpFlight';
 
@@ -86,12 +91,19 @@ export function useOtherMoments() {
   const { lang } = useLab();
   const text = MOCK_COPY[lang].moments;
   const { showNote, showWindow } = useLabMoments();
+  const celebrate = useLabCelebrate();
+  // Chapters already shown with the action that opened them: the level-up that
+  // follows when the XP lands must not show the same chapter again.
+  const chaptersShown = useRef(new Set<number>());
   return useMemo(
     () => ({
       /** A level-up from `previous` to `level`: a window only for a new tier. */
       levelUp(previous: number, level: number) {
         const tier = tierEntered(previous, level);
         if (!tier) return;
+        // Already shown with the action whose XP opened it: this level-up is
+        // that same XP landing. Skip it once — a later level-up shows again.
+        if (chaptersShown.current.delete(level)) return;
         showWindow(done => (
           <ChapterWindow level={level} tier={tier} onClosed={done} />
         ));
@@ -110,11 +122,33 @@ export function useOtherMoments() {
           });
         }
       },
+      /**
+       * What one action unlocked, when its XP may open a new chapter (kolo 46,
+       * L-8): then ONE window — the chapter, with the trophies inside it.
+       * Otherwise the trophy rules as before (celebrationDirector.momentFor).
+       */
+      action(batch: LabTrophy[], xpBefore: number) {
+        const xp = batch.reduce((sum, item) => sum + item.xp, 0);
+        const chapter = chapterOfAction(xpBefore, xp);
+        if (!chapter) {
+          celebrate(batch);
+          return;
+        }
+        chaptersShown.current.add(chapter.level);
+        showWindow(done => (
+          <ChapterWindow
+            level={chapter.level}
+            tier={chapter.tier}
+            also={batch}
+            onClosed={done}
+          />
+        ));
+      },
       multiplier() {
         showWindow(done => <MultiplierWindow onClosed={done} />);
       },
     }),
-    [showNote, showWindow, text]
+    [showNote, showWindow, celebrate, text]
   );
 }
 
@@ -167,10 +201,13 @@ function Emblem({
 export function ChapterWindow({
   level,
   tier,
+  also = [],
   onClosed,
 }: {
   level: number;
   tier: LabTierId;
+  /** Trophies of the same action ride inside (kolo 46); their XP flies from the button. */
+  also?: LabTrophy[];
   onClosed: () => void;
 }) {
   const { c, lang, mode } = useLab();
@@ -181,11 +218,27 @@ export function ChapterWindow({
   const look = labTier[tier];
   const range = tierOf(level);
   const name = t(`gamification.levels.overview.rarity.${tier}`);
+  const xp = also.reduce((sum, item) => sum + item.xp, 0);
+  const award = useLabXpAward();
+  const buttonRef = useRef<View>(null);
   const { leave, scrimStyle, cardStyle } = useWindowMotion(
     onClosed,
-    `${text.chapterOverline}. ${name}. ${copy.level(level)}`
+    `${text.chapterOverline}. ${name}. ${copy.level(level)}${
+      also.length
+        ? `. ${copy.celebrate.alsoUnlocked}: ${also.map(item => t(item.nameKey)).join(', ')}. +${xp} XP`
+        : ''
+    }`
   );
-  const close = useCallback(() => leave(), [leave]);
+  // The trophies' XP is credited now, from the button into the badge — as in
+  // the trophy window.
+  const close = useCallback(() => {
+    const node = buttonRef.current;
+    if (xp === 0 || !node) leave(() => award(xp));
+    else
+      node.measureInWindow((x, y, w, h) =>
+        leave(() => award(xp, { x: x + w / 2, y: y + h / 2 }))
+      );
+  }, [award, leave, xp]);
   useBackToClose(close);
   useEffect(() => {
     notification(NotificationFeedbackType.Success);
@@ -275,7 +328,43 @@ export function ChapterWindow({
             {text.chapterLine(range.from, range.to)}
           </LabText>
 
-          <PrimaryButton label={copy.challenge.continue} onPress={close} />
+          {also.length > 0 && (
+            <View style={[styles.also, { borderColor: c.border }]}>
+              <LabText variant="caption" tone="muted">
+                {copy.celebrate.alsoUnlocked}
+              </LabText>
+              <View style={styles.alsoRow}>
+                {also.map(item => (
+                  <View key={item.id} style={styles.alsoItem}>
+                    <Medal trophy={item} size={28} />
+                    <LabText
+                      variant="label"
+                      numberOfLines={1}
+                      style={{ marginLeft: labSpace.sm, flexShrink: 1 }}
+                    >
+                      {t(item.nameKey)}
+                    </LabText>
+                  </View>
+                ))}
+              </View>
+              <View style={[styles.reward, { backgroundColor: c.rewardSoft }]}>
+                <Ionicons name="sparkles" size={14} color={c.rewardText} />
+                <LabText
+                  variant="bodyStrong"
+                  tone="reward"
+                  style={{ marginLeft: 6 }}
+                >
+                  {`+${xp} XP`}
+                </LabText>
+              </View>
+            </View>
+          )}
+
+          <PrimaryButton
+            label={copy.challenge.continue}
+            onPress={close}
+            buttonRef={buttonRef}
+          />
         </Animated.View>
       </View>
     </View>
@@ -496,6 +585,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: labSpace.md,
     paddingVertical: labSpace.sm,
     borderRadius: 999,
+  },
+  also: {
+    alignSelf: 'stretch',
+    alignItems: 'center',
+    marginTop: labSpace.lg,
+    paddingTop: labSpace.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  alsoRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: labSpace.md,
+    marginTop: labSpace.sm,
+  },
+  alsoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    maxWidth: '100%',
   },
   streakNumber: {
     fontSize: 56,

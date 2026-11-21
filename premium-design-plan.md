@@ -567,8 +567,12 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
           neviděno)
     - [x] Okno přizpůsobení Home, horní řádek (vstup do Síně trofejí, přizpůsobení) – kolo 42. Ukazatel
           násobiče do horního řádku nepatří, je na odznaku (O-4, dluh L-10)
-  - [ ] **Jak SelfRise funguje** (`how-it-works`, v laboratoři vede na ostrou verzi)
-  - [ ] **Drobnosti** – bublinky nápovědy, chybové okno, stránka „nenalezeno“
+  - [x] **Násobič na odznaku** (dluh L-10, O-4) – kolo 44 (na zařízení neviděno)
+  - [x] **Stavy karty měsíční výzvy** (dluh L-7) – kolo 45 (na zařízení neviděno)
+  - [x] **Spojení momentů** (dluh L-8) – kolo 46 (na zařízení neviděno)
+  - [x] **Jak SelfRise funguje** (`how-it-works`, dluh L-3) – kolo 47 (na zařízení neviděno)
+  - [ ] **Drobnosti** (dluh L-4) – bublinky nápovědy ✅ kolo 48; chybové okno, „nenalezeno“, chyba databáze
+        ✅ kolo 49; zbývá systémová okna `Alert.alert` a trasa `habit-stats` (potřebuje Petrovo rozhodnutí)
 - [ ] **Revize s nadhledem (2026-11-10, Petr: „se vším souhlasím“ kromě pohledu „den 1“)** – jen čtení, nic se
       neměnilo. Zdroje ověřené ten den: průvodce výkonem a přepínači Reanimatedu, changelog 4.3.0, npm
   - **Laboratoř (vzhled a pocit):**
@@ -576,7 +580,8 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
           zatím na dnešní přehled; jeho nový vzhled je bod „Přehled úrovní“ výše
     - [x] **Nájezd jen při prvním zobrazení záložky (R-32)** – kolo 40 (na zařízení neviděno)
     - [x] **Tažné zavírání (R-33)** – kolo 40: stránky, sheety, detail deníku, návyku a výzvy (na zařízení
-          neviděno). Zbývá: detail cíle uvnitř stránky a okna oslav (ta se dál potvrzují tlačítkem)
+          neviděno). Detail cíle i okna oslav ověřeny 2026-11-21 (L-9): detail cíle je stránka s tahem od
+          okraje už od kola 40, okna se zavírají jen tlačítkem (O-3) – nic dalšího se nestavělo
     - [ ] **Vlastní podpisové ikony (R-34)** a **zvuk + hmatové vzory (R-35)**
   - **Na pozadí (před převodem první obrazovky):**
     - [ ] **Jeden nativní build pro všechno najednou:** přepínač `USE_COMMIT_HOOK_ONLY_FOR_REACT_COMMITS`
@@ -602,6 +607,91 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
         `Gamification-UI.md` má nové pravidlo, hlídá to test `levelMilestonePromises.test.ts` (+ negativní
         zkouška). Skutečné odměny zůstávají: trofeje za úroveň 10, 25, 50 a tajná za 100. Přehled úrovní
         v laboratoři je u milníků jmenuje (kromě tajné)
+- [x] **Kolo 49 – Když se něco nepovede** (`systemScreens.tsx`; část dluhu L-4). **Neúspěšná akce:** dnes
+      `ErrorModal` se surovým textem výjimky (`error.message`, anglicky, z kódu) a okno, které se musí
+      zavřít. Nově klidný pruh nad spodní lištou: jedna věta, co se nestalo a co je v bezpečí („Návyk se
+      neuložil. Co jsi napsal, tam zůstalo.“), „Zkusit znovu“, když to může pomoct, sám zmizí po 6 s, nový
+      nahradí starý (nikdy dva nad sebou); teplá barva a obrys, žádná červená, žádná omluva. Kontrola polí
+      zůstává u pole, jak ji laboratoř už má. **„Nenalezeno“:** dnes „Oops! This screen does not exist.“
+      s odkazem; nově klidná stránka s jedinou smysluplnou cestou „Zpět na dnešek“ (i systémové zpět).
+      **Chyba databáze:** texty appky jsou dobré a zůstávají; nový vzhled, štít „data jsou v bezpečí“ jako
+      první, stav „Zkouším znovu…“, po úspěchu se sama zavře. Přepínače: 4 scénáře v liště. Ověřeno: `tsc`,
+      lint, celá sada; na zařízení neviděno
+- [x] **Kolo 48 – Nápověda na místě místo jedenácti `?`** (`labHelp.tsx`; část dluhu L-4). Dnes 11 bublin
+      `?`; tři vysvětlují tlačítka, která říkají, co dělají (rychlé akce, doporučení, „vytvoř jakýkoli
+      cíl“ – vlastní test appky v `helpTopics.ts` je ze stránky vyřadil), takže **zanikají**, s nimi i
+      plánování dnů v návyku (je vidět); dvěma zaniká hostitel (lišta XP na Home, pět metod předpovědí).
+      Zůstává **tiché „i“ jen tam, kde se ukazuje skryté pravidlo**: kalendář návyku (zlatý háček), karta
+      „Dnes“ v deníku (tři záznamy, ⭐ 🔥 👑), zamrzlá série (zahřátí), tempo cíle, řádek harmonie
+      v panelu úrovně (násobič – dřív `?` u lišty XP), hvězdy v detailu výzvy. Ťuknutí otevře spodní okno
+      se **stejným textem jako stránka „Jak SelfRise funguje“** (jeden text na dvou místech, jak chtěl
+      `helpTopics.ts`; pravidla jsou v jednom háčku `useHowItWorksSections`), s obrázkem, pokud ho pravidlo
+      má, a „Všechna pravidla“ otevře stránku rovnou na správném oddílu. Okno je nad záložkami, takže funguje
+      i z panelu úrovně (panel se nejdřív schová). Ikona je šedá „i“ s plochou 44 pt, ne `?`, které zní jako
+      otázka, na kterou uživatel neumí odpovědět. Ověřeno: `tsc`, lint, celá sada; nezávislá revize kol 47–48
+      (opraveno: **věta o hvězdách byla špatně** – appka bere hvězdu po dvou měsících v řadě bez dokončení,
+      když druhý skončí pod 70 %, ne „dva měsíce pod 70 %“; strop cíle jsou 3 výplaty XP denně včetně
+      milníků, číslo se teď bere z `xpLimits`; počet dnů harmonie v nadpisu z konstanty; „víc“ na konci úvodu
+      už neztratí XP z úvodu (chyba byla i dřív); okno nápovědy se posouvá a nemá dvojitý okraj); na
+      zařízení neviděno
+- [x] **Kolo 47 – „Jak SelfRise funguje“ nově** (`HowItWorksConcept.tsx`; dluh L-3). Dnešní stránka má
+      věcné chyby: série deníku prý „sleduje návyky, cíle i deník“ (je jen deníková), XP odkazuje na lištu,
+      která zmizela (R-31), „předpovědi“ cílů jsou věštec místo tempa; a chybí přesně to, na co se lidé
+      ptají – násobič, hvězdy výzvy, ⭐ 🔥 👑. Nová stránka: jen skryté mechaniky, sedm oddílů v pořadí, jak
+      je uživatel potká (návyky, deník, cíle, XP a level, násobič, měsíční výzva, trofeje); každé pravidlo =
+      krátký nadpis + jedna dvě věty, co se děje a co s tím. **Všechna čísla jsou konstanty appky
+      předané do textu** (XP_REWARDS, XP_MULTIPLIERS, CHALLENGE_MILESTONES, KEEP_LEVEL_SHARE,
+      ACHIEVEMENT_XP_REWARDS, JOURNAL_STREAK_REWARDS), takže stránka nemůže zastarat. Čtyři malé tiché
+      obrázky tam, kde vysvětlí rychleji (týden s nahrazeným dnem, cesta 13 záznamů, sedm dnů harmonie,
+      šest kapitol) – pro čtečku skryté, význam nese věta. Otevírá se z Nastavení i z konce úvodu jako
+      stránka laboratoře (dřív vedla na starou obrazovku). Použit skill `frontend-design` (bez nadpisů
+      velkými písmeny nad každým oddílem, bez animace po oddílech). Ověřeno: `tsc`, lint, celá sada;
+      fakta ověřena v průvodcích (Habits, My-Journal, Monthly-Challenges) a v konstantách; na zařízení
+      neviděno
+- [x] **Kolo 46 – Momenty, které nesmí jít po sobě** (`chapterOfAction` v `momentRules.ts`,
+      `milestonesCrossed` a `warmUpStepDown` v `challengeLogic.ts`, `otherMoments.tsx`, `challengeMoments.tsx`;
+      dluh L-8). Tři místa, kde by jedna akce vyvolala dvě věci za sebou:
+      (1) **Trofej + nová kapitola:** když XP z odemčených trofejí přenese uživatele do nového stupně, je
+      jedno okno – kapitola (pětkrát za život účtu, proto vede) a trofeje uvnitř jako „Také odemčeno“
+      s jejich XP; XP letí z tlačítka jako u okna trofeje. Následný level-up stejnou kapitolu znovu
+      neukáže. (2) **Víc milníků jedním záznamem** (45 % → 80 %): jedno tiché oznámení „50 % a 75 % …“
+      se součtem XP – appka dnes posílá událost za každý milník. (3) **Třetí zahřívací výzva po sobě:**
+      appka sníží kategorii s nejvyšší hvězdou o jednu (při shodě Konzistence; nikdy pod 1★) – dosud nebylo
+      nikde nakreslené. Teď je to klidný řádek ve stejném okně „Výzva splněna“ (měkké varovné cvrnknutí,
+      šipka dolů, „další budou sedět líp“), nikdy samostatné okno. Přepínače: v detailu výzvy (Lab ·
+      momenty) dva nové, v liště scénář kapitoly. Ověřeno: 9 nových testů + 6 negativních zkoušek (jedna
+      prošla – podmínka „nic nezískáno“ byla zbytečná a je pryč), `tsc`, lint, celá sada; nezávislá revize kol
+      45–46 (opraveno: scénář „nová kapitola“ se při druhém průchodu neotevřel – potlačení teď platí jen
+      jednou, pro level-up z téže akce; snížení hvězd se počítá jednou); na zařízení neviděno
+- [x] **Kolo 45 – Karta měsíční výzvy, než má výzvu** (`ChallengeCardStates.tsx`, `challengeCardState`
+      v `challengeLogic.ts`; dluh L-7). Tři podoby, všechny ve tvaru karty (nadpis s měsícem, titulek, dva
+      řádky, místo pro pruh), takže Home neposkočí: **načítání** = tichá kostra, která se ukáže až po 250 ms
+      (rychlé načtení nic neblikne), bez třpytu – na Home se samo hýbe jen slunce; **příprava** = „Tvoje výzva
+      je na cestě“ + věta, že se objeví sama, místo pruhu přerušovaný obrys, žádné tlačítko (není co dělat);
+      **chyba** = co se nestalo, že je pokrok v bezpečí, a jedno tlačítko „Zkusit znovu“ (během pokusu
+      „Načítá se…“) – žádný surový text chyby, žádné ⚠️. Výzva, která přijde po čekání, se jemně objeví.
+      **Pravidlo proti dnešní appce:** známá data vždy vyhrají – dnešní karta při každém obnovení přepne
+      celou kartu na „Loading…“ a při neúspěšném obnovení ukáže chybu, i když výzvu zná. Dnešní texty mají
+      emoji a v němčině useknutá slova („Keine aktive“, „Fehler“) – nové jsou v `mockCopy`. Přepínač:
+      tlačítko scénářů v liště (3 nové). Ověřeno: 3 nové testy + 4 negativní zkoušky, `tsc`, lint; na
+      zařízení neviděno
+- [x] **Kolo 44 – Násobič XP na odznaku úrovně** (`multiplierLogic.ts`, `multiplierMock.tsx`, `xpFlight.tsx`,
+      `levelPanel.tsx`, `celebrationDirector.tsx`; dluh L-10, O-4). Použit skill `frontend-design` (odvaha
+      na jednom místě – zlatý štítek –, kolem ticho; pohyb jen jako odpověď na akci). **Běží:** zlatý štítek
+      s faktorem na okraji odznaku („2ד, ale i „1,5ד výzvy nebo „2,5ד komba – štítek ukazuje, co opravdu
+      běží), v panelu faktor a zbývající čas; štítek se při otevírání panelu rozplyne. **Připraven:** tichá
+      zlatá tečka na odznaku, jednou vyjede z odznaku tiché oznámení s tlačítkem „Zapnout“ (drží 5 s místo 3);
+      v panelu sedm dílků a jediné zlaté tlačítko panelu „Zapnout 2× XP na 24 h“ → zapne a přehraje schválené
+      okno (R-41). **Sbírá se:** v panelu sedm dílků (sled dnů), dnešní tři (návyky, deník, cíle – co dnes
+      udělat, ne jen kolik zbývá) a věta, co dělá den harmonie; během pauzy po násobiči „Další za N dní“.
+      **Upřesnění proti O-4:** (1) oznámení se může přehlédnout, proto tečka a tlačítko v panelu zůstávají;
+      (2) oznámení se ukáže **jednou pro každé připravení**, i když se připravil přes noc a appka se teprve
+      otevřela – ne „jen při změně za běhu“ (to byl můj první návrh a byl špatně: ranní uživatel by ho nikdy
+      neviděl). Ověřeno: 10 testů pravidel + 8 negativních zkoušek, `tsc`, lint, celá sada; nezávislá revize
+      (opraveno: dvojí ťuknutí na oznámení zapnulo násobič dvakrát a okno se ukázalo dvakrát – zapnout jde
+      jen připravený násobič a mizející oznámení už nic neudělá; drobnost s poskočením tečky); na zařízení
+      neviděno. **Nález v ostré appce (neopraveno, k rozhodnutí):** bonus za zapnutí (24 × 10 = 240 XP) se
+      připisuje AŽ po uložení násobiče, takže se sám zdvojí na 480 XP; okno o bonusu nic neříká
 - [x] **Kolo 43 – Zamrzlá série se zachraňuje přímo na Home** (`journalMock.tsx`, `journalParts.tsx`,
       `HomeConcept.tsx`; Petr: „když má zamrznutou řadu, hned si toho všimne a je tam tlačítko pro
       reklamu“). Laboratoř to neuměla: karta na Home ukázala jen štítek a o zamrznutí v Deníku nevěděla.
@@ -1164,6 +1254,18 @@ s touto kapitolou kontroluje každá obrazovka. Pravidla se po schválení přes
 72. **Záchrana patří tam, kde je vidět ohrožení.** Zamrzlá série na Home bez tlačítka znamená cestu navíc
     a část lidí ji neujde. Jeden stav pro všechna místa, kde se série ukazuje, a jedna komponenta záchrany –
     nikdy dvě kopie, které se rozejdou (kolo 43).
+73. **Oznámení se dá přehlédnout, nabídka ne.** Co tiché oznámení nabízí, musí zůstat dosažitelné tam, odkud
+    vyjelo (tečka na odznaku + tlačítko v panelu). A „ukázat jednou“ se počítá na připravení, ne na změnu za
+    běhu – jinak ho nikdy neuvidí ten, komu se to stalo přes noc (kolo 44).
+74. **Prázdný stav není „Loading…“ přes známá data.** Obnovení na pozadí nikdy neschová, co uživatel už
+    vidí; kostra až po chvilce a ve tvaru karty; chyba řekne, co se nestalo a co s tím, jedním tlačítkem –
+    bez surového textu a bez ⚠️ (kolo 45).
+75. **Dvě věci z jedné akce = jedna věc na obrazovce, i když přijdou různými kanály.** Trofej a kapitola,
+    dva milníky, výzva a snížení hvězd – služby je posílají zvlášť, obrazovka je skládá. Vede vzácnější;
+    druhé jede uvnitř (kolo 46).
+76. **Nápověda patří ke skrytému pravidlu, ne ke každému prvku.** Tlačítko, které říká, co dělá, nápovědu
+    nepotřebuje; pravidlo, které na obrazovce vidět není, ji potřebuje přesně tam, kde se projeví – a jeden
+    text pro bublinu i stránku pravidel, jinak se rozejdou (kolo 48).
 49. **Co obrazovka slibuje, musí kód plnit.** Sbírky ukazovaly bonus XP, který nikdo nevyplácí, a čtyři z nich
     čekaly na neexistující trofeje; dvě trofeje blokoval strop formuláře. Při převodu ke každému slibu
     dohledat kód, který ho plní, a odkazy na katalog hlídat testem (kolo 28).

@@ -65,6 +65,7 @@ import { Ring } from './GoalDetailConcept';
 import { DetailRect } from './JournalDetailConcept';
 import { useJournalT } from './journalParts';
 import { DetailScroll } from './dragToClose';
+import { HelpLink } from './labHelp';
 import { useLabBack, useLabCover } from './labCover';
 import {
   Chip,
@@ -86,7 +87,14 @@ const OPEN_SPRING = {
 };
 const CLOSE_MS = 320;
 
-const MOMENTS: ChallengeMomentKind[] = ['milestone', 'finish', 'kept', 'lost'];
+const MOMENTS: ChallengeMomentKind[] = [
+  'milestone',
+  'milestones',
+  'finish',
+  'warmUpThird',
+  'kept',
+  'lost',
+];
 const CATEGORIES: ChallengeCategory[] = [
   'habits',
   'journal',
@@ -412,7 +420,15 @@ export function ChallengeDetailConcept({
             </View>
 
             {/* Star levels by category */}
-            <SectionTitle>{text.levels}</SectionTitle>
+            <View style={styles.levelsHead}>
+              <LabText variant="title" style={{ flexShrink: 1 }}>
+                {text.levels}
+              </LabText>
+              {/* Stars per area, warm-ups (kolo 48). */}
+              <View style={{ marginLeft: labSpace.md }}>
+                <HelpLink topic="stars" />
+              </View>
+            </View>
             <View
               style={[
                 styles.card,
@@ -706,6 +722,11 @@ function LevelRow({
 }
 
 const styles = StyleSheet.create({
+  levelsHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: labSpace.xxl,
+  },
   frame: {
     position: 'absolute',
     overflow: 'hidden',

@@ -13,11 +13,18 @@
 import React, {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
-import { StarLevel } from './challengeLogic';
+import {
+  challengeCardState,
+  ChallengeCardState,
+  StarLevel,
+} from './challengeLogic';
 import { useJournalT } from './journalParts';
 
 export type ChallengeCategory = 'habits' | 'journal' | 'goals' | 'consistency';
@@ -129,15 +136,80 @@ interface LabChallengeState {
   scenario: ChallengeScenario;
   challenge: LabChallenge;
   setScenario: (scenario: ChallengeScenario) => void;
+  /** The Home card's face (kolo 45, L-7) — rules: challengeCardState. */
+  cardState: ChallengeCardState;
+  /** True while a "Try again" runs (the button says so). */
+  retrying: boolean;
+  /** Lab toolbar: show the card in this state. */
+  setCardState: (state: ChallengeCardState) => void;
+  /** The error's "Try again": a short load, then the challenge. */
+  retry: () => void;
 }
+
+/** How long the lab's simulated load / retry takes. */
+const LAB_LOAD_MS = 900;
 
 const LabChallengeContext = createContext<LabChallengeState | null>(null);
 
 export function LabChallengeProvider({ children }: { children: ReactNode }) {
   const [scenario, setScenario] = useState<ChallengeScenario>('onTrack');
+  // What the app knows, as the live card has it: data, a load running, a failure.
+  const [source, setSource] = useState({
+    hasChallenge: true,
+    loading: false,
+    failed: false,
+  });
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clear = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+  };
+  useEffect(() => clear, []);
+
+  const setCardState = useCallback((state: ChallengeCardState) => {
+    clear();
+    if (state === 'ready') {
+      setSource({ hasChallenge: true, loading: false, failed: false });
+    } else if (state === 'error') {
+      setSource({ hasChallenge: false, loading: false, failed: true });
+    } else if (state === 'preparing') {
+      setSource({ hasChallenge: false, loading: false, failed: false });
+      // The lifecycle manager makes the month's challenge; the card fills itself.
+      timer.current = setTimeout(
+        () => setSource({ hasChallenge: true, loading: false, failed: false }),
+        LAB_LOAD_MS * 4
+      );
+    } else {
+      setSource({ hasChallenge: false, loading: true, failed: false });
+      timer.current = setTimeout(
+        () => setSource({ hasChallenge: true, loading: false, failed: false }),
+        LAB_LOAD_MS
+      );
+    }
+  }, []);
+
+  const retry = useCallback(() => {
+    clear();
+    setSource(prev => ({ ...prev, loading: true }));
+    timer.current = setTimeout(
+      () => setSource({ hasChallenge: true, loading: false, failed: false }),
+      LAB_LOAD_MS
+    );
+  }, []);
+
+  const cardState = challengeCardState(source);
+  const retrying = source.failed && source.loading;
   const value = useMemo(
-    () => ({ scenario, challenge: CHALLENGES[scenario], setScenario }),
-    [scenario]
+    () => ({
+      scenario,
+      challenge: CHALLENGES[scenario],
+      setScenario,
+      cardState,
+      retrying,
+      setCardState,
+      retry,
+    }),
+    [scenario, cardState, retrying, setCardState, retry]
   );
   return (
     <LabChallengeContext.Provider value={value}>

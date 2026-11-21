@@ -34,7 +34,6 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Constants from 'expo-constants';
-import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { selection } from '@/src/services/hapticsService';
@@ -82,12 +81,15 @@ export function SettingsConcept({
   onThemePref,
   onLang,
   onRestartTutorial,
+  onOpenHowItWorks,
 }: {
   bottomInset: number;
   themePref: ThemePref;
   onThemePref: (pref: ThemePref) => void;
   onLang: (lang: LabLang) => void;
   onRestartTutorial: () => void;
+  /** The lab's own page (kolo 47, HowItWorksConcept.tsx). */
+  onOpenHowItWorks: () => void;
 }) {
   const { c, lang, crown } = useLab();
   const { timeline } = useIntro();
@@ -290,7 +292,7 @@ export function SettingsConcept({
                   color={c.habit.teal}
                   title={t('settings.howItWorks')}
                   description={t('settings.howItWorksDescription')}
-                  onPress={() => router.push('/how-it-works' as never)}
+                  onPress={onOpenHowItWorks}
                 />
                 <Divider style={styles.rowDivider} />
                 <Row

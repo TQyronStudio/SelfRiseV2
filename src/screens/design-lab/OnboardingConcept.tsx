@@ -1425,7 +1425,8 @@ export function OnboardingEnding({
   result: OnboardingResult;
   /** `xp` = what the trophies and the gratitude earned; it flies when the app shows. */
   onDone: (xp: number) => void;
-  onLearnMore: () => void;
+  /** Gets the same XP as onDone: reading the rules first must not lose it. */
+  onLearnMore: (xp: number) => void;
 }) {
   const { c, lang } = useLab();
   const copy = MOCK_COPY[lang];
@@ -1652,7 +1653,7 @@ export function OnboardingEnding({
           onPress={() => setPhase('remind')}
         />
         <PressableScale
-          onPress={onLearnMore}
+          onPress={() => onLearnMore(quietXp)}
           accessibilityLabel={t('onboarding.done.learnMore')}
           style={styles.quietLink}
         >

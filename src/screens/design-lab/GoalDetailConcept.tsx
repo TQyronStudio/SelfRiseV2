@@ -65,6 +65,7 @@ import {
   useJournalT,
 } from './journalParts';
 import { dateKey } from './habitsMock';
+import { HelpLink } from './labHelp';
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -177,8 +178,12 @@ export function GoalDetailConcept({
                 ? `${fmt(goal.start, copy.locale)} → ${fmt(goal.target, copy.locale)} ${unit}`
                 : `${t('goals.detailsCard.target')}: ${fmt(goal.target, copy.locale)} ${unit}`}
             </LabText>
-            <View style={{ marginTop: labSpace.sm, alignSelf: 'flex-start' }}>
+            <View style={styles.paceRow}>
               <PaceChip pace={pace} />
+              {/* How the pace is worked out (kolo 48). */}
+              <View style={{ marginLeft: labSpace.md }}>
+                <HelpLink topic="pace" />
+              </View>
             </View>
           </View>
         </Surface>
@@ -743,6 +748,12 @@ function Milestones({ goal }: { goal: LabGoal }) {
 }
 
 const styles = StyleSheet.create({
+  paceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginTop: labSpace.sm,
+  },
   overlineRow: {
     flexDirection: 'row',
     alignItems: 'center',

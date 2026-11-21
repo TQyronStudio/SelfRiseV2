@@ -15,6 +15,7 @@
  * GOING LIVE (1:1): the streak lengths come from the app's own list
  * (journalStreakMilestones.ts); the tier ranges from the levels journey.
  */
+import { getCurrentLevel } from '@/src/services/levelCalculation';
 import { isJournalStreakMilestone } from '@/src/utils/journalStreakMilestones';
 import type { LabTierId } from './labTokens';
 import { tierOf } from './levelsJourney';
@@ -40,4 +41,21 @@ export type MomentSize = 'window' | 'quiet';
 export function streakMomentSize(days: number): MomentSize | null {
   if (!isJournalStreakMilestone(days)) return null;
   return STREAK_WINDOW_DAYS.includes(days) ? 'window' : 'quiet';
+}
+
+/**
+ * One action, one moment (R-29) also when an action's XP opens a new chapter
+ * (kolo 46, L-8): the trophies it unlocked do not get a window before the
+ * chapter's — they ride inside the chapter window ("Also unlocked"), and their XP
+ * flies from its button. The chapter heads because it is the rarer thing: five
+ * times in an account's life. Null = the XP stays inside the user's tier.
+ */
+export function chapterOfAction(
+  xpBefore: number,
+  xpGained: number
+): { level: number; tier: LabTierId } | null {
+  const before = getCurrentLevel(xpBefore);
+  const after = getCurrentLevel(xpBefore + xpGained);
+  const tier = tierEntered(before, after);
+  return tier ? { level: after, tier } : null;
 }

@@ -1,4 +1,7 @@
 import {
+  milestonesCrossed,
+  warmUpStepDown,
+  challengeCardState,
   COMPLETION_MULTIPLIER,
   starAfter,
   CHALLENGE_MILESTONES,
@@ -297,5 +300,71 @@ describe('monthly challenge: what a month does to the stars', () => {
 
   it('knows the multiplier the app runs after a finished challenge', () => {
     expect(COMPLETION_MULTIPLIER).toEqual({ factor: 1.5, hours: 12 });
+  });
+});
+
+describe("monthly challenge: the Home card's face", () => {
+  it('keeps the card the user sees while it refreshes, even if the refresh fails', () => {
+    expect(
+      challengeCardState({ hasChallenge: true, loading: true, failed: false })
+    ).toBe('ready');
+    expect(
+      challengeCardState({ hasChallenge: true, loading: false, failed: true })
+    ).toBe('ready');
+  });
+
+  it('shows the error with a way to try again only when there is nothing to show', () => {
+    expect(
+      challengeCardState({ hasChallenge: false, loading: false, failed: true })
+    ).toBe('error');
+    // A retry that is running is still the error's retry, not a blank skeleton.
+    expect(
+      challengeCardState({ hasChallenge: false, loading: true, failed: true })
+    ).toBe('error');
+  });
+
+  it("loads first, and waits for the month's challenge after that", () => {
+    expect(
+      challengeCardState({ hasChallenge: false, loading: true, failed: false })
+    ).toBe('loading');
+    expect(
+      challengeCardState({ hasChallenge: false, loading: false, failed: false })
+    ).toBe('preparing');
+  });
+});
+
+describe('monthly challenge: moments that must not stack', () => {
+  it('folds the milestones one log crossed into one note', () => {
+    expect(milestonesCrossed(20, 80)).toEqual([
+      { at: 25, xp: 50 },
+      { at: 50, xp: 100 },
+      { at: 75, xp: 150 },
+    ]);
+    expect(milestonesCrossed(49, 50)).toEqual([{ at: 50, xp: 100 }]);
+    // Already past it: no second note for the same milestone.
+    expect(milestonesCrossed(50, 60)).toEqual([]);
+  });
+
+  const levels = { consistency: 3, habits: 4, journal: 4, goals: 2 } as const;
+
+  it('steps the highest category down after the third warm-up in a row', () => {
+    expect(warmUpStepDown(2, levels)).toEqual({
+      category: 'habits',
+      from: 4,
+      to: 3,
+    });
+    expect(warmUpStepDown(1, levels)).toBeNull();
+  });
+
+  it("breaks a tie the app's way: Consistency first", () => {
+    expect(
+      warmUpStepDown(2, { consistency: 4, habits: 4, journal: 1, goals: 1 })
+    ).toEqual({ category: 'consistency', from: 4, to: 3 });
+  });
+
+  it('says nothing when every category is already at one star', () => {
+    expect(
+      warmUpStepDown(5, { consistency: 1, habits: 1, journal: 1, goals: 1 })
+    ).toBeNull();
   });
 });

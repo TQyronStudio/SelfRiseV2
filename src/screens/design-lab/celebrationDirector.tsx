@@ -95,6 +95,12 @@ export interface LabNote {
   xp: number;
   /** The journal streak speaks in its own colour. */
   tone?: 'reward' | 'flame';
+  /**
+   * A note that offers one thing to do (the multiplier is ready, kolo 44): a tap on
+   * the note does it; a tap on the badge only lets the note go. The offer itself
+   * stays where the note came from (the level panel) — a missed note loses nothing.
+   */
+  action?: { label: string; run: () => void };
 }
 
 export type Moment =
@@ -487,6 +493,8 @@ function TrophyNote({
 // ---------------------------------------------------------------------------
 
 const PLAIN_HOLD_MS = 3000;
+// A note with something to do waits longer: it has to be read AND decided on.
+const ACTION_HOLD_MS = 5000;
 
 /**
  * Same place, same motion and the same deal as the trophy note: it slides out of
@@ -542,7 +550,10 @@ function PlainNote({ note, onDone }: { note: LabNote; onDone: () => void }) {
       stiffness: 200,
       useNativeDriver: true,
     }).start();
-    const id = setTimeout(() => leaveRef.current(), PLAIN_HOLD_MS);
+    const id = setTimeout(
+      () => leaveRef.current(),
+      note.action ? ACTION_HOLD_MS : PLAIN_HOLD_MS
+    );
     return () => clearTimeout(id);
     // Mount-only: one note = one entrance.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -571,9 +582,17 @@ function PlainNote({ note, onDone }: { note: LabNote; onDone: () => void }) {
   return (
     <RNAnimated.View style={[styles.noteWrap, motion]} pointerEvents="box-none">
       <PressableScale
-        onPress={leave}
+        onPress={() => {
+          // The note stays tappable while it fades: a second tap (or one after the
+          // hold ran out) must not do the action again.
+          if (left.current) return;
+          leave();
+          note.action?.run();
+        }}
         haptic={null}
-        accessibilityLabel={spoken}
+        accessibilityLabel={
+          note.action ? `${spoken}. ${note.action.label}` : spoken
+        }
         style={[
           styles.note,
           { backgroundColor: c.surface, borderColor: c.border },
@@ -603,6 +622,17 @@ function PlainNote({ note, onDone }: { note: LabNote; onDone: () => void }) {
             {note.title}
           </Text>
         </View>
+        {note.action && (
+          <View style={[styles.noteAction, { backgroundColor: c.rewardSoft }]}>
+            <Text
+              maxFontSizeMultiplier={1.2}
+              numberOfLines={1}
+              style={[typeStyle('label', gold), { fontFamily: labFonts.bold }]}
+            >
+              {note.action.label}
+            </Text>
+          </View>
+        )}
         {note.xp > 0 && (
           <View ref={xpRef} collapsable={false} style={styles.noteXp}>
             <Text
@@ -650,5 +680,12 @@ const styles = StyleSheet.create({
   },
   noteXp: {
     marginLeft: labSpace.md,
+  },
+  noteAction: {
+    marginLeft: labSpace.md,
+    marginRight: -labSpace.sm,
+    paddingHorizontal: labSpace.md,
+    paddingVertical: 6,
+    borderRadius: labRadius.pill,
   },
 });

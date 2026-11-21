@@ -101,10 +101,16 @@ import { LabJournalProvider } from './journalMock';
 import { GoalsConcept } from './GoalsConcept';
 import { LabGoalsProvider } from './goalsMock';
 import { LabChallengeProvider } from './challengeMock';
+import { LabMultiplierProvider, useLabMultiplier } from './multiplierMock';
+import { badgeMark } from './multiplierLogic';
+import { XP_MULTIPLIERS } from '@/src/constants/gamification';
 import { LabPerfProbe } from './labPerf';
 import { SettingsConcept, ThemePref } from './SettingsConcept';
 import { TrophyRoomConcept } from './TrophyRoomConcept';
 import { LevelsOverviewConcept } from './LevelsOverviewConcept';
+import { HowItWorksConcept, SectionId } from './HowItWorksConcept';
+import { LabHelpProvider } from './labHelp';
+import { LabSystemProvider } from './systemScreens';
 import { SlidePage } from './journalParts';
 
 const TAB_BAR_HEIGHT = 60;
@@ -131,6 +137,9 @@ export function DesignLabScreen() {
     themePref === 'system' ? (scheme === 'dark' ? 'dark' : 'light') : themePref;
   const [trophies, setTrophies] = useState(false);
   const [levels, setLevels] = useState(false);
+  const [howItWorks, setHowItWorks] = useState<{
+    focus: SectionId | null;
+  } | null>(null);
   // Onboarding: 'flow' covers everything, 'ask' sits over the real Habits tab.
   const [onboarding, setOnboarding] = useState<
     'off' | 'flow' | 'ask' | ScreenThreeEnding
@@ -189,186 +198,226 @@ export function DesignLabScreen() {
                 <LabJournalProvider>
                   <LabGoalsProvider>
                     <LabChallengeProvider>
-                      <LabStatusBar mode={mode} />
-                      <LabToolbar
-                        topInset={insets.top}
-                        reducedMotion={reducedMotion}
-                        scenario={scenario}
-                        onScenario={setScenario}
-                        showFps={showFps}
-                        crown={crown}
-                        onToggleCrown={() => setCrown(v => !v)}
-                        onToggleMode={() =>
-                          setThemePref(mode === 'dark' ? 'light' : 'dark')
-                        }
-                        onToggleLang={() =>
-                          setLang(l => (l === 'en' ? 'de' : 'en'))
-                        }
-                        onToggleFps={() => setShowFps(v => !v)}
-                        onLaunch={() => {
-                          goTab(0);
-                          play('launch');
-                        }}
-                        // The quick entrance of the tab on screen, once more.
-                        onSettle={() =>
-                          tab === 0
-                            ? play('settle')
-                            : setReplays(prev => ({
-                                ...prev,
-                                [tab]: (prev[tab] ?? 0) + 1,
-                              }))
-                        }
-                      />
+                      <LabMultiplierProvider>
+                        <LabSystemProvider
+                          bottomInset={bottomChrome}
+                          onHome={() => goTab(0)}
+                        >
+                          <LabStatusBar mode={mode} />
+                          <LabToolbar
+                            topInset={insets.top}
+                            reducedMotion={reducedMotion}
+                            scenario={scenario}
+                            onScenario={setScenario}
+                            showFps={showFps}
+                            crown={crown}
+                            onToggleCrown={() => setCrown(v => !v)}
+                            onToggleMode={() =>
+                              setThemePref(mode === 'dark' ? 'light' : 'dark')
+                            }
+                            onToggleLang={() =>
+                              setLang(l => (l === 'en' ? 'de' : 'en'))
+                            }
+                            onToggleFps={() => setShowFps(v => !v)}
+                            onLaunch={() => {
+                              goTab(0);
+                              play('launch');
+                            }}
+                            // The quick entrance of the tab on screen, once more.
+                            onSettle={() =>
+                              tab === 0
+                                ? play('settle')
+                                : setReplays(prev => ({
+                                    ...prev,
+                                    [tab]: (prev[tab] ?? 0) + 1,
+                                  }))
+                            }
+                          />
 
-                      {/* Tabs stay alive (R-32): a tab is built on its first visit, plays
+                          {/* Tabs stay alive (R-32): a tab is built on its first visit, plays
                           its entrance once, and from then on switching is instant and it
                           keeps its state and scroll position. */}
-                      <View style={{ flex: 1 }}>
-                        {TAB_ICONS.map((_, i) =>
-                          visited.has(i) ? (
-                            <LabPage
-                              // Replaying an entrance from the toolbar rebuilds the page.
-                              key={`${i}-${i === 0 ? intro.key : (replays[i] ?? 0)}`}
-                              active={i === tab}
-                              // Home rides the lab's own intro (the launch).
-                              ownEntrance={i !== 0}
+                          <View style={{ flex: 1 }}>
+                            <LabHelpProvider
+                              bottomInset={bottomChrome}
+                              onOpenRules={section =>
+                                setHowItWorks({ focus: section })
+                              }
                             >
-                              {i === 0 ? (
-                                <HomeConcept
-                                  bottomInset={bottomChrome}
-                                  onOpenTrophies={() => setTrophies(true)}
-                                />
-                              ) : i === 1 ? (
-                                <HabitsConcept
-                                  bottomInset={bottomChrome}
-                                  onboardingHabit={onbResult?.habit ?? null}
-                                  asking={onboarding === 'ask'}
-                                />
-                              ) : i === 2 ? (
-                                <JournalConcept bottomInset={bottomChrome} />
-                              ) : i === 3 ? (
-                                <GoalsConcept bottomInset={bottomChrome} />
-                              ) : (
-                                <SettingsConcept
-                                  bottomInset={bottomChrome}
-                                  themePref={themePref}
-                                  onThemePref={setThemePref}
-                                  onLang={setLang}
-                                  onRestartTutorial={() =>
-                                    setOnboarding('flow')
-                                  }
-                                />
+                              {TAB_ICONS.map((_, i) =>
+                                visited.has(i) ? (
+                                  <LabPage
+                                    // Replaying an entrance from the toolbar rebuilds the page.
+                                    key={`${i}-${i === 0 ? intro.key : (replays[i] ?? 0)}`}
+                                    active={i === tab}
+                                    // Home rides the lab's own intro (the launch).
+                                    ownEntrance={i !== 0}
+                                  >
+                                    {i === 0 ? (
+                                      <HomeConcept
+                                        bottomInset={bottomChrome}
+                                        onOpenTrophies={() => setTrophies(true)}
+                                      />
+                                    ) : i === 1 ? (
+                                      <HabitsConcept
+                                        bottomInset={bottomChrome}
+                                        onboardingHabit={
+                                          onbResult?.habit ?? null
+                                        }
+                                        asking={onboarding === 'ask'}
+                                      />
+                                    ) : i === 2 ? (
+                                      <JournalConcept
+                                        bottomInset={bottomChrome}
+                                      />
+                                    ) : i === 3 ? (
+                                      <GoalsConcept
+                                        bottomInset={bottomChrome}
+                                      />
+                                    ) : (
+                                      <SettingsConcept
+                                        bottomInset={bottomChrome}
+                                        themePref={themePref}
+                                        onThemePref={setThemePref}
+                                        onLang={setLang}
+                                        onRestartTutorial={() =>
+                                          setOnboarding('flow')
+                                        }
+                                        onOpenHowItWorks={() =>
+                                          setHowItWorks({ focus: null })
+                                        }
+                                      />
+                                    )}
+                                  </LabPage>
+                                ) : null
                               )}
-                            </LabPage>
-                          ) : null
-                        )}
 
-                        {/* Opens from Home and Settings; the level badge stays above it. */}
-                        {trophies && (
-                          <SlidePage
-                            width={windowWidth}
-                            onClosed={() => setTrophies(false)}
-                          >
-                            {close => (
-                              <TrophyRoomConcept
-                                bottomInset={bottomChrome}
-                                onClose={close}
+                              {/* Opens from Home and Settings; the level badge stays above it. */}
+                              {trophies && (
+                                <SlidePage
+                                  width={windowWidth}
+                                  onClosed={() => setTrophies(false)}
+                                >
+                                  {close => (
+                                    <TrophyRoomConcept
+                                      bottomInset={bottomChrome}
+                                      onClose={close}
+                                    />
+                                  )}
+                                </SlidePage>
+                              )}
+
+                              {/* "All levels" in the level panel; the badge stays above it too. */}
+                              {levels && (
+                                <SlidePage
+                                  width={windowWidth}
+                                  onClosed={() => setLevels(false)}
+                                >
+                                  {close => (
+                                    <LevelsOverviewConcept
+                                      bottomInset={bottomChrome}
+                                      onClose={close}
+                                    />
+                                  )}
+                                </SlidePage>
+                              )}
+
+                              {/* Settings → "How SelfRise works" (kolo 47, L-3). */}
+                              {howItWorks && (
+                                <SlidePage
+                                  width={windowWidth}
+                                  onClosed={() => setHowItWorks(null)}
+                                >
+                                  {close => (
+                                    <HowItWorksConcept
+                                      bottomInset={bottomChrome}
+                                      onClose={close}
+                                      focus={howItWorks.focus}
+                                    />
+                                  )}
+                                </SlidePage>
+                              )}
+
+                              <BadgeLayer
+                                closeKey={`${tab}-${intro.key}`}
+                                onOpenTrophies={() => setTrophies(true)}
+                                onOpenLevels={() => setLevels(true)}
                               />
-                            )}
-                          </SlidePage>
-                        )}
+                            </LabHelpProvider>
+                          </View>
 
-                        {/* "All levels" in the level panel; the badge stays above it too. */}
-                        {levels && (
-                          <SlidePage
-                            width={windowWidth}
-                            onClosed={() => setLevels(false)}
-                          >
-                            {close => (
-                              <LevelsOverviewConcept
-                                bottomInset={bottomChrome}
-                                onClose={close}
-                              />
-                            )}
-                          </SlidePage>
-                        )}
-
-                        <BadgeLayer
-                          closeKey={`${tab}-${intro.key}`}
-                          onOpenTrophies={() => setTrophies(true)}
-                          onOpenLevels={() => setLevels(true)}
-                        />
-                      </View>
-
-                      <BottomChrome
-                        bottomInset={insets.bottom}
-                        activeTab={tab}
-                        onSelectTab={next => {
-                          if (next === tab) return;
-                          goTab(next);
-                        }}
-                      />
-
-                      {showFps && (
-                        <View
-                          style={[styles.fps, { top: insets.top + 64 }]}
-                          pointerEvents="none"
-                        >
-                          <PerformanceMonitor />
-                        </View>
-                      )}
-
-                      <CelebrationModalOutlet />
-                      {onboarding === 'ask' && onbResult?.habit && (
-                        <OnboardingAsk
-                          habit={onbResult.habit}
-                          bottomInset={bottomChrome}
-                          onEnding={setOnboarding}
-                        />
-                      )}
-                      {(onboarding === 'done' || onboarding === 'later') &&
-                        onbResult && (
-                          <OnboardingEnding
-                            ending={onboarding}
-                            result={onbResult}
-                            onDone={xp => {
-                              setOnboarding('off');
-                              setPendingXp(xp);
-                            }}
-                            onLearnMore={() => {
-                              setOnboarding('off');
-                              router.push('/how-it-works' as never);
+                          <BottomChrome
+                            bottomInset={insets.bottom}
+                            activeTab={tab}
+                            onSelectTab={next => {
+                              if (next === tab) return;
+                              goTab(next);
                             }}
                           />
-                        )}
-                      {onboarding === 'flow' && (
-                        <OnboardingConcept
-                          themePref={themePref}
-                          onThemePref={setThemePref}
-                          onLang={setLang}
-                          onReady={result => {
-                            setOnbResult(result);
-                            if (result.habit) {
-                              goTab(1);
-                              // Habits may already be mounted: the tutorial
-                              // needs it fresh, at the top, with its new habit lit.
-                              setReplays(prev => ({
-                                ...prev,
-                                1: (prev[1] ?? 0) + 1,
-                              }));
-                              setOnboarding('ask');
-                            } else {
-                              setOnboarding('later');
-                            }
-                          }}
-                        />
-                      )}
-                      <OnboardingXp
-                        xp={pendingXp}
-                        onLanded={() => setPendingXp(0)}
-                      />
-                      <LaunchCurtain />
-                      <LabPerfProbe />
+
+                          {showFps && (
+                            <View
+                              style={[styles.fps, { top: insets.top + 64 }]}
+                              pointerEvents="none"
+                            >
+                              <PerformanceMonitor />
+                            </View>
+                          )}
+
+                          <CelebrationModalOutlet />
+                          {onboarding === 'ask' && onbResult?.habit && (
+                            <OnboardingAsk
+                              habit={onbResult.habit}
+                              bottomInset={bottomChrome}
+                              onEnding={setOnboarding}
+                            />
+                          )}
+                          {(onboarding === 'done' || onboarding === 'later') &&
+                            onbResult && (
+                              <OnboardingEnding
+                                ending={onboarding}
+                                result={onbResult}
+                                onDone={xp => {
+                                  setOnboarding('off');
+                                  setPendingXp(xp);
+                                }}
+                                onLearnMore={xp => {
+                                  setOnboarding('off');
+                                  setPendingXp(xp);
+                                  setHowItWorks({ focus: null });
+                                }}
+                              />
+                            )}
+                          {onboarding === 'flow' && (
+                            <OnboardingConcept
+                              themePref={themePref}
+                              onThemePref={setThemePref}
+                              onLang={setLang}
+                              onReady={result => {
+                                setOnbResult(result);
+                                if (result.habit) {
+                                  goTab(1);
+                                  // Habits may already be mounted: the tutorial
+                                  // needs it fresh, at the top, with its new habit lit.
+                                  setReplays(prev => ({
+                                    ...prev,
+                                    1: (prev[1] ?? 0) + 1,
+                                  }));
+                                  setOnboarding('ask');
+                                } else {
+                                  setOnboarding('later');
+                                }
+                              }}
+                            />
+                          )}
+                          <OnboardingXp
+                            xp={pendingXp}
+                            onLanded={() => setPendingXp(0)}
+                          />
+                          <LaunchCurtain />
+                          <LabPerfProbe />
+                        </LabSystemProvider>
+                      </LabMultiplierProvider>
                     </LabChallengeProvider>
                   </LabGoalsProvider>
                 </LabJournalProvider>
@@ -457,6 +506,26 @@ function BadgeLayer({
 /** The badge enters with the header in the intro, then never moves again. */
 function BadgeEntrance({ panel }: { panel: LevelPanelControl }) {
   const { timeline } = useIntro();
+  const { lang } = useLab();
+  const text = MOCK_COPY[lang].levelPanel;
+  const multiplier = useLabMultiplier();
+  const { status, print } = multiplier;
+  const kind = badgeMark(status);
+  const mark =
+    kind === 'tag' && status.kind === 'running'
+      ? {
+          kind,
+          factor: print(status.factor),
+          label: text.badgeRunning(print(status.factor)),
+        }
+      : kind === 'dot'
+        ? {
+            kind,
+            label: text.badgeReady(
+              print(XP_MULTIPLIERS.HARMONY_STREAK_MULTIPLIER)
+            ),
+          }
+        : null;
   return (
     // Sized to the badge and see-through around it: it sits over every page, and a
     // full-width wrapper swallowed the taps on the close buttons under it (kolo 14).
@@ -472,6 +541,7 @@ function BadgeEntrance({ panel }: { panel: LevelPanelControl }) {
         openness={panel.progress}
         open={panel.shown}
         tagTappable={panel.canOpen}
+        mark={mark}
       />
     </Rise>
   );
