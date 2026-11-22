@@ -321,7 +321,7 @@ platí až po Petrově potvrzení.
 | # | Otázka | Blokuje | Výchozí návrh |
 |---|---|---|---|
 | D-1 | Potvrzení tabulky 4.2 (R-3 … R-23) | E0 a dál (B0) | ✅ potvrzeno 2026-11-22 (laboratoř = rozhodnutí) |
-| D-2 | P46 – ovladač běžných animací | E2 | technické – rozhodne měření v E0 (B1), Petr jen potvrdí plynulost |
+| D-2 | P46 – ovladač běžných animací | E2 | ✅ 2026-11-22: **P46 zrušeno** – s přepínačem UI vlákno 0 snímků nad 25 ms (sonda), Petr „jednoznačně plynulejší“; primitiva zůstávají na Reanimated |
 | D-3 | Čip série v hrdinovi Home | E11 | ✅ Petr 2026-11-22: zrušen (stejné číslo je v kartě série, P60); z laboratoře odstraněn |
 | D-4 | Návratová cesta `addProgress` pro „+35 XP / milníky / dnes už bez XP“ | E14 | ✅ technicky rozhodnuto: (b) odvodit z `xpGained` podle `sourceId` – úložiště se nemění |
 | D-5 | Plán migrace dat pro „Messen“ | E16 | napsat a nechat schválit na začátku E16 |
@@ -472,7 +472,7 @@ Uvnitř jedné záložky             stránka → její sheety a detaily (ne tra
    smyčce i při posunu – P79). Na novém buildu změřit přesně tenhle scénář (odškrtat všechny návyky →
    hned rychle posouvat; v tu chvíli běží slunce, záře a lety XP). Sleduj známé riziko přepínače: probliknutí průhlednosti
    při výměně obrazovek (hlášení Reanimated #10444).
-5. **Rozhodnutí o P46:** když je s přepínačem odškrtnutí plynulé i na Reanimated → P46 se ruší a primitiva
+5. **Rozhodnutí o P46** (✅ 2026-11-22: zrušeno – viz D-2; JS špičky po odškrtnutí řešit v E5/E11): když je s přepínačem odškrtnutí plynulé i na Reanimated → P46 se ruší a primitiva
    zůstávají, jak jsou. Když ne → všechny běžné reakce (`CheckButton`, `ProgressBar`, rozzáření a poskok
    řádku návyku, sloupce týdne, věta průvodce, pohyb slunce) se převedou na nativní ovladač **v laboratoři**,
    než začne E2. Výsledek zapsat do `premium-design-plan.md` (poučení 46) – nepřenášet smíšený stav.
@@ -534,7 +534,7 @@ ne po odstínech, aby šel později přidat.
    zůstává** – plamen ho potřebuje (původní osnova F5 ho chybně vedla jako mrtvý).
 2. Primitiva čtou tokeny z `useTheme()`, ne z `useLab()`. Přepínač `crown` (laboratorní srovnání) se nepřevádí
    – platí verze „zapnuto“.
-3. Ovladač animací podle rozhodnutí z B1 – **jednotně** ve všech primitivech.
+3. Ovladač animací: **Reanimated, beze změny** (B1: P46 zrušeno 2026-11-22).
 4. **Slovník pocitů (L-6, přesunuto z E25):** `labFeel.ts` (+ test) → `src/constants/feel.ts`; přehrávač
    `feelPlayer.ts` → `src/services/feelService.ts` – hmat přes `hapticsService`, zvuk přes `expo-audio`
    (z buildu E0; jeden přednačtený přehrávač na zvuk, hlasitost ~0,6, `playsInSilentMode: false`, chyba
@@ -1567,7 +1567,7 @@ vede v téhle tabulce; rozhodnutí a poučení dál v `premium-design-plan.md`.
 | Etapa | Stav | Commit | Petr schválil |
 |---|---|---|---|
 | B0 – potvrzení rozhodnutí 4.2 (✅ 2026-11-22), zvuky D-7, souhlas s buildem | ☐ | – | |
-| E0 – příprava, build, měření (→ B1) | ◐ 2026-11-22: větev `design-v2`, Maestro 2.12.1, nastavení buildu hotové; čeká build, snímky „před“, měření | | |
+| E0 – příprava, build, měření (→ B1) | ◐ 2026-11-22: větev `design-v2`, Maestro 2.12.1, build nainstalovaný, zvuky hrají, měření hotové (P46 zrušeno); zbývá snímky „před“ přes Maestro | | |
 | E1 – tokeny, fonty, testy | ☐ | | |
 | E2 – primitiva, Design-System | ☐ | | |
 | E3 – chrome | ☐ | | |

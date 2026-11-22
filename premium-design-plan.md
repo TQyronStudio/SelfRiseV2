@@ -1246,6 +1246,11 @@ s touto kapitolou kontroluje každá obrazovka. Pravidla se po schválení přes
     řádku návyku aj. jsou stále na Reanimated) a příčinu řeší přepínač `USE_COMMIT_HOOK_ONLY_FOR_REACT_COMMITS`
     (od 4.3 výchozí). **Před převodem první obrazovky zapnout, přeměřit a pravidlo buď dotáhnout, nebo zrušit**
     – nepřenášet do ostré appky smíšený stav.
+    ✅ **Rozhodnuto 2026-11-22 (E0, nový build s přepínačem a 120 Hz):** sonda `[LabPerf]` na iPhonu – odškrtnutí
+    návyku na Home i zápis cíle: UI vlákno ~116 snímků/s, nejhorší snímek 17 ms, **0 snímků nad 25 ms**; Petr:
+    „jednoznačně plynulejší“. **Pravidlo se ruší** – primitiva zůstávají na Reanimated, nic se nepřevádí na
+    nativní ovladač. Zbývá JS vlákno: špičky až 305 ms po odškrtnutí (vývojový režim) – pohybu nevadí, ale
+    v E5/E11 změřit překreslení po odškrtnutí (P42, P47) a ve finálním JS přeměřit (kap. 7.4 plánu převodu).
 47. **Spotřebitel kontextu obchází `React.memo`, a kontext s `settledXp` se mění po každé vlně XP** → kdo
     jen utrácí XP, bere `useLabXpAward()` (stálá funkce ve vlastním kontextu). Překreslení se **měří**,
     ne odhaduje: zápis = 1 karta z 5, bez memo všech 5 (dočasný test + negativní zkouška, kolo 27).

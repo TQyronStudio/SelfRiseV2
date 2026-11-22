@@ -125,6 +125,7 @@ import {
   visibleSections,
 } from './homeLayoutLogic';
 import { useLabPageActive } from './labCover';
+import { measureLabPerf } from './labPerf';
 import { useLabXpAward, XpPop } from './xpFlight';
 import { useLabToday } from './habitsMock';
 import { useLabJournal } from './journalMock';
@@ -665,7 +666,11 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
                             <HabitRow
                               habit={habit}
                               done={!!done[habit.id]}
-                              onToggle={() => toggle(habit.id)}
+                              onToggle={() => {
+                                // Frame probe (labPerf.tsx, lesson 48) – B1 measurement.
+                                measureLabPerf('habit check (Home)');
+                                toggle(habit.id);
+                              }}
                             />
                           </View>
                         ))}

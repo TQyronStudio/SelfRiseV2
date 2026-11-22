@@ -48,3 +48,6 @@ android/
 !marketing/**/ios/**
 !marketing/**/android/
 !marketing/**/android/**
+
+# Metro log mirrored for Claude (`script -q .metro.log npm start`)
+.metro.log
