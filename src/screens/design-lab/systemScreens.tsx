@@ -21,7 +21,7 @@
  * GOING LIVE (1:1) — see PREVOD.md:
  * - ProblemNote replaces ErrorModal in HabitsScreen, GoalsScreen, GoalStatsScreen,
  *   HabitForm, GoalForm, ProgressEntryForm, TargetDateStepSelectionModal and
- *   GratitudeStreakCard: one note host in the window layer (6.0), texts per
+ *   GratitudeInput (and WarmUpErrorModal in GratitudeStreakCard): one note host in the window layer (6.0), texts per
  *   action from the locales — never `error.message` (it still goes to the log
  *   and Crashlytics).
  * - NotFound → app/+not-found.tsx ("Back to today" = router.replace('/(tabs)')).

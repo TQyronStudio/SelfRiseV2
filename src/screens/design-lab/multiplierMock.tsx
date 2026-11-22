@@ -22,14 +22,16 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { XP_MULTIPLIERS } from '@/src/constants/gamification';
+import { XP_MULTIPLIERS, XP_REWARDS } from '@/src/constants/gamification';
 import { useLabMoments } from './celebrationDirector';
 import { useLabToday } from './habitsMock';
 import { DAILY_GOAL, useLabJournal } from './journalMock';
 import { useLab } from './labPrimitives';
 import { MOCK_COPY } from './mockCopy';
 import {
+  boostOf,
   formatFactor,
+  MultiplierSource,
   MultiplierState,
   multiplierStatus,
   MultiplierStatus,
@@ -63,6 +65,10 @@ interface LabMultiplier {
   print: (factor: number) => string;
   activate: () => void;
   setScenario: (scenario: MultiplierScenario) => void;
+  /** A multiplier that switches on by itself (L-11): the badge shows it at once. */
+  startBoost: (source: MultiplierSource) => { factor: string; hours: number };
+  /** The comeback boost at app start: running 2× and a quiet "Welcome back" note. */
+  welcomeBack: () => void;
 }
 
 const LabMultiplierContext = createContext<LabMultiplier | null>(null);
@@ -118,6 +124,33 @@ export function LabMultiplierProvider({ children }: { children: ReactNode }) {
     showWindow(close => <MultiplierWindow onClosed={close} />);
   }, [showWindow]);
 
+  const startBoost = useCallback(
+    (source: MultiplierSource) => {
+      const boost = boostOf(source);
+      setState(prev => ({
+        ...prev,
+        running: { factor: boost.factor, minutesLeft: boost.hours * 60 },
+      }));
+      // Printed without the sign – the texts add the ×.
+      return {
+        factor: boost.factor.toLocaleString(copy.locale),
+        hours: boost.hours,
+      };
+    },
+    [copy.locale]
+  );
+
+  const welcomeBack = useCallback(() => {
+    const { factor, hours } = startBoost('inactive_user_return');
+    showNote({
+      icon: 'sunny',
+      overline: copy.moments.welcomeBack,
+      title: copy.moments.multiplierTitle(factor, hours),
+      // The app pays it before the 2× starts (O-16), so it is never doubled.
+      xp: XP_REWARDS.SPECIAL.COMEBACK_BONUS,
+    });
+  }, [startBoost, showNote, copy.moments]);
+
   const setScenario = useCallback((scenario: MultiplierScenario) => {
     setState(SCENARIOS[scenario]);
     // A new readiness each time the lab makes it ready (live: a new streak start).
@@ -143,8 +176,16 @@ export function LabMultiplierProvider({ children }: { children: ReactNode }) {
   }, [status, readyKey, announcedFor, showNote]);
 
   const value = useMemo(
-    () => ({ status, today, print, activate, setScenario }),
-    [status, today, print, activate, setScenario]
+    () => ({
+      status,
+      today,
+      print,
+      activate,
+      setScenario,
+      startBoost,
+      welcomeBack,
+    }),
+    [status, today, print, activate, setScenario, startBoost, welcomeBack]
   );
   return (
     <LabMultiplierContext.Provider value={value}>

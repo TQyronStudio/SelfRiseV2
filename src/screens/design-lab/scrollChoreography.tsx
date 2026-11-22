@@ -40,6 +40,7 @@
 import React, {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -245,4 +246,77 @@ export function ScrollCard({ children, variant = 'card' }: ScrollCardProps) {
       </CardSeenContext.Provider>
     </RNAnimated.View>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Rest — loops play only while the page is still (kolo 52)
+// ---------------------------------------------------------------------------
+
+/** Tells a looping animation when the page is at rest. */
+export interface RestSignal {
+  /** Called now with the current state, then on every change. */
+  subscribe: (fn: (atRest: boolean) => void) => () => void;
+}
+
+const RESUME_AFTER_MS = 150;
+
+/**
+ * Scroll at rest = not dragged and not gliding. Like the sun's ambient loops on
+ * Home, the streak flame (a Lottie loop, drawn frame by frame by the CPU on
+ * Android) stops while the page moves and goes on once it settles. Resuming waits
+ * a beat, so a drag that turns into a glide does not wake it for one frame.
+ * All by refs: no React render on scroll.
+ */
+export function useScrollRest() {
+  const listeners = useRef(new Set<(atRest: boolean) => void>());
+  const state = useRef({ dragging: false, gliding: false, atRest: true });
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    []
+  );
+
+  const update = useCallback(
+    (patch: Partial<{ dragging: boolean; gliding: boolean }>) => {
+      const s = state.current;
+      Object.assign(s, patch);
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = null;
+      const set = (atRest: boolean) => {
+        if (s.atRest === atRest) return;
+        s.atRest = atRest;
+        listeners.current.forEach(fn => fn(atRest));
+      };
+      if (s.dragging || s.gliding) set(false);
+      else timer.current = setTimeout(() => set(true), RESUME_AFTER_MS);
+    },
+    []
+  );
+
+  const signal = useMemo<RestSignal>(
+    () => ({
+      subscribe: fn => {
+        listeners.current.add(fn);
+        fn(state.current.atRest);
+        return () => {
+          listeners.current.delete(fn);
+        };
+      },
+    }),
+    []
+  );
+
+  const handlers = useMemo(
+    () => ({
+      onScrollBeginDrag: () => update({ dragging: true }),
+      onScrollEndDrag: () => update({ dragging: false }),
+      onMomentumScrollBegin: () => update({ gliding: true }),
+      onMomentumScrollEnd: () => update({ gliding: false }),
+    }),
+    [update]
+  );
+
+  return { signal, handlers, update };
 }

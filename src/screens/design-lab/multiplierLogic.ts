@@ -20,6 +20,8 @@
  * calculateHarmonyStreak() (canActivateMultiplier, nextActivationDate).
  */
 
+import { XP_MULTIPLIERS } from '@/src/constants/gamification';
+
 export interface RunningMultiplier {
   factor: number;
   minutesLeft: number;
@@ -99,4 +101,71 @@ export function formatFactor(factor: number, decimalSeparator: string): string {
     ? `${rounded}`
     : rounded.toFixed(1).replace('.', decimalSeparator);
   return `${text}×`;
+}
+
+// ---------------------------------------------------------------------------
+// The multipliers that switch on by themselves (kolo 53, lab debt L-11)
+// ---------------------------------------------------------------------------
+
+export type MultiplierSource =
+  | 'harmony_streak'
+  | 'achievement_combo'
+  | 'challenge_completion'
+  | 'inactive_user_return';
+
+/**
+ * What each source runs, as the app's service sets it (xpMultiplierService.ts).
+ * The comeback boost's 2× / 48 h are local constants in the service
+ * (`BOOST_DURATION_HOURS`) — going live they move to XP_MULTIPLIERS.
+ */
+export function boostOf(source: MultiplierSource): {
+  factor: number;
+  hours: number;
+} {
+  switch (source) {
+    case 'harmony_streak':
+      return {
+        factor: XP_MULTIPLIERS.HARMONY_STREAK_MULTIPLIER,
+        hours: XP_MULTIPLIERS.HARMONY_STREAK_DURATION,
+      };
+    case 'achievement_combo':
+      return {
+        factor: XP_MULTIPLIERS.ACHIEVEMENT_COMBO_MULTIPLIER,
+        hours: XP_MULTIPLIERS.ACHIEVEMENT_COMBO_DURATION,
+      };
+    case 'challenge_completion':
+      return {
+        factor: XP_MULTIPLIERS.CHALLENGE_COMPLETION_MULTIPLIER,
+        hours: XP_MULTIPLIERS.CHALLENGE_COMPLETION_DURATION,
+      };
+    case 'inactive_user_return':
+      return { factor: COMEBACK_FACTOR, hours: COMEBACK_HOURS };
+  }
+}
+
+/** xpMultiplierService.activateInactiveUserBoost: `multiplier: 2.0`, 48 h. */
+export const COMEBACK_FACTOR = 2;
+export const COMEBACK_HOURS = 48;
+
+/**
+ * Where a multiplier that switched on by itself is told (one action → one moment,
+ * P75): never a window of its own.
+ * - harmony: the user switched it on — its own window (R-41).
+ * - challenge: a line in the "Challenge complete" window that caused it.
+ * - combo: a tag on the trophy moment whose trophy completed the combo.
+ * - comeback: a quiet "Welcome back" note from the badge, with the bonus XP.
+ */
+export function boostMoment(
+  source: MultiplierSource
+): 'ownWindow' | 'challengeWindow' | 'trophyMoment' | 'welcomeNote' {
+  switch (source) {
+    case 'harmony_streak':
+      return 'ownWindow';
+    case 'challenge_completion':
+      return 'challengeWindow';
+    case 'achievement_combo':
+      return 'trophyMoment';
+    case 'inactive_user_return':
+      return 'welcomeNote';
+  }
 }

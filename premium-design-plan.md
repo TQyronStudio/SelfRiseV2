@@ -620,6 +620,27 @@ analytiku ani reklamy. Texty laboratoře nejsou v překladech (vývojový nástr
       dlaždici s bonusem při nule skryje – revize našla, že by jinak ukázalo „+0 bonusových XP“
 - [x] **Oprava textů: den harmonie** – appka ho počítá až od **tří** záznamů v deníku (+ jeden návyk + jeden
       krok cíle); věta v panelu úrovně i na stránce pravidel to teď říká a laboratoř to tak počítá
+- [x] **Kolo 53 – Násobiče, které se zapnou samy** (`boostOf`, `boostMoment` v `multiplierLogic.ts`,
+      `MomentBoost` v `celebrationDirector.tsx`, `AchievementCelebrationConcept.tsx`, `multiplierMock.tsx`; dluh
+      L-11 z finální kontroly, Petr souhlasil s návrhem). Dnes kombo trofejí (2,5× / 6 h) a splněnou výzvu
+      (1,5× / 12 h) oznamuje okno, které řadí sekce násobiče na Home – ta v novém designu zaniká; návrat po
+      neaktivitě (2× / 48 h + 25 XP) dnes neoznámí nic. Nově **žádný samo zapnutý násobič nemá vlastní okno**
+      (jedna akce = jeden moment): výzva = řádek v okně „Výzva splněna“ (už byl), kombo = zlatý štítek „2,5×
+      XP“ v tiché pilulce trofeje, resp. řádek „2,5× XP na dalších 6 hodin“ ve velkém okně, návrat = tiché
+      „Vítej zpět · 2× XP na 48 hodin“ z odznaku a 25 XP do odznaku. Odznak hned ukazuje, co běží. Tlačítko
+      trofejí na Home má podpisovou trofej. Přepínače: 3 scénáře v liště. Ověřeno: 2 nové testy + 3 negativní
+      zkoušky, `tsc`, lint, celá sada; na zařízení neviděno
+- [x] **Kolo 52 – Plynulost posunu Home (Petr: „po odškrtání návyků a hned posunu se to trhalo“)**
+      (`HomeConcept.tsx`, `StreakFlame.tsx`, `useScrollRest` v `scrollChoreography.tsx`, `JournalConcept.tsx`).
+      Prověřeno, co při posunu běží na pozadí: smyčky slunce už stály (v pořádku), plátno letů XP existuje
+      jen během letu (v pořádku), skryté záložky jsou jen průhledné (krátké animace po změně – v pořádku).
+      Dva skutečné nálezy: (1) **plamen série** (Lottie, na Androidu ho kreslí procesor snímek po snímku)
+      běžel pořád, i během posunu – teď se při posunu pozastaví a v klidu pokračuje (pauza/pokračování,
+      žádné přestavění; na Home i v Deníku); (2) **po posledním návyku se změní povzbuzující věta** na delší
+      („All done for today. Be proud of yourself.“), zalomí se na dva řádky, hrdina povyroste a všech sedm
+      karet pod ním v tu chvíli přestaví své animace posunu – přesně když uživatel začne posouvat. Věta má
+      teď pevně dva řádky místa, výška hrdiny se při odškrtávání nemění. Ověřeno: `tsc`, lint, celá sada;
+      na zařízení neviděno
 - [x] **Kolo 51 – Vlastní ikony místo emoji ⭐ 🔥 👑 🏆** (`SignatureIcon.tsx`, `assets/fonts/SelfRiseIcons.ttf`,
       `scripts/build-icon-font.py`; dluh L-5, O-15). Emoji vypadají na každém telefonu jinak a lámou paletu.
       Nová hvězda, plamen, koruna a trofej jsou **písmo s ikonami** – ostré v každé velikosti, lehké i ve
@@ -1313,6 +1334,9 @@ s touto kapitolou kontroluje každá obrazovka. Pravidla se po schválení přes
 78. **Ikona, která není emoji, je písmo.** Bez nativní knihovny, ostrá, levná v seznamu; dvě vrstvy dají
     hloubku. Tvary kontrolovat na vykresleném náhledu – chyby metrik a směru obrysů jsou okem vidět hned,
     v kódu ne (kolo 51).
+79. **Při posunu nesmí nic měnit výšku ani nic nesmí běžet ve smyčce.** Karty s animací posunu se při změně
+    výšky nad nimi přestavují všechny; běžná změna stavu (odškrtnutí, nová věta) proto drží výšku a smyčky
+    (slunce, plamen) se při posunu zastaví (kolo 52).
 49. **Co obrazovka slibuje, musí kód plnit.** Sbírky ukazovaly bonus XP, který nikdo nevyplácí, a čtyři z nich
     čekaly na neexistující trofeje; dvě trofeje blokoval strop formuláře. Při převodu ke každému slibu
     dohledat kód, který ho plní, a odkazy na katalog hlídat testem (kolo 28).

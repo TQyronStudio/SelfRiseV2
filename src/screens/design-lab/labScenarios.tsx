@@ -24,7 +24,7 @@ export interface LabScenario {
 export function useLabScenarios(): LabScenario[] {
   const celebrate = useLabCelebrate();
   const moments = useOtherMoments();
-  const { setScenario } = useLabMultiplier();
+  const { setScenario, startBoost, welcomeBack } = useLabMultiplier();
   const { setCardState } = useLabChallenge();
   const { showProblem, showScreen } = useLabSystem();
   const { lang } = useLab();
@@ -61,6 +61,24 @@ export function useLabScenarios(): LabScenario[] {
       { label: 'journal streak 100', play: () => moments.journalStreak(100) },
       { label: '2× XP switched on', play: () => moments.multiplier() },
       // The multiplier on the badge (kolo 44): open the badge to see each state.
+      // Multipliers that switch on by themselves (kolo 53, L-11).
+      {
+        label: 'trophy combo: 3rd trophy today → 2.5× (in the note)',
+        play: () =>
+          celebrate(
+            [labTrophy('first-habit', 'common')],
+            startBoost('achievement_combo')
+          ),
+      },
+      {
+        label: 'trophy combo with an epic trophy (in the window)',
+        play: () =>
+          celebrate(
+            [labTrophy('monthly-master', 'epic')],
+            startBoost('achievement_combo')
+          ),
+      },
+      { label: 'welcome back after 5 days (2× + 25 XP)', play: welcomeBack },
       {
         label: 'harmony 5 of 7 (badge: nothing)',
         play: () => setScenario('building'),
@@ -107,6 +125,8 @@ export function useLabScenarios(): LabScenario[] {
       celebrate,
       moments,
       setScenario,
+      startBoost,
+      welcomeBack,
       setCardState,
       showProblem,
       showScreen,

@@ -85,7 +85,7 @@ import { RollingNumber } from './RollingNumber';
 import { feel } from './feelPlayer';
 import { useLabXpAward } from './xpFlight';
 import { MOCK_COPY } from './mockCopy';
-import type { LabTrophy } from './celebrationDirector';
+import type { LabTrophy, MomentBoost } from './celebrationDirector';
 
 const TOTAL = 2000;
 const EXIT_MS = 520;
@@ -132,12 +132,15 @@ interface CelebrationProps {
   headliner: LabTrophy;
   /** Everything else the same action unlocked. */
   also: LabTrophy[];
+  /** The combo multiplier this action switched on (kolo 53, L-11) – one line here. */
+  boost?: MomentBoost;
   onClosed: () => void;
 }
 
 export function AchievementCelebrationConcept({
   headliner,
   also,
+  boost,
   onClosed,
 }: CelebrationProps) {
   const rarity: LabRarity = headliner.rarity;
@@ -593,6 +596,22 @@ export function AchievementCelebrationConcept({
         <LabText variant="caption" tone="muted" style={{ textAlign: 'center' }}>
           {t('achievements.celebration.xp_earned')}
         </LabText>
+        {boost && (
+          <Animated.View style={[styles.boostRow, descStyle]}>
+            <Ionicons
+              name="flash"
+              size={14}
+              color={mode === 'light' ? c.rewardText : c.reward}
+            />
+            <LabText
+              variant="caption"
+              tone="muted"
+              style={{ marginLeft: labSpace.xs, flexShrink: 1 }}
+            >
+              {MOCK_COPY[lang].challenge.multiplier(boost.factor, boost.hours)}
+            </LabText>
+          </Animated.View>
+        )}
 
         <Animated.View
           ref={ctaRef}
@@ -752,6 +771,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     maxWidth: '100%',
+  },
+  boostRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: labSpace.sm,
   },
   xpRow: {
     flexDirection: 'row',

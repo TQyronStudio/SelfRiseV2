@@ -14,9 +14,10 @@
  * paid debt / Start Fresh = warming), NOT from a tap — the tap is lab-only.
  * Lottie needs lottie-react-native in the native build (it is, as of 7.0.2).
  */
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import LottieView from 'lottie-react-native';
+import type { RestSignal } from './scrollChoreography';
 import { useReducedMotion } from 'react-native-reanimated';
 import {
   notification,
@@ -37,6 +38,8 @@ interface StreakFlameProps {
   onStateChange: (next: FlameState) => void;
   size?: number;
   label: string;
+  /** The page's rest (useScrollRest): the loop pauses while it scrolls. */
+  rest?: RestSignal;
 }
 
 export function StreakFlame({
@@ -44,8 +47,10 @@ export function StreakFlame({
   onStateChange,
   size = 64,
   label,
+  rest,
 }: StreakFlameProps) {
   const reducedMotion = useReducedMotion();
+  const lottie = useRef<LottieView>(null);
   // Remount on every state so each animation starts from its first frame.
   const [playKey, setPlayKey] = useState(0);
 
@@ -56,6 +61,16 @@ export function StreakFlame({
   // so only the flame on screen plays it — one ignition, one success haptic.
   const onScreen = useLabPageActive();
   const still = reducedMotion || !onScreen;
+
+  // A loop rests while the page scrolls (kolo 52): pause / resume, no remount.
+  // The warming plays through — it is a one-off the user started.
+  useEffect(() => {
+    if (!rest || still || !loop) return undefined;
+    return rest.subscribe(atRest => {
+      if (atRest) lottie.current?.resume();
+      else lottie.current?.pause();
+    });
+  }, [rest, still, loop, state, playKey]);
 
   return (
     <PressableScale
@@ -72,6 +87,7 @@ export function StreakFlame({
     >
       <View pointerEvents="none" style={{ width: size, height: size }}>
         <LottieView
+          ref={lottie}
           key={`${state}-${playKey}-${still}`}
           source={source}
           autoPlay={!still}

@@ -330,6 +330,8 @@ interface Copy {
     multiplierTitle: (factor: string, hours: number) => string;
     multiplierLine: string;
     letsGo: string;
+    /** The comeback boost's quiet note (kolo 53, L-11). */
+    welcomeBack: string;
   };
   /** The levels overview as a journey (LevelsOverviewConcept.tsx). */
   levels: {
@@ -823,6 +825,7 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
       multiplierLine:
         'You used habits, journal and goals every day. Everything you earn now counts double.',
       letsGo: 'Let’s go',
+      welcomeBack: 'Welcome back',
     },
     levels: {
       title: 'Your journey',
@@ -1339,6 +1342,7 @@ export const MOCK_COPY: Record<LabLang, Copy> = {
       multiplierLine:
         'Du hast Routinen, Tagebuch und Ziele jeden Tag genutzt. Alles, was du jetzt verdienst, zählt doppelt.',
       letsGo: 'Los geht’s',
+      welcomeBack: 'Willkommen zurück',
     },
     levels: {
       title: 'Dein Weg',

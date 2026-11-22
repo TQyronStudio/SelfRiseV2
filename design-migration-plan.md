@@ -1,6 +1,6 @@
 # Převod nového designu z laboratoře do ostré appky – úplný plán
 
-*Sepsáno 2026-11-15 nad commitem `6583d02`. Autor: Claude Fable 5.2 (model, který laboratoř stavěl).*
+*Sepsáno 2026-11-15 nad commitem `6583d02`, **prověřeno a doplněno 2026-11-21 po kolech 41–52** (nezávislá revize plánu: karty etap teď obsahují vše z L-2…L-10 a O-10…O-16). Autor: Claude Fable 5.2 a Opus 5.5.*
 *Určeno pro: model, který bude převod provádět (může být slabší než autor), a pro Petra jako kontrolní seznam.*
 
 > **Tento dokument je POSTUP. Není to zdroj pravdy o vzhledu ani o logice.**
@@ -22,7 +22,10 @@
    párování nahrazených dnů, dluh deníku, výzvy, trofeje – to všechno už v appce je a je otestované.
    Laboratoř má kulisy (`*Mock.ts*`, `mockCopy.ts`, `MOCK_STATS`). **Kulisy se nikdy nepřevádějí.**
 3. **Když se laboratoř a ostrá appka liší v čísle nebo pravidle, platí ostrá appka** – a ty se zastavíš
-   a nahlásíš to Petrovi (viz 0.3). Výjimka: nové chování, které má v kap. 4 tohoto plánu schválené `R-#`.
+   a nahlásíš to Petrovi (viz 0.3). Výjimka: nové chování, které má v kap. 4 tohoto plánu schválené `R-#`
+   nebo rozhodnuté `O-#` (✅). **Platí obecně: co je postavené v laboratoři, je rozhodnuté** (Petr 2026-11-22) –
+   rozdíl laboratoř × ostrá appka u vzhledu a nového chování se nehlásí, převádí se. Hlásí se jen rozdíl
+   v číslech a pravidlech logiky (XP, série, limity) – tam platí ostrá appka.
 4. **Co obrazovka slibuje, musí kód plnit (P49, P64).** Než nakreslíš jakékoli číslo, odměnu nebo slib,
    dohledej funkci, která to opravdu dělá. V laboratoři se takhle našlo šest chyb ostré appky.
 5. **Před každou etapou přečti:** (a) kartu etapy v kap. 6, (b) hlavičku `GOING LIVE (1:1)` každého
@@ -86,13 +89,13 @@
 chování – nad skutečnými daty, ve třech jazycích, ve světlém i tmavém režimu, na telefonu i tabletu,
 bez zhoršení plynulosti a bez rozbité logiky.
 
-**Tři vydání** (Petr 2026-11, potvrdit v bráně B0):
+**Dvě vydání** (Petr 2026-11; vydání B zrušeno O-13):
 1. **Vydání A – nový vzhled celý najednou** (etapy E0 až E27). Smíšený vzhled se do obchodu nepouští (R-5).
 2. ~~**Vydání B – části dne** (R-30, etapa E28)~~ – **zrušeno, Petr 2026-11-21 (O-13).**
 3. **Vydání C – nový katalog trofejí** (R-28, etapa E29). Mění uložené trofeje.
 Potom E30: přechod na aktuální Expo.
 
-**Co se nepřevádí:** kulisy (`*Mock.ts*`, `mockCopy.ts`, `trophiesMock.ts`), `DesignLabScreen.tsx`,
+**Co se nepřevádí:** kulisy (`*Mock.ts*` / `*Mock.tsx` – mj. `homeChartsMock.ts`, `multiplierMock.tsx`, `challengeMock.tsx`, `journalMock.tsx`, `habitsMock.tsx`, `goalsMock.tsx` –, `mockCopy.ts`, `trophiesMock.ts`), `DesignLabScreen.tsx`,
 `labPerf.tsx`, `labScenarios.tsx`, přepínače situací a tlačítka „Lab · …“ uvnitř obrazovek, panel nástrojů
 laboratoře.
 
@@ -112,7 +115,7 @@ laboratoře.
 
 Expo 55.0.27 · React Native 0.83.6 (New Architecture) · React 19.2 · Reanimated 4.2.1 · worklets 0.7.4 ·
 Skia 2.4.18 · gesture-handler ~2.30 · expo-router (záložky `Tabs`) · verze appky 7.0.2 (`app.json`) ·
-77 testových souborů, 1200 testů. Testy potřebují Node ≥ 22.5 (viz 0.1 bod 8).
+82 testových sad, 1254 testů (2026-11-21). Testy potřebují Node ≥ 22.5 (viz 0.1 bod 8).
 
 ### 2.2 Ostrá appka – kde co je
 
@@ -123,7 +126,7 @@ Skia 2.4.18 · gesture-handler ~2.30 · expo-router (záložky `Tabs`) · verze 
 | Obrazovky | `src/screens/habits/*`, `src/screens/goals/*`, `src/screens/levels/LevelsOverviewScreen.tsx`, `src/screens/help/HowItWorksScreen.tsx` |
 | Komponenty | `src/components/{home,habits,goals,gratitude,gamification,achievements,challenges,onboarding,tutorial,settings,ads,common}/` |
 | Fronta oken | `src/contexts/ModalQueueContext.tsx` – 11 typů oken, priority 1–7, okna jsou RN `<Modal>` a kreslí je sám poskytovatel (`ModalRenderer` uvnitř `ModalQueueProvider`) |
-| Smluvené parametry tras | `?quickAction=addHabit\|addGratitude\|addSelfPraise\|addGoal` (posílá `QuickActionButtons`, čtou `HabitsScreen`, `journal.tsx`, `GoalsScreen`), `/habit-stats?habitId=`, `/goal-stats?goalId=`, `?openDebtModal=true` (z `GratitudeInput` na Home); ťuknutí na připomínku vede na `/(tabs)/habits\|journal\|goals` (`useNotificationLifecycle.ts`) |
+| Smluvené parametry tras | `?quickAction=addHabit\|addGratitude\|addSelfPraise\|addGoal` (posílá `QuickActionButtons`, čtou `HabitsScreen`, `journal.tsx`, `GoalsScreen`), ~~`/habit-stats?habitId=`~~ (ruší se, O-11 – v E6 přesměrovat na detail návyku), `/goal-stats?goalId=`, `?openDebtModal=true` (z `GratitudeInput` na Home); ťuknutí na připomínku vede na `/(tabs)/habits\|journal\|goals` (`useNotificationLifecycle.ts`) |
 | Stavový řádek | `<StatusBar style="light">` natvrdo v `app/_layout.tsx`, `app/(tabs)/_layout.tsx` a ve čtyřech obrazovkách karet |
 | XP na obrazovce | `src/contexts/XpAnimationContext.tsx`, `src/components/gamification/{XpNotification,XpPopupAnimation,XpAnimationContainer}.tsx` |
 | Vzhled dnes | `src/contexts/ThemeContext.tsx`, `src/constants/colors.ts` |
@@ -147,9 +150,19 @@ Skia 2.4.18 · gesture-handler ~2.30 · expo-router (záložky `Tabs`) · verze 
 | `SettingsConcept.tsx` | Nastavení |
 | `OnboardingConcept.tsx` | celý úvod |
 | `dragToClose.tsx`, `dragToCloseLogic.ts`, `labCover.ts` | tažné zavírání, „něco je otevřeno“, „záložka je vidět“ |
+| `HabitStatsConcept.tsx`, `homeChartsLogic.ts` | Home: statistiky návyků (týden / 30 dní / rok) – kolo 41 |
+| `HomeSectionsConcept.tsx`, `homeLayoutLogic.ts` | Home: Přehledy, Pro tebe, sheet přizpůsobení, převod uloženého rozložení – kolo 42 |
+| `multiplierLogic.ts` | násobič na odznaku a v panelu úrovně (L-10) – kolo 44 |
+| `ChallengeCardStates.tsx` (+ `challengeCardState` v `challengeLogic.ts`) | karta výzvy před výzvou: načítání, příprava, chyba – kolo 45 |
+| `HowItWorksConcept.tsx` | nová stránka „Jak SelfRise funguje“ – kolo 47 |
+| `labHelp.tsx` | nápověda na místě (6 témat, spodní okno) – kolo 48 |
+| `systemScreens.tsx` | pruh neúspěšné akce (`ProblemNote`), „nenalezeno“, chyba databáze – kolo 49 |
+| `labFeel.ts`, `feelPlayer.ts` | slovník dotyku a zvuku, přepínač zvuků – kolo 50 |
+| `SignatureIcon.tsx` (+ `assets/fonts/SelfRiseIcons.ttf`, `scripts/build-icon-font.py`) | vlastní ikony ⭐🔥👑🏆 a ikony spodní lišty – kolo 51 |
 
 Pravidla s testy, která se přenášejí i s testy: `levelPanelLogic`, `levelsJourney`, `challengeLogic`,
-`momentRules`, `dragToCloseLogic` (všechny v `src/screens/design-lab/__tests__/`).
+`momentRules`, `dragToCloseLogic`, `homeChartsLogic`, `homeLayoutLogic`, `multiplierLogic`, `labFeel`
+(všechny v `src/screens/design-lab/__tests__/`).
 
 ### 2.4 Co už je v ostré appce hotové (vzniklo během laboratoře – neopakovat)
 
@@ -161,12 +174,14 @@ Pravidla s testy, která se přenášejí i s testy: `levelPanelLogic`, `levelsJ
 | Bonus za sérii měsíčních výzev se vyplácí | `src/services/monthlyStreak.ts`, `monthlyProgressTracker.ts` | `monthlyStreak.test.ts` |
 | Milníky výzvy platí přesně 50/100/150 XP | `monthlyProgressTracker.ts` | `monthlyStreak.test.ts` |
 | XP za sérii deníku 7/21/30/100/365 dní (R-41) | `SQLiteGratitudeStorage.awardStreakReward`, tabulka `journal_streak_rewards` | `sqliteGratitudeStorage.streakRewards.test.ts` |
+| „Dnešní XP“ (O-9) | `GamificationService.getTodayXP()` | `__tests__/services/gamification/TodayXP.test.ts` |
+| Zapnutí násobiče (harmonie, kombo, výzva) nedává bonusové XP; bonus za návrat se připisuje před zapnutím (O-10, O-16) | `xpMultiplierService.ts`; okno `MultiplierActivationModal` neukazuje „+0“ | `xpMultiplier.loyalty.test.ts` |
 
-Tyto opravy **nejsou vydané** – jdou ven s nejbližším vydáním (rozhodne Petr, jestli dřív než vydání A).
+Tyto opravy **nejsou vydané** – vyjdou spolu s vydáním A (O-2: jeden velký update).
 
 ---
 
-## 3. ZÁSADY PŘEVODU (výtah z 69 poučení – platí pro každou etapu)
+## 3. ZÁSADY PŘEVODU (výtah z 79 poučení – platí pro každou etapu)
 
 Plné znění a důvody jsou v `premium-design-plan.md` kap. 10. Tady je to, co musíš mít v hlavě pořád.
 
@@ -188,6 +203,8 @@ Plné znění a důvody jsou v `premium-design-plan.md` kap. 10. Tady je to, co 
 | Čísla se při otevření obrazovky neodvalují, jen při změně | P44 |
 | Vjezd/odjezd a animovaný `transform` nikdy na stejném prvku | P40 |
 | Funkce gest musí mít `'worklet'` samy (doplněk ho přidá jen řetězci začínajícímu `Gesture.Pan()`) | kolo 40 |
+| **Při posunu nic nemění výšku a nic neběží ve smyčce:** běžná změna stavu (odškrtnutí, nová věta) drží výšku karty (karty s animací posunu se jinak všechny přestaví); plamen (Lottie) a slunce se při posunu pozastaví – plamen přes `useScrollRest` a ref `LottieView` (pauza/pokračování, žádné přestavění) | P79, kolo 52 |
+| Dotyk a zvuk jen přes slovník okamžiků `feel('<okamžik>')`, nikdy ruční `impact()` / `notification()`; zvuk jen u vzácných oken | P77 |
 
 ### 3.2 Vrstvy, dotyk, navigace
 
@@ -219,6 +236,12 @@ Plné znění a důvody jsou v `premium-design-plan.md` kap. 10. Tady je to, co 
 | Ověřovat **vykreslený** text, ne existenci klíče | P29 |
 | Místo obecných rad jedna věta o tom, co zbývá | P63 |
 | Neptej se na nic, co appka potom nepoužije | P55 |
+| Uložená data uživatele (pořadí, skryté sekce) se při slučování převádějí pravidlem s testem, nikdy reset na výchozí | P71 |
+| Co tiché oznámení nabízí, zůstává dosažitelné tam, odkud vyjelo; „ukázat jednou“ = jednou na připravení (uložený klíč), ne na změnu za běhu | P73 |
+| Prázdný stav: známá data vždy vyhrají (obnovení nikdy neschová kartu); kostra až po chvilce; chyba jednou větou s jedním „Zkusit znovu“, bez surového textu | P74 |
+| Dvě věci z jedné akce = jedna věc na obrazovce (vede vzácnější, druhá jede uvnitř), i když přijdou různými událostmi | P75 |
+| Nápověda jen u skrytého pravidla, jeden text pro bublinu i stránku pravidel | P76 |
+| Ikony jsou písmo (`SignatureIcon`), mění se jen skriptem; emoji ⭐🔥👑🏆 se nekreslí | P78 |
 
 ### 3.4 Co teď funguje a nesmí se pokazit
 
@@ -227,7 +250,7 @@ Plné znění a důvody jsou v `premium-design-plan.md` kap. 10. Tady je to, co 
 | XP, denní limity, vratky | `Gamification-Core.md` | `src/services/gamification/__tests__/*`, `__tests__/services/gamification/*` (kořen repozitáře) |
 | Fronta oken – jedno okno najednou, priority | `Gamification-UI.md` | `src/contexts/__tests__/modalQueueOrdering.test.ts` – **pozor: testuje kopii řadicí funkce, ne kontext.** V E8 funkci z kontextu vyvézt a test na ni napojit, jinak nic nehlídá |
 | Smluvené parametry tras (rychlé akce z Home, připomínky, statistiky) | – | ručně (kap. 7.5); v každé dotčené etapě zachovat |
-| Nápověda (11 klíčů `helpKey`) | `Help-Tooltips.md` | `helpTooltipKeys.test.ts` |
+| Nápověda (dnes 11 klíčů `helpKey`; po E22 6 témat podle 7.10) | `Help-Tooltips.md` | `helpTooltipKeys.test.ts` |
 | Série a dluh deníku, číslování záznamů, vratka XP při smazání | `My-Journal.md` | `sqliteGratitudeStorage.{streakDebt,numbering,deletionXP,streakRewards}.test.ts` |
 | Návyky: Smart Bonus Conversion, párování nahrazených dnů, pauzy, řazení | `Habits.md` | testy návyků, `ReorderableList` |
 | Cíle: XP za zápis, milníky, dokončení a jeho vrácení | `Goals.md` | `sqliteGoalStorage.progressXP.test.ts` |
@@ -250,7 +273,7 @@ Plné znění a důvody jsou v `premium-design-plan.md` kap. 10. Tady je to, co 
 R-1, R-2, R-16 až R-22, R-24 až R-29, R-31 až R-41. Znění v `premium-design-plan.md` kap. 7.
 R-29, R-31 a R-39 stojí na R-10 (odznak a jiskry) – R-10 je tím fakticky schválené, v B0 se jen formálně potvrdí.
 
-### 4.2 Postaveno v laboratoři, ale v tabulce stále jen „doporučuji“ – **Petr musí potvrdit v bráně B0**
+### 4.2 Postaveno v laboratoři – ✅ potvrzeno (Petr 2026-11-22: „co je navržené v laboratoři, je rozhodnuté; podle toho se předělá appka“)
 
 | # | Co | Blokuje etapu |
 |---|---|---|
@@ -290,16 +313,55 @@ R-29, R-31 a R-39 stojí na R-10 (odznak a jiskry) – R-10 je tím fakticky sch
 | O-15 | Vlastní ikony místo emoji ⭐🔥👑 (L-5, R-34) | ✅ **Petr 2026-11-21: ano, vlastní sada** (varianta a) |
 | O-16 | Ostatní bonusy při zapnutí násobiče (návrat po neaktivitě `COMEBACK_BONUS`, kombo trofejí a splněná výzva `durationHours × 10`) – připisují se až po uložení násobiče, takže se zdvojí; žádné okno o nich neříká | ✅ **Petr 2026-11-21: souhlas – hotovo v appce.** Kombo a výzva bez bonusu; bonus za návrat se připisuje před zapnutím násobiče (nezdvojí se, jeho selhání boost nezruší). Testy v `xpMultiplier.loyalty.test.ts` (+ negativní zkouška), průvodce `Gamification-Core.md` |
 
+### 4.5 Otevřená rozhodnutí, která blokují etapy (stav 2026-11-22)
+
+Etapa, která na něčem z tabulky stojí, **nezačne**, dokud tu není ✅ (0.3). Výchozí návrh je jen návrh –
+platí až po Petrově potvrzení.
+
+| # | Otázka | Blokuje | Výchozí návrh |
+|---|---|---|---|
+| D-1 | Potvrzení tabulky 4.2 (R-3 … R-23) | E0 a dál (B0) | ✅ potvrzeno 2026-11-22 (laboratoř = rozhodnutí) |
+| D-2 | P46 – ovladač běžných animací | E2 | technické – rozhodne měření v E0 (B1), Petr jen potvrdí plynulost |
+| D-3 | Čip série v hrdinovi Home | E11 | ✅ Petr 2026-11-22: zrušen (stejné číslo je v kartě série, P60); z laboratoře odstraněn |
+| D-4 | Návratová cesta `addProgress` pro „+35 XP / milníky / dnes už bez XP“ | E14 | ✅ technicky rozhodnuto: (b) odvodit z `xpGained` podle `sourceId` – úložiště se nemění |
+| D-5 | Plán migrace dat pro „Messen“ | E16 | napsat a nechat schválit na začátku E16 |
+| D-6 | Jak vyvolat přelom měsíce pro zkoušku momentů výzvy | E18 | ✅ ladicí řádek v Nastavení jen ve vývoji |
+| D-7 | Konečná sada zvuků | E2, E27 | ✅ Petr 2026-11-22: zatím syntetizované návrhy z `assets/sounds/`, upravit se dají později |
+| D-8 | O-6: laboratoř po vydání ponechat / smazat | E26 | ✅ ponechat do E30 (uživatel ji nevidí) |
+| D-9 | Klíč „násobič oznámen pro toto připravení“ (AsyncStorage) | E9 | ✅ plyne z laboratoře (oznámení jednou na připravení); nový klíč bez migrace |
+| D-10 | Parametr trasy `/how-it-works?section=<oddíl>` | E22 | ✅ plyne z laboratoře („Všechna pravidla“ otevře oddíl) |
+| D-11 | `WarmUpErrorModal` → pruh `ProblemNote` | E11/E12 | ✅ plyne z laboratoře (kolo 49) |
+| D-12 | Nový průvodce `technical-guides:Home.md` | E11 | ✅ plyne z CLAUDE.md pravidla 10 |
+
+### 4.6 Co Petr opravdu musí udělat nebo rozhodnout (2026-11-22)
+
+Vše, co je postavené v laboratoři, je rozhodnuté (4.2). Zbývá jen tohle:
+
+**Jednou, před začátkem**
+1. ~~Zvuky (D-7)~~ – ✅ 2026-11-22: zatím návrhy, upraví se později.
+2. **Nativní build v E0:** Claude změní nastavení a pošle příkaz; Petr build spustí a nainstaluje (E0 bod 3).
+3. ~~Maestro (R-7)~~ – ✅ 2026-11-22: ano, nutné minimum simulátorů (E0 bod 2).
+
+**Před konkrétní etapou**
+4. ~~Čip série v hrdinovi Home (D-3)~~ – ✅ 2026-11-22: zrušen.
+5. **Cíle typu „Měřit“ (D-5, E16):** schválit plán úpravy uložených dat – je to jediná etapa, která mění
+   databázi u stávajících uživatelů.
+
+**Opakovaně v každé etapě**
+6. **Texty EN/DE/ES:** laboratoř má jen angličtinu a němčinu; španělštinu doplní převod a Petr texty
+   jednou za etapu schválí (0.2 krok 2).
+7. **Vyzkoušet etapu na telefonu** a říct „ok“ – bez toho se nejde dál (0.1 bod 1).
+
 ### 4.4 Brány (bez nich se dál nejde)
 
 | Brána | Co musí platit | Před etapou |
 |---|---|---|
-| **B0** | Petr potvrdil tabulku 4.2; větev podle R-5 založená | E0 |
-| **B1** | Nativní build s přepínačem je na telefonu, plynulost přeměřená, rozhodnuto o P46 (dotáhnout / zrušit). Rozsah L-6 je buď určený (balíčky jsou v buildu), nebo je druhý build výslovně naplánovaný před E25 | E1 |
+| **B0** | Tabulka 4.2 potvrzená, zvuky (D-7), čip (D-3), Maestro (R-7) – vše ✅ 2026-11-22; zbývá založit větev podle R-5 | E0 |
+| **B1** | Nativní build s přepínačem a s `expo-audio` je na telefonu, plynulost přeměřená, rozhodnuto o P46 (dotáhnout / zrušit), zvuky jdou slyšet v laboratoři | E1 |
 | **B2** | Pilot (Návyky + chrome) schválený na telefonu, plynulost se skutečnou zátěží v pořádku | E7 |
 | **B3** | Jádro XP a momentů schválené na telefonu (jiskry se trefují, nic se neskládá přes sebe) | E11 |
-| **B4** | Všechny obrazovky vydání A schválené; všechny laboratorní dluhy kromě L-1 postavené a převedené | E27 |
-| **B5** | Vydání A venku a změřené (D1/D7, trychtýř) | E28 |
+| **B4** | Všechny obrazovky vydání A schválené; všechny laboratorní dluhy (L-1 zrušen) postavené a převedené | E27 |
+| **B5** | Vydání A venku a změřené (D1/D7, trychtýř) | E29 |
 
 Značka „→ brána B#“ v nadpisu etapy znamená: **po** této etapě se brána vyhodnotí. Laboratorní dluhy (kap. 5)
 a otevřené otázky (4.3) mají vlastní sloupec „potřebuje etapa“ / „kdy rozhodnout“ – etapa nesmí začít,
@@ -318,12 +380,13 @@ a teprve pak smí proběhnout etapa, která na něm závisí.
 | **L-1** | ~~**Části dne** (R-30)~~ | **Zrušeno – Petr 2026-11-21 (O-13): ne.** Nestavět | ~~E28~~ |
 | **L-2** | **Home – sekce, které laboratoř nemá, přizpůsobení Home a ovládání v horním řádku** (vstup do Síně trofejí, tlačítko přizpůsobení, časovač násobiče – v laboratoři jsou tlačítka bez funkce) | Ostrý Home má 10 sekcí (`src/types/homeCustomization.ts`): `xpProgressBar`, `xpMultiplier`, `quickActions`, `journalStreak`, `streakHistory`, `monthlyChallenges`, `habitStats`, `recommendations`, `habitPerformance`, `habitTrends`. Laboratoř kreslí jen hrdinu dne, rychlé akce, dnešní návyky, sérii deníku, výzvu a týden. **Chybí:** historie sérií (graf), statistiky návyků (týden / 30 dní / rok), doporučení, výkon a trendy návyků, sekce násobiče (průběh harmonie x/7 + tlačítko zapnutí; O-4) a samotné okno přizpůsobení (`HomeCustomizationModal`). U každé rozhodnout: nový vzhled / sloučit / zrušit. Grafy návyků používají tvary stavů (R-11) a ověřenou paletu grafů (P32). **Stav 2026-11-17: hotovo v laboratoři.** Statistiky návyků (týden / 30 dní / rok) – `HabitStatsConcept.tsx` + `homeChartsLogic.ts` (kolo 41). Přehledy (místo výkonu a trendů), Pro tebe (místo doporučení), sheet přizpůsobení a funkční horní řádek – `HomeSectionsConcept.tsx` + `homeLayoutLogic.ts` (kolo 42). Historie série na Home zrušena (graf je ve Statistikách deníku, P35; Petr potvrdil 2026-11-21). Karta série deníku na Home zůstává a při zamrznutí nabízí zahřátí přímo na místě (kolo 43). Ukazatel násobiče je L-10, ne L-2 | E11 |
 | **L-3** | **„Jak SelfRise funguje“** (`how-it-works`) | v laboratoři odkaz vede na starou obrazovku. **Stav 2026-11-21: postaveno v laboratoři** (kolo 47) – `HowItWorksConcept.tsx`: sedm oddílů skrytých mechanik, čísla z konstant appky; dnešní texty `help.*` mají věcné chyby (série deníku, lišta XP, „věštec“) – stránka je už nevykresluje, bublinky `?` si je zatím nechávají (jejich oprava patří k L-4) | E22 |
-| **L-4** | **Drobnosti:** bublinky nápovědy (`HelpTooltip`), potvrzovací a chybové okno (`ConfirmationModal`, `ErrorModal`, `BaseModal`), stránka „nenalezeno“, obrazovka chyby databáze, načítací a prázdné stavy; systémová okna `Alert.alert` (historie deníku, přizpůsobení Home, připomínky ×8, úprava záznamu) – nahradit sheetem, nebo nechat; **kam se přestěhuje nápověda**, jejíž hostitel zaniká (`home.xpSystem` v `OptimizedXpProgressBar`, `goals.predictions` v `GoalCompletionPredictions`; celkem 11 klíčů – ke každému nový hostitel); **trasa `habit-stats`** (`IndividualHabitStatsScreen`, `DailyHabitTrackingScreen`) – laboratoř má jen detail jednoho návyku rostoucí z karty; rozhodnout, jestli přehled všech návyků zůstane **Stav 2026-11-21: bublinky hotové v laboratoři** (kolo 48, `labHelp.tsx`): z 11 klíčů zůstává 6 témat na místech skrytých pravidel (kalendář návyku, karta Dnes v deníku, zamrzlá série, tempo cíle, harmonie v panelu úrovně = nový hostitel `home.xpSystem`, hvězdy výzvy = nový hostitel za `goals.predictions` není – předpovědi zanikají); zanikají `home.quickActions`, `home.recommendations`, `goals.overview`, `habits.scheduling`. Texty = texty stránky „Jak SelfRise funguje“. Chybové okno, „nenalezeno“ a chyba databáze hotové v laboratoři (kolo 49, `systemScreens.tsx`; potvrzovací okno = `ConfirmSheet`, už existuje). `Alert.alert`: mapa všech 14 míst v kap. 7.9 (O-14). Trasa `habit-stats`: zrušit (O-11). L-4 tím uzavřen | E6, E22 |
-| **L-5** | **Vlastní podpisové ikony** (R-34): plamen, hvězda, koruna, trofej, slunce, spodní lišta – místo emoji ⭐🔥👑 a obecné sady | zatím emoji a Ionicons. **Stav 2026-11-21: hvězda, plamen, koruna, trofej postaveny** (kolo 51) – písmo `assets/fonts/SelfRiseIcons.ttf` (zdroj `scripts/build-icon-font.py`), `SignatureIcon` (dvoubarevná) a `InlineIcon` (ve větě). Spodní lišta hotová (Dnes = vycházející slunce, Návyky, Deník, Cíle, Nastavení; jeden tvar, stav barvou) | E24 |
-| **L-6** | **Zvuk a hmatové vzory** (R-35) | rozsah a knihovnu hmatu ověřit; potřebuje nativní build (E0). **Stav 2026-11-21: postaveno v laboratoři** (kolo 50) – slovník pocitů `labFeel.ts` i s testem (18 okamžiků; zvuk jen 6 vzácných), `feelPlayer.ts`, přepínač „Zvuky“ v Nastavení, 4 kandidátní zvuky v `assets/sounds/` (zatím se nepřehrávají – přehrávač až s buildem E0) | E25 |
+| **L-4** | **Drobnosti:** bublinky nápovědy (`HelpTooltip`), potvrzovací a chybové okno (`ConfirmationModal`, `ErrorModal`, `BaseModal`), stránka „nenalezeno“, obrazovka chyby databáze, načítací a prázdné stavy; systémová okna `Alert.alert` (historie deníku, přizpůsobení Home, připomínky ×8, úprava záznamu) – nahradit sheetem, nebo nechat; **kam se přestěhuje nápověda**, jejíž hostitel zaniká (`home.xpSystem` v `OptimizedXpProgressBar`, `goals.predictions` v `GoalCompletionPredictions`; celkem 11 klíčů – ke každému nový hostitel); **trasa `habit-stats`** (`IndividualHabitStatsScreen`, `DailyHabitTrackingScreen`) – laboratoř má jen detail jednoho návyku rostoucí z karty; rozhodnout, jestli přehled všech návyků zůstane **Stav 2026-11-21: bublinky hotové v laboratoři** (kolo 48, `labHelp.tsx`): z 11 klíčů zůstává 6 témat na místech skrytých pravidel – **úplná tabulka klíč → téma → hostitel → etapa je v kap. 7.10**. Texty = texty stránky „Jak SelfRise funguje“. Chybové okno, „nenalezeno“ a chyba databáze hotové v laboratoři (kolo 49, `systemScreens.tsx`; potvrzovací okno = `ConfirmSheet`, už existuje). `Alert.alert`: mapa všech 14 míst v kap. 7.9 (O-14). Trasa `habit-stats`: zrušit (O-11). L-4 tím uzavřen | E6, E22 |
+| **L-5** | **Vlastní podpisové ikony** (R-34): plamen, hvězda, koruna, trofej, slunce, spodní lišta – místo emoji ⭐🔥👑 a obecné sady | zatím emoji a Ionicons. **Stav 2026-11-21: hvězda, plamen, koruna, trofej postaveny** (kolo 51) – písmo `assets/fonts/SelfRiseIcons.ttf` (zdroj `scripts/build-icon-font.py`), `SignatureIcon` (dvoubarevná) a `InlineIcon` (ve větě). Spodní lišta hotová (Dnes = vycházející slunce, Návyky, Deník, Cíle, Nastavení; jeden tvar, stav barvou). **Čeká na Petrovo schválení na zařízení** (kola 50–52 nebyla součástí schválení kol 41–49) | E1–E3 (přesunuto z E24, viz tam) |
+| **L-6** | **Zvuk a hmatové vzory** (R-35) | rozsah a knihovnu hmatu ověřit; potřebuje nativní build (E0). **Stav 2026-11-21: postaveno v laboratoři** (kolo 50) – slovník pocitů `labFeel.ts` i s testem (18 okamžiků; zvuk jen 6 vzácných), `feelPlayer.ts`, přepínač „Zvuky“ v Nastavení, 4 kandidátní zvuky v `assets/sounds/` (zatím se nepřehrávají – přehrávač až s buildem E0). **Čeká na Petrovo schválení na zařízení** | E2, E20 (přesunuto z E25, viz tam) |
 | **L-7** | **Stavy karty měsíční výzvy:** „připravuje se“, „žádná výzva“, načítání, chyba s tlačítkem „Zkusit znovu“ | ostrá karta je má (`monthlyChallenge.{loading,preparing,noActiveChallenge,errorLoading,retry}`), laboratoř ne. **Stav 2026-11-21: postaveno v laboratoři** (kolo 45) – `ChallengeCardStates.tsx`, pravidlo `challengeCardState` (`challengeLogic.ts`) i s testem: **známá data vždy vyhrají** (obnovení nikdy nepřepne kartu na načítání ani chybu); kostra až po `SKELETON_DELAY_MS`; chyba bez surového textu s jedním „Zkusit znovu“ = `loadMonthlyChallenge()`. Nové texty místo dnešních s emoji | E17 |
 | **L-8** | **Spojení momentů:** vstup do nového stupně + velká trofej ze stejné akce = jedno okno; víc milníků výzvy naráz = jedno oznámení; trest za 3 zahřívací výzvy (`warmup_penalty`) | dnes by šly po sobě / nejsou nakreslené. **Stav 2026-11-21: postaveno v laboratoři** (kolo 46): (1) `chapterOfAction(xpBefore, xpAkce)` (`momentRules.ts`) – kapitola vede, trofeje akce jedou v `ChapterWindow` (`also`), XP z jejího tlačítka; level-up po přistání XP tutéž kapitolu znovu neukáže (v ostré appce: posluchač `levelUp` v `XpAnimationContext` musí znát kapitoly už ukázané akcí). (2) `milestonesCrossed(před, po)` (`challengeLogic.ts`) – události `monthly_milestone_reached` z jednoho zápisu složit do jednoho oznámení se součtem XP. (3) `warmUpStepDown` (`challengeLogic.ts`) kopíruje `starRatingService` (3 zahřívací po sobě, nejvyšší kategorie −1, shoda: Konzistence, nikdy pod 1★) – řádek v okně výzvy téhož měsíce, událost `star_level_changed` s důvodem `warmup_penalty` nesmí řadit vlastní okno | E8, E18 |
 | **L-9** | **Tažení:** detail cíle; rozhodnutí O-3 o oknech oslav | kolo 40 je nedělalo. **Stav 2026-11-21: ověřeno, nic se nestavělo.** Detail cíle je v laboratoři stránka (`SlidePage` v `GoalsConcept.tsx`) a od kola 40 se vrací tahem od levého okraje (pás 28 px – graf s prstem začíná dál, nekoliduje); v ostré appce je to trasa `goal-stats` s nativním gestem zpět. Okna oslav (O-3): tažením se nezavírají; ťuknutí vedle okna jen zrychlí jeho nájezd (`skip` v `AchievementCelebrationConcept.tsx`), zavírá tlačítko (a systémové zpět na Androidu) – tak to zůstane | E15 |
+| **L-11** | **Ostatní zapnutí násobiče** (nález finální kontroly 2026-11-22): kombo trofejí 2,5× / 6 h, splněná výzva 1,5× / 12 h, návrat po neaktivitě 2× / 48 h + 25 XP | Dnes kombo a výzvu oznamuje okno `multiplier_activation`, které řadí **posluchač `xpMultiplierActivated` v `XpMultiplierSection.tsx`** – sekce v E9 zaniká, takže by oznámení tiše zmizela. Návrat po neaktivitě (`appInitializationService` → `checkAndActivateInactiveUserBoost`) dnes uživateli neukazuje **nic**. Laboratoř má jen zapnutí harmonie. **Stav 2026-11-22: postaveno v laboratoři** (kolo 53, Petr souhlasil s návrhem): pravidla `boostOf` a `boostMoment` (`multiplierLogic.ts`) i s testem – samo zapnutý násobič nikdy nemá vlastní okno; výzva = řádek v okně „Výzva splněna“; kombo = štítek „2,5×“ v tiché pilulce trofeje, resp. řádek „2,5× XP na dalších 6 hodin“ ve velkém okně (`MomentBoost` v `celebrationDirector.tsx`); návrat = tiché „Vítej zpět · 2× XP na 48 hodin“ z odznaku s +25 XP (`welcomeBack` v `multiplierMock.tsx`) | E8, E9, E18 |
 | **L-10** | **Násobič na odznaku** (O-4, schváleno): štítek „2ד na odznaku, řádek harmonie x/7 a zbývající čas v panelu úrovně, tiché oznámení „připraveno“ se zapnutím ťuknutím | postavit a nechat schválit v laboratoři. **Stav 2026-11-21: postaveno v laboratoři** (kolo 44) – `multiplierLogic.ts` i s testem, `multiplierMock.tsx`, značka `mark` na `LevelBadge` (`xpFlight.tsx`), `MultiplierPart` v `levelPanel.tsx`, oznámení s akcí (`LabNote.action`). Štítek ukazuje faktor, který opravdu běží (i 1,5× / 2,5×). Připravený násobič: tečka na odznaku + tlačítko v panelu zůstávají i po přehlédnutém oznámení; oznámení **jednou na připravení** (uložit klíč, např. začátek série harmonie – `shouldAnnounceReady`). Petr schválil na zařízení 2026-11-21 | E9, E11 |
 
 ---
@@ -338,7 +401,10 @@ z tlačítka okna do odznaku a oslavy se budou krýt.
 ```
 app/_layout.tsx → LayoutContent (odspodu nahoru)
  1. <Stack>                      navigátor: záložky i obrazovky karet
- 2. Vrstva odznaku               panel úrovně → odznak → tiché oznámení
+ 2. Vrstva odznaku               panel úrovně → odznak (+ značka násobiče `mark`) → tiché oznámení
+ 2a. Vrstva nápovědy             spodní okno nápovědy (`labHelp.tsx`); otevírá se i z panelu úrovně –
+                                 panel se nejdřív schová (jedna věc najednou)
+ 2b. Pruh neúspěšné akce         `ProblemNote` – nad spodní lištou a reklamním pruhem (P11), nikdy přes ně
  3. <OnboardingFlow>             úvod
  4. Vrstva oken                  fronta momentů – celoobrazovkové View
  5. Vrstva jisker XP             jedno plátno Skia, jen když něco letí
@@ -358,13 +424,13 @@ Uvnitř jedné záložky             stránka → její sheety a detaily (ne tra
 - **XP během úvodu:** odznak je při úvodu schovaný, takže XP získané v úvodu se přidrží a rozletí se až
   po jeho zavření (laboratoř: `OnboardingXp`). `Tutorial.md` dnes říká „XP v liště se stihnou ukázat“ –
   v E7 ten odstavec přepsat.
-- **Vrstva odznaku se skrývá** během úvodu (`OnboardingFlow`), na obrazovce chyby databáze a na trase
-  `design-lab` (laboratoř má vlastní odznak).
+- **Vrstva odznaku se skrývá** během úvodu (`OnboardingFlow`) a na trase `design-lab` (laboratoř má vlastní
+  odznak). Obrazovka chyby databáze se kreslí před `RootProvider`, odznak na ní tedy není vůbec.
 - **Registr „něco je otevřeno“** (`labCover.ts`) se **převádí** – sheety a detaily uvnitř záložek nejsou
   trasy, takže navigace o nich neví. Panel úrovně se smí otevřít jen když: trasa je jedna z pěti záložek
   **a** registr hlásí nulu **a** neběží žádný moment. „Záložka je vidět“ = `useIsFocused()`.
 - **Stránky, které v laboratoři přijíždějí zprava** (`SlidePage`: Síň trofejí, historie a statistiky
-  deníku, přehled úrovní, detail cíle), jsou v ostré appce **skutečné trasy** ve `Stack`u. Nech jim nativní
+  deníku, přehled úrovní, detail cíle, „Jak SelfRise funguje“), jsou v ostré appce **skutečné trasy** ve `Stack`u. Nech jim nativní
   přechod a nativní gesto zpět; `SlidePage` ani jeho tažení se nepřevádí.
 
 ---
@@ -374,24 +440,31 @@ Uvnitř jedné záložky             stránka → její sheety a detaily (ne tra
 **Cíl:** bezpečné místo pro práci, snímky „před“ a rozhodnutí, na čem poběží běžné animace.
 **Závisí na:** B0.
 
-1. Větev `design-v2` z `main` (R-5). **Před každou další etapou `git merge main`** – na `main` dál běží
-   opravy a práce v laboratoři.
+1. Větev `design-v2` z `main` (R-5). **Před každou další etapou `git merge main` – jen s Petrovým výslovným
+   pokynem** (sloučení vytváří commit, CLAUDE.md pravidlo 12); na `main` dál běží opravy a práce v laboratoři.
 2. Snímky „před“: hlavní obrazovky × EN/DE/ES × světlý/tmavý × malý telefon, velký telefon, Android,
-   s marketingovými demo daty (`marketingDemoDataService`). Nástroj podle R-7.
-3. **Jeden nativní build pro všechno** (ptát se Petra předem; sestavuje přes EAS, nikdy kabelem):
+   s marketingovými demo daty (`marketingDemoDataService`). **Nástroj Maestro (R-7, ✅ Petr 2026-11-22):**
+   nainstalovat Maestro CLI (Java 17, Xcode a Android SDK s emulátorem už na Macu jsou); scénáře průchodu
+   obrazovkami v `.maestro/`; po každé etapě snímky „po“ a porovnání. **Nutné minimum simulátorů** (na Macu
+   je málo místa): jeden malý iPhone, jeden velký iPhone, jeden Android – ostatní simulátory a staré buildy
+   pro simulátor mazat; tablet a další velikosti ručně (kap. 7.5).
+3. **Jeden nativní build pro všechno.** Rozdělení práce (Petr 2026-11-22): Claude změní nativní nastavení
+   projektu (níže) a dá Petrovi přesný příkaz; **build spouští a instaluje Petr sám** přes EAS jako vývojový
+   build (nikdy kabelem). Do instalace nového buildu Petr jede na tom současném – kód, který nový build
+   vyžaduje, se do té doby nepouští:
    - přepínač Reanimatedu `USE_COMMIT_HOOK_ONLY_FOR_REACT_COMMITS` (statický; ověř přesný zápis
      v dokumentaci nainstalované verze, než ho napíšeš do `package.json`);
    - 120 Hz na Androidu (ověřit postup pro Expo 55); iPhone už má klíč v Info.plist;
-   - **`expo-audio`** pro zvuky R-35 – rozsah je určený (O-12, kolo 50): 5 okamžiků, 4 zvuky
+   - **`expo-audio`** pro zvuky R-35 – rozsah je určený (O-12, kolo 50): 6 okamžiků, 4 zvuky
      v `assets/sounds/`. Nainstalovat `npx expo install expo-audio` (verze podle Expo 55). Hmat zvládá
      stávající `expo-haptics` (vzory jsou časované tapy, `labFeel.ts`) – další knihovna **není potřeba**.
    Přepínač Reanimatedu je od verze 4.3 výchozí – při přechodu na nové Expo (E30) se z konfigurace odstraní.
 4. Měření v laboratoři na novém buildu (kap. 7.4): odškrtnutí návyku na Home a v Návycích, zápis pokroku
    cíle, přepínání záložek, přechody obrazovek.
-   **Petr 2026-11-21:** posun Home hned po odškrtání návyků se jednou trhal, po restartu appky a stejném
-   postupu byl téměř 100% plynulý (s měřičem). Nejspíš nahromadění po rychlých přenačteních ve vývojovém
-   režimu – na novém buildu přesto změřit přesně tenhle scénář (odškrtat všechny návyky → hned rychle
-   posouvat; v tu chvíli běží slunce, záře a lety XP). Sleduj známé riziko přepínače: probliknutí průhlednosti
+   **Petr 2026-11-21:** posun Home hned po odškrtání návyků se trhal. Kolo 52 našlo dvě skutečné příčiny
+   a opravilo je v laboratoři (věta hrdiny měnila výšku a přestavěla animace všech karet; plamen běžel ve
+   smyčce i při posunu – P79). Na novém buildu změřit přesně tenhle scénář (odškrtat všechny návyky →
+   hned rychle posouvat; v tu chvíli běží slunce, záře a lety XP). Sleduj známé riziko přepínače: probliknutí průhlednosti
    při výměně obrazovek (hlášení Reanimated #10444).
 5. **Rozhodnutí o P46:** když je s přepínačem odškrtnutí plynulé i na Reanimated → P46 se ruší a primitiva
    zůstávají, jak jsou. Když ne → všechny běžné reakce (`CheckButton`, `ProgressBar`, rozzáření a poskok
@@ -414,18 +487,23 @@ Uvnitř jedné záložky             stránka → její sheety a detaily (ne tra
    (`labRarity`) a stupňů úrovní (`labTier`), mapa barev návyků + `onHabitColor()`, nebe a slunce hrdiny
    (`labSky`, `labSun`, `labSkyGold`), denní doba (`getDaypart` – potřebuje ji pozdrav R-6), barvy splashe
    (`SPLASH_*`), seznam souborů fontů. Názvy bez „lab“. **Barvy zapsané natvrdo v souborech laboratoře**
-   (zlatá jisker v `xpFlight.tsx`, nebe úvodu v `OnboardingConcept.tsx`, zlatá medailí v oknech) přesuň
-   do tokenů také – jinak E7 a E21 neprojdou ráčnou.
+   přesuň do tokenů také – jinak pozdější etapy neprojdou ráčnou. Neber jen příklady: projdi
+   `grep -nE "#[0-9A-Fa-f]{3,8}\b|rgba?\(" src/screens/design-lab/*.tsx` mimo `labTokens.ts` a každý nález
+   přesuň (mj. `OnboardingConcept`, `journalParts` – led a nebezpečí, `SignatureIcon` – `TONES`,
+   `HabitStatsConcept` – paleta grafu, `xpFlight`, `AchievementCelebrationConcept`, `challengeMoments`,
+   `JournalStats/HistoryConcept`, `systemScreens`, `levelPanel` – `GOLD_INK`).
 2. `useTheme()` rozšířit o `design` (tokeny pro aktuální režim). Staré `colors` zůstávají, dokud je něco čte.
-3. Fonty (Fraunces, Figtree – soubory už jsou v `assets/fonts`) načíst v `app/_layout.tsx` vedle
-   `SpaceMono`. Jedna rodina na tloušťku, nikdy `fontWeight` (Android by potichu použil systémové písmo).
+3. Fonty (Fraunces, Figtree **a písmo ikon `SelfRiseIcons`** – soubory už jsou v `assets/fonts`) načíst
+   v `app/_layout.tsx` vedle `SpaceMono`. Jedna rodina na tloušťku, nikdy `fontWeight` (Android by potichu
+   použil systémové písmo). Písmo ikon nepotřebuje nativní modul (P78).
 4. Jednotná paleta barev návyků – oprava „zelená = modrá“ (stejný odstín v obou režimech).
 5. Testy (nové, s negativní zkouškou):
    - kontrast WCAG AA pro každou dvojici text/povrch v obou režimech, včetně `labTier`, `labRarity`
      a symbolu na barvě návyku;
    - typografie: každá varianta má rodinu písma;
    - **ráčna:** seznam převedených souborů; v nich nesmí být hex barva, `fontSize` ani `borderRadius`
-     natvrdo, ani volání `measureLabPerf` (měřicí sonda laboratoře se nepřevádí, P48). Seznam může jen
+     natvrdo, ani volání `measureLabPerf` (měřicí sonda laboratoře se nepřevádí, P48), **ani import
+     `Modal` z `react-native`** (ochrana proti zamrzání, E8). Seznam může jen
      růst – po každé etapě do něj přidej její soubory.
 
 **Nesmí se rozbít:** vzhled appky (nic se nesmí viditelně změnit), start appky (fonty nesmí zdržet
@@ -450,7 +528,19 @@ ne po odstínech, aby šel později přidat.
 2. Primitiva čtou tokeny z `useTheme()`, ne z `useLab()`. Přepínač `crown` (laboratorní srovnání) se nepřevádí
    – platí verze „zapnuto“.
 3. Ovladač animací podle rozhodnutí z B1 – **jednotně** ve všech primitivech.
-4. Haptika jen přes `src/services/hapticsService.ts` (respektuje vypínač v Nastavení).
+4. **Slovník pocitů (L-6, přesunuto z E25):** `labFeel.ts` (+ test) → `src/constants/feel.ts`; přehrávač
+   `feelPlayer.ts` → `src/services/feelService.ts` – hmat přes `hapticsService`, zvuk přes `expo-audio`
+   (z buildu E0; jeden přednačtený přehrávač na zvuk, hlasitost ~0,6, `playsInSilentMode: false`, chyba
+   přehrání nikdy neshodí okamžik). **Od této etapy se v nových obrazovkách volá jen `feel('<okamžik>')`**,
+   nikdy ruční `impact()` / `notification()` – mapa ručních volání laboratoře → okamžik je v `PREVOD.md`
+   (řádek `labFeel.ts`). Vypínač zvuků: uložený vedle vypínače haptiky (stejný vzor jako
+   `setHapticsEnabled`), řádek v Nastavení přibude v E20.
+4a. **Ikony (L-5, přesunuto z E24):** `SignatureIcon` a `InlineIcon` → `src/components/ui/`; barvy `TONES`
+   do tokenů; komponenta čeká, až je písmo ikon načtené (jinak by kreslila „?“). Ikona ve větě má slovní
+   popisek pro čtečku (`accessibilityLabel` rodiče). Písmo se mění jen skriptem `scripts/build-icon-font.py`
+   (potřebuje `fonttools`), nikdy ručně.
+4b. **Klid při posunu (kolo 52, P79):** `useScrollRest` z `scrollChoreography.tsx` převést spolu se
+   `ScrollCard`; `StreakFlame` přijímá `rest` a pozastavuje smyčku přes ref `LottieView`.
 5. Nový průvodce `technical-guides:Design-System.md` (kostra podle CLAUDE.md pravidla 10; R-8): tokeny,
    primitiva, pravidla z kap. 3 tohoto plánu a z kap. 10 plánu designu. Odkaz z `technical-guides.md`.
 6. Testy primitiv tam, kde mají logiku (např. `RollingNumber`: okraje patří celému číslu, P34).
@@ -470,14 +560,18 @@ ne po odstínech, aby šel později přidat.
 **Zdroj:** `DesignLabScreen.tsx` (jen `BottomChrome` a pravidlo R-32), `introTimeline.tsx`.
 **Cíl:** `app/(tabs)/_layout.tsx` a horní část pěti obrazovek záložek.
 
-1. Spodní lišta v novém stylu: klouzavá pilulka pod aktivní ikonou, popisky, barvy z tokenů.
+1. Spodní lišta v novém stylu: klouzavá pilulka pod aktivní ikonou, popisky, barvy z tokenů. **Ikony lišty
+   jsou vlastní** (`SignatureIcon`: `today`, `habits`, `journal`, `goals`, `settings`) – jeden tvar v obou
+   stavech, otevřená záložka v barvě appky se zlatým jádrem, ostatní tlumené (kolo 51).
 2. Hlavičky záložek bez sytě modrého pruhu (`headerShown: false`); každá obrazovka má vlastní horní řádek
    vysoký 48 bodů pod bezpečným okrajem. **Vlevo nechej volné místo 48 × 48 pro odznak** (přijde v E7),
    tlačítka obrazovky jsou vpravo (P10, R-10).
    **Pozor – hlavička Home dnes nese tři ovládací prvky** (`app/(tabs)/_layout.tsx`): vlevo tlačítko trofejí
    (jediný stálý vstup do Síně trofejí), vpravo časovač násobiče (`MultiplierCountdownTimer`) a tlačítko
    přizpůsobení (posílá událost `openHomeCustomization`, kterou poslouchá `app/(tabs)/index.tsx`). Přestěhuj
-   je do vlastního horního řádku Home **beze změny chování**; konečnou podobu dostanou v E11 (L-2, L-10).
+   je do vlastního horního řádku Home **beze změny chování**. Časovač násobiče je tu jen dočasně: v E9 ho
+   nahradí značka na odznaku a řádek v panelu úrovně (O-4, L-10) a časovač se odstraní; vstup do trofejí
+   a tlačítko přizpůsobení dostanou konečnou podobu v E11.
 2a. **Stavový řádek podle režimu:** světlý vzhled = tmavé ikony, tmavý = světlé. Dnes je `style="light"`
    natvrdo na šesti místech (kap. 2.2) – bez modré hlavičky by ikony ve světlém režimu zmizely. Oprav v této
    etapě záložky a kořen, obrazovky karet vždy ve své etapě.
@@ -548,8 +642,8 @@ napůl (kolo 40); P30, P43.
    jako vlastnost a je `React.memo` (P42, P47). Ověř měřením počtu překreslení.
 
 **Nesmí se rozbít:** Smart Bonus Conversion, pauzy, řazení úchytem (`ReorderableList`), pulz úvodu
-(`highlight` + `onboardingHabitId` v `HabitItemWithCompletion`), nápověda (`habits.scheduling`,
-`habits.bonusConversion`, `habits.makeupFunction`), parametr `?quickAction=addHabit` (rychlá akce z Home
+(`highlight` + `onboardingHabitId` v `HabitItemWithCompletion`), nápověda podle 7.10 (`habits.scheduling`
+a `habits.bonusConversion` zanikají, téma „nahrazený den“ jde do kalendáře v E6), parametr `?quickAction=addHabit` (rychlá akce z Home
 musí otevřít nové okno tvorby), ťuknutí na připomínku vedoucí na Návyky.
 **Testy:** stavy dne → tvar (čistá funkce); karta se nepřekreslí při změně jiného návyku.
 **Průvodci:** `Habits.md` – kapitolu „UI Display Rules“ přepsat; opravit nápovědu „Smart Make-up System“
@@ -563,13 +657,16 @@ musí otevřít nové okno tvorby), ťuknutí na připomínku vedoucí na Návyk
 
 **Zdroj:** `HabitDetailConcept.tsx`, `HabitComposerConcept.tsx`, `HabitsReorderConcept.tsx`.
 **Cíl:** `src/components/habits/{HabitCalendarView,HabitModal,HabitForm,ColorPicker,IconPicker,DayPicker}.tsx`,
-režim řazení v `HabitsScreen.tsx`; trasa `app/habit-stats.tsx` podle L-4.
-**Závisí na:** rozhodnutí o trase `habit-stats` z L-4 (ostatní části L-4 stačí do E22).
+režim řazení v `HabitsScreen.tsx`.
+**Trasa `habit-stats` se ruší (O-11):** `HabitsScreen.handleViewHabitStats` (`HabitsScreen.tsx:192`,
+`router.push('/habit-stats?habitId=…')`) otevře místo trasy nový detail návyku rostoucí z karty. Samotné
+soubory trasy se mažou až v E26.
 
 1. Detail roste z karty (`DetailFrame`): kalendář s tvary, oblouček páru nahrazeného dne, vysvětlení dne.
 2. Tvorba i úprava = jeden sheet s živým náhledem. **Validace a chybové texty sdílet s `HabitForm`,
    nekopírovat.** Ikony jen z `HABIT_ICON_MAP`.
 3. Řazení: vzhled řádků a čísla pořadí; pravidla řazení beze změny.
+4. Nápověda „nahrazený den“ (téma `makeUp`, 7.10) jako tiché „i“ u legendy kalendáře v detailu.
 
 **Nesmí se rozbít:** vytvoření návyku z úvodu (`createWithTrophyGate`), limity formuláře, řazení.
 **Petr ověří:** celý pilot – a tím **brána B2**: vzhled, plynulost se skutečnými daty, němčina, velké písmo,
@@ -619,6 +716,11 @@ jen **zobrazení**:
 5. Souhrnná lišta (`XpNotification`) a staré bubliny (`XpPopupAnimation`) se v této etapě odpojí.
    Soubory i jejich testy (`xpNotificationBatching.test.ts`, `xpPopupTimeline.test.ts`) se mažou až v E26.
 6. Snížený pohyb: žádný let – kroužek se posune a odznak jednou pulzne.
+6a. **Značka násobiče na odznaku (L-10, O-4):** vlastnost `mark` z `LevelBadge` (`xpFlight.tsx`) – zlatý
+   štítek s faktorem, který **opravdu běží** (`getActiveMultiplier().multiplier`: 2×, 1,5× výzvy, 2,5× komba,
+   2× návratu), a tichá zlatá tečka, když je násobič harmonie připravený. Pravidlo `badgeMark` a `formatFactor`
+   z `multiplierLogic.ts` i s testem. Značka nemění měřený střed odznaku (jiskry dál dopadají na kroužek)
+   a při otevírání panelu se rozplyne.
 7. XP získané během úvodu se přidrží a rozletí po jeho zavření; odstavec v `Tutorial.md` o XP v liště přepsat.
 
 **Nesmí se rozbít:** skutečné XP (žádná změna v `GamificationService.addXP`), denní limity, výpočty výzev
@@ -656,11 +758,32 @@ P14 (reakce na dopad na UI vlákně), P15–P16, P45, P47.
    kopii) – teprve pak sahej na frontu; test musí zůstat zelený se stejnými očekáváními.
 3a. Výstup fronty (dnešní `ModalRenderer`) přesuň z `ModalQueueProvider` do vrstvy 4 v `LayoutContent`.
 4. XP za trofej je přidržené u momentu a letí z tlačítka „Continue“ / z odcházejícího oznámení (E7).
+4a. **Tiché oznámení s akcí** (`LabNote.action`, kolo 44): pilulka s tlačítkem, drží déle
+   (`ACTION_HOLD_MS`); ťuknutí na oznámení provede akci, ťuknutí na odznak ho jen pustí; mizející oznámení
+   už akci neprovede (pojistka proti dvojímu ťuknutí). Použije ho E9 (násobič připraven).
+4c. **Kombo trofejí (L-11):** když trofej dávky spustí kombo (`checkAndActivateAchievementCombo` v
+   `achievementService.ts`), moment dávky nese `boost` (`MomentBoost`: faktor a hodiny z `boostOf`) – štítek
+   v tiché pilulce / řádek ve velkém okně. Okno `multiplier_activation` se pro kombo **neřadí**.
+4b. Sběrač dávky předá dávku i E10: když XP dávky otevře novou kapitolu (`chapterOfAction`), dávka se
+   nezobrazí jako okno trofeje, ale jako okno kapitoly s trofejemi uvnitř (E10).
 5. Vzácnost: **dnešní katalog** (nový přijde až ve vydání C). Počítej s tím, že velkých oken bude do té
    doby víc, než ukazují scénáře laboratoře.
 
 **Nesmí se rozbít:** odemykání trofejí a jejich XP (`achievementService`), sbírky, pravidlo „hlas jen to,
 co dorazilo“ (`Gamification-Core.md`).
+**Ochrana proti zamrzání (Petr 2026-11-22: „nerad bych, aby zase docházelo k zamrzání“):** dřívější
+zamrzání mělo jednu příčinu – **dvě nativní okna přes sebe** (RN `<Modal>` + systémový dialog nebo druhý
+RN `<Modal>`, viz `Startup-Orchestrator.md` a `Tutorial.md`). Nový návrh tu příčinu odstraňuje u kořene:
+v nových obrazovkách není **žádný RN `<Modal>`** – okna, sheety i oznámení jsou `View` ve vrstvách 6.0,
+které se s nativním dialogem (ATT, souhlas, oprávnění, reklama) nemohou „poprat“. Fronta dál pouští
+**jedno okno najednou** (priority beze změny, test na skutečnou řadicí funkci), tichá oznámení čekají, dokud
+je okno otevřené, a čekající se slučují; přidržené XP má pojistku 2 s, nic nezůstane viset. Ověřit:
+- **ráčna (E1):** v převedených souborech není import `Modal` z `react-native`;
+- **zátěžový test fronty:** jedna akce + souběh událostí (3 trofeje s kombem, nová kapitola, milník výzvy,
+  série deníku, oznámení násobiče) → na obrazovce vždy jen jedna věc, nic se neztratí, pořadí podle priorit,
+  appka během toho reaguje na ťuknutí;
+- **na zařízení:** moment ve chvíli, kdy je nahoře systémový dialog (oprávnění k oznámením) a reklama
+  za odměnu – nic nezamrzne, moment počká nebo se ukáže pod dialogem a jde zavřít.
 **Testy:** `momentFor`, `enqueueMoment` (přenést z laboratoře jako čisté funkce + testy: nikdy se neztratí,
 neslučují se cizí druhy, hlava fronty se nemění); sběrač dávky; trofej během úvodu.
 **Petr ověří navíc:** čistá instalace – úvod s první trofejí (okno jde zavřít a úvod pokračuje).
@@ -686,12 +809,35 @@ neslučují se cizí druhy, hlava fronty se nemění); sběrač dávky; trofej b
    záložky a tažením. Pravidla ťuknutí (`badgeTapAction`) a tažení **i s testy**.
 2. Otevřít se smí jen na pěti záložkách, bez otevřeného sheetu/detailu a mimo moment (6.0). Reklamní pruh
    se nikdy neztmavuje ani nepřekrývá – ztmavení končí nad ním.
-2a. Nápověda `home.xpSystem` (dnes v kartě úrovně na Home) se stěhuje podle L-4 – nejspíš sem.
+2a. Nápověda: téma `multiplier` (7.10; nový hostitel za `home.xpSystem`) jako tiché „i“ v řádku harmonie;
+   ťuknutí nejdřív schová panel, pak otevře spodní okno nápovědy (vrstva 2a).
+2b. **Násobič v panelu (L-10, `MultiplierPart` v `levelPanel.tsx`)**, tři stavy podle `multiplierStatus`:
+   běží → faktor a zbývající čas; připraven → sedm dílků a jediné zlaté tlačítko „Zapnout 2× XP na 24 h“
+   (`activateHarmonyMultiplier`, jen ve stavu „připraven“, pojistka proti dvojímu ťuknutí; panel se zavře
+   a zařadí se okno zapnutí z E10); sbírá se → sedm dílků, dnešní tři (návyk / 3 záznamy deníku / krok cíle
+   z `calculateHarmonyStreak().streakHistory[0]`), věta, co je den harmonie, a během ochranné lhůty „Další
+   za N dní“ (`nextActivationDate`).
+2c. **Oznámení „připraveno“ jednou na připravení:** `shouldAnnounceReady(status, klíč, uložený klíč)`; klíč =
+   začátek série harmonie (`streakStartDate`), uložený v AsyncStorage (D-9). Tečka na odznaku a tlačítko
+   v panelu zůstávají i po přehlédnutém oznámení (P73). Oznámení = tiché oznámení s akcí z E8.
+2d. Odstranit `XpMultiplierSection` z Home (sekce `xpMultiplier`) i `MultiplierCountdownTimer` z horního
+   řádku (E3) – jejich místo převzal odznak a panel. Soubory se mažou v E26. **Pozor:** `XpMultiplierSection`
+   dnes poslouchá `xpMultiplierActivated` a řadí okno pro kombo a výzvu – s ní by oznámení zmizela; náhrada
+   podle L-11 musí být hotová ve stejné etapě: kombo nese moment trofeje (E8 bod 4c), výzva řádek ve svém
+   okně (E18), **návrat po neaktivitě**: `activateInactiveUserBoost` dnes žádnou událost neposílá – doplnit
+   `xpMultiplierActivated` se zdrojem `inactive_user_return` a posluchač ve vrstvě odznaku zařadí tiché
+   oznámení „Vítej zpět“ (25 XP letí z oznámení; bonus už je připsaný před zapnutím, O-16). Pravidla
+   `boostOf` / `boostMoment` přenést s testem; 2× a 48 h návratu přesunout ze služby do `XP_MULTIPLIERS`.
 3. Přehled úrovní: cesta se šesti kapitolami; milník jmenuje jen skutečnou trofej z katalogu
    (`CORE_ACHIEVEMENTS`, podmínka `level`), tajnou nikdy.
 
-**Nesmí se rozbít:** výpočet úrovní (`levelCalculation.ts`), test `levelMilestonePromises.test.ts`.
-**Petr ověří:** panel roste ze středu odznaku na iOS i Androidu, ostrost kroužku, tažení.
+**Nesmí se rozbít:** výpočet úrovní (`levelCalculation.ts`), test `levelMilestonePromises.test.ts`,
+aktivace a ochranné lhůty násobičů (`xpMultiplier.loyalty.test.ts`).
+**Testy:** `levelPanelLogic`, `levelsJourney`, `multiplierLogic` přenést i s testy.
+**Průvodci:** `Gamification-UI.md` (panel, značka na odznaku, oznámení připraveno), `Gamification-Core.md`
+(klíč oznámení D-9).
+**Petr ověří:** panel roste ze středu odznaku na iOS i Androidu, ostrost kroužku, tažení; násobič ve všech
+třech stavech; zapnutí z panelu i z oznámení.
 
 ---
 
@@ -708,15 +854,16 @@ série a ⭐🔥👑; `GoalsScreen.tsx` – dokončení cíle).
 | `goal_completion` | okno dokončeného cíle, XP po „Continue“ |
 | `celebration_bonus_milestone` (⭐🔥👑) | jedno okno, XP po „Continue“ |
 | `celebration_streak_milestone` | okno jen pro 7, 30, 100, 365, 1000 dní; ostatní délky tiché oznámení, které nese jen titulek (R-40). XP: `getJournalStreakReward()` – appka ho už vyplácí sama |
-| `level_up` | okno „Nová kapitola“ **jen při vstupu do nového stupně** (`tierEntered`; úrovně 11/21/41/61/81). Jinak žádné okno (R-39). Potlačení během úvodu (`handleLevelUp`) zůstává |
-| `multiplier_activation` | okno zapnutého násobiče, čísla z `XP_MULTIPLIERS` |
+| `level_up` | okno „Nová kapitola“ **jen při vstupu do nového stupně** (`tierEntered`; úrovně 11/21/41/61/81). Jinak žádné okno (R-39). Potlačení během úvodu (`handleLevelUp`) zůstává. **Spojení s trofejemi (L-8):** když XP jedné akce (dávka z E8) otevře kapitolu (`chapterOfAction`), je jedno okno – kapitola s trofejemi uvnitř (`ChapterWindow` `also`, „Také odemčeno“), XP trofejí letí z jeho tlačítka; posluchač `levelUp` v `XpAnimationContext` si pamatuje kapitolu už ukázanou akcí a **tutéž kapitolu jednou přeskočí** (ne natrvalo) |
+| `multiplier_activation` | okno zapnutého násobiče, čísla z `XP_MULTIPLIERS`; **žádná dlaždice bonusového XP** (O-10, O-16 – bonus neexistuje); spouští ho panel / oznámení z E9 |
 | `celebration_daily_complete` | ruší se až v E12 (R-13) |
 | výzvy a hvězdy | E18 |
 
 **Nesmí se rozbít:** fronta (test), texty série (`journalStreakMilestones.ts` – laboratoř jen odřízne
 emoji na konci), výplaty XP.
-**Testy:** `momentRules` přenést i s testy.
-**Petr ověří:** každé okno jednou; **brána B3** – nic se neskládá přes sebe, jiskry z tlačítek doletí.
+**Testy:** `momentRules` (vč. `chapterOfAction`) přenést i s testy.
+**Průvodci:** `Gamification-UI.md` (okna, spojení kapitoly s trofejemi).
+**Petr ověří:** každé okno jednou; trofej, která otevře kapitolu (jedno okno); **brána B3** – nic se neskládá přes sebe, jiskry z tlačítek doletí.
 
 ---
 
@@ -724,12 +871,18 @@ emoji na konci), výplaty XP.
 
 **Zdroj:** `HomeConcept.tsx`. **Cíl:** `app/(tabs)/index.tsx`, `src/components/home/*`,
 `src/contexts/HomeCustomizationContext.tsx`, `src/types/homeCustomization.ts`.
-**Závisí na:** L-2 a L-10 postavené a schválené; R-4b, R-6 potvrzené. (O-4, O-7, O-9 jsou rozhodnuté – viz 4.3.)
+**Závisí na:** L-2 a L-10 postavené a schválené; R-4b, R-6 potvrzené; D-3, D-11, D-12 (4.5).
+(O-4, O-7, O-9 jsou rozhodnuté – viz 4.3.)
+
+**E11 je velká – dělí se na pět posezení, každé = jeden commit a Petrova kontrola:**
+E11a hook ohřátí série (5b) · E11b hrdina, pozdrav, kompaktní hlavička, rychlé akce, dnešní návyky (1, 2, 4,
+6) · E11c karta série se záchranou (3, 5c) · E11d statistiky návyků (3a) · E11e Přehledy, Pro tebe,
+přizpůsobení a převod uloženého rozložení (3b, 5, 5a).
 
 | Laboratoř (kulisa) | Ostrá appka |
 |---|---|
 | `MOCK_HABITS`, `useLabToday` | `HabitsContext`, `useHabitsData` (dnešní návyky a jejich stav) |
-| `MOCK_STATS.streakDays` (čip série v hrdinovi) | **ujasnit s Petrem, která série to je** (deník? návyky?) – bez toho čip nekreslit |
+| ~~`MOCK_STATS.streakDays` (čip série v hrdinovi)~~ | **čip zrušen** (Petr 2026-11-22, D-3): série deníku je na Home ve vlastní kartě (P60); v hrdinovi jen „+XP dnes“ |
 | `xpToday` („+145 XP today“) | `GamificationService.getTodayXP()` (O-9); po každém zisku XP znovu načíst |
 | `MOCK_STATS.week`, `weekTotal`, `copy.consistent(73)` | skutečná data týdne z `useHabitsData`; procento spočítat, ne opsat |
 | `useLabJournal()` (série, ⭐🔥👑, dnešní záznamy) | `GratitudeContext` |
@@ -749,18 +902,24 @@ emoji na konci), výplaty XP.
    Přehledy nahrazují `HabitPerformanceIndicators` + `HabitTrendAnalysis`: fakta ber ze stejných výpočtů
    jako ony, řádek ukaž jen tehdy, když jeho fakt existuje. Pro tebe nahrazuje `PersonalizedRecommendations`:
    `RecommendationEngine.generateRecommendations`, jedno doporučení naráz, tlačítko dělá akci doporučení,
-   bez doporučení se karta neukáže. `StreakHistoryGraph` z Home odeber (graf zůstává v Deníku).
+   bez doporučení se karta neukáže. Sekci `streakHistory` (`StreakHistoryGraph`) z Home odeber – **graf
+   30 dní přibude ve statistikách deníku až v E13**; mezi E11 a E13 není graf nikde, což ve větvi nevadí
+   (vydání A jde ven až po E13). Soubor a `streakHistoryGraphLayout.ts` s testem se mažou v E26.
    Sheet nahrazuje `HomeCustomizationModal` nad `HomeCustomizationContext` (`toggleComponentVisibility`,
-   `reorderComponents`, `resetToDefaults`). **Uložená rozložení převeď pravidlem `migrateHomeSections`
-   uvnitř stávajícího `mergeHomeComponents`** (`src/utils/homeComponents.ts`) – žádný druhý filtr vedle
-   něj; test `homeComponents.test.ts` rozšiř o případy z `homeLayoutLogic.test.ts`.
+   `reorderComponents`, `resetToDefaults`). **Převod uloženého rozložení = jedno pravidlo uvnitř stávajícího
+   `mergeHomeComponents`** (`src/utils/homeComponents.ts`) – žádný druhý filtr vedle něj:
+   - viditelnost a sloučení sekcí podle `migrateHomeSections` (`xpProgressBar`, `xpMultiplier`,
+     `streakHistory` pryč; `habitPerformance` + `habitTrends` → `insights`, vidět, když byla vidět aspoň
+     jedna; `todayHabits` přibude za rychlé akce);
+   - **pořadí:** jen když uživatel řadil (`hasCustomOrder`), zachovat jeho pořadí; jinak nové výchozí pořadí
+     (dnešní chování `mergeHomeComponents`);
+   - pole živého typu (`name`, `order`, `configurable`) dopočítat z nového výchozího seznamu;
+   - test `homeComponents.test.ts` rozšiř o všechny případy z `homeLayoutLogic.test.ts` + oba stavy
+     `hasCustomOrder`.
 4. Kompaktní hlavička při rolování – posouvá se, nikdy se neprolíná.
-5. **Karta Úroveň na Home není** (R-31). Sekci `xpProgressBar` odeber z výchozího seznamu
-   (`defaultHomeComponents`). **Filtr uložených dat už existuje** – `mergeHomeComponents` v
-   `src/utils/homeComponents.ts` zrušené sekce vyhazuje a má test (`homeComponents.test.ts`); nový filtr
-   nepiš, jen test rozšiř o `xpProgressBar`.
-5a. Horní řádek Home: konečné místo pro vstup do Síně trofejí (R-22 „vstup z Home“), tlačítko přizpůsobení
-   a ukazatel běžícího násobiče (L-2, L-10).
+5. **Karta Úroveň na Home není** (R-31) – sekce `xpProgressBar` zmizí převodem z bodu 3b.
+5a. Horní řádek Home: konečné místo pro vstup do Síně trofejí (R-22 „vstup z Home“) a tlačítko přizpůsobení,
+   které otevře nový sheet. **Ukazatel násobiče tu není** – je na odznaku (E7, E9; O-4).
 5b. **Ohřátí série vytáhni do sdíleného hooku** (dnes je celé v `src/components/home/GratitudeStreakCard.tsx`:
    reklama, platba bonusovými záznamy, „Začít znovu“, okna úspěchu a chyby). Chování se v této etapě nemění,
    jen se logika přestěhuje, aby ji v E12 mohl použít i Deník. Bez toho bys při přestavbě karty logiku
@@ -774,12 +933,19 @@ emoji na konci), výplaty XP.
    hned vidět v Deníku a naopak. Animaci zahřátí přehrává jen plamen na viditelné obrazovce (jeden úspěšný
    hmatový signál, ne dva).
 6. Počet hotových návyků jen v hrdinovi a v kompaktní hlavičce (P60).
+7. **Plynulost (kolo 52, P79):** povzbuzující věta hrdiny má pevně vyhrazené dva řádky (`minHeight` podle
+   `titleSm` × velikost písma, `numberOfLines={2}`), aby změna věty po posledním návyku nezměnila výšku
+   hrdiny; plamen na kartě série dostává `rest` z `useScrollRest` (pozastaví se při posunu).
+8. `Alert.alert` z `HomeCustomizationModal` (7.9) zaniká spolu s oknem – chyby uložení jako `ProblemNote`,
+   „Obnovit výchozí“ bez potvrzení. `WarmUpErrorModal` (chyba zahřátí) → `ProblemNote` (D-11).
 
 **Nesmí se rozbít:** přizpůsobení Home (pořadí, viditelnost, událost `openHomeCustomization`), rychlé akce
 (`?quickAction=…` musí dál otevřít správné okno v cílové záložce), parametr `?openDebtModal=true` (do E12),
-nápověda (`home.quickActions`, `home.recommendations`, `journal.selfRiseStreak`), pulz úvodu, pokud úvod
+nápověda podle 7.10 (`home.quickActions` a `home.recommendations` zanikají), pulz úvodu, pokud úvod
 skončí na Home.
-**Průvodci:** `Gamification-UI.md` (karta úrovně), případně průvodce Home, pokud vznikne.
+**Testy:** `homeChartsLogic`, `homeLayoutLogic` přenést i s testy; rozšířený `homeComponents.test.ts`.
+**Průvodci:** `Gamification-UI.md` (karta úrovně), **nový `technical-guides:Home.md`** (D-12; sekce, převod
+rozložení, záchrana série, pravidla plynulosti).
 **Petr ověří:** rolování bez zadrhnutí, slunce se zastaví mimo obrazovku, uživatel s vlastním pořadím sekcí.
 **Pasti:** P1–P5, P39, P44, P51 (text přes barevné pozadí), P60.
 
@@ -804,6 +970,12 @@ skončí na Home.
 4b. Reklamní pruh se schová, když je klávesnice nahoře (dnes to `journal.tsx` dělá – zachovat, P30).
 4c. Tlačítka Historie a Statistiky jsou jen vpravo nahoře; stejná tlačítka na konci stránky odstraň (P35).
 5. Série: stav plamene z `GratitudeContext` – led = zmrzlá série, zahřátí = zaplacený dluh / Start Fresh.
+   Plamen dostává `rest` z `useScrollRest` (P79).
+6. Nápověda: témata `journalDay` (u „Dnes“) a `frozen` (u zamrzlé série) podle 7.10.
+7. Ikony ⭐🔥👑 jen přes `SignatureIcon` / `InlineIcon` (E2); texty v locales, které nesou emoji, přepsat tak,
+   aby ikonu vložila komponenta (vzor: `toNextMilestone` v laboratoři).
+8. `Alert.alert` v `EditGratitudeModal.tsx:52` (s chybným textem exportu) a `ErrorModal` v
+   `GratitudeInput.tsx:269` → `ProblemNote` (7.9); sheet úpravy při chybě zůstane otevřený s textem.
 
 **Nesmí se rozbít:** číslování záznamů, vratka XP při smazání, dluh a jeho splácení, reklamy za odměnu
 (`AdMob.md`), odměna za sérii, parametry `?quickAction=addGratitude|addSelfPraise`, nápověda
@@ -821,11 +993,15 @@ skončí na Home.
 1. Historie jako měsíční kalendář (stav dne tvarem, stuha série, ❄ dny z plateb ohřátí), panel dne,
    hledání se zvýrazněním. Výsledky hledání ve `FlatList`.
 2. Statistiky: série, čtyři čísla, graf posledních 30 dní, poměr typů, ⭐🔥👑.
-3. **Opravit klíč `journal.stats.daysWithEntries`** – dnes se vykresluje syrový zápis; nekopírovat náhradní
-   text z laboratoře (P29).
+3. Klíč `journal.stats.daysWithEntries` je od 2026-11-10 opravený (`_one`/`_other`, hlídá
+   `pluralFormat.test.ts`) – jen ověřit vykreslený text testem (P29).
+3a. **Graf 30 dní** (stejný, jaký zmizel z Home v E11) – tady se objeví.
+3b. `Alert.alert` v `app/journal-history.tsx:57, 114` → `ProblemNote` (7.9).
 4. Barvy grafu jsou vlastní ověřená paleta v tokenech (P32).
 
 **Nesmí se rozbít:** hledání, data historie.
+**Petr ověří:** kalendář s dny z plateb ohřátí, hledání, graf 30 dní, ikony ⭐🔥👑.
+**Průvodci:** `My-Journal.md` (historie, statistiky).
 **Testy:** vykreslené texty statistik (volat `t()` s parametry, ve výsledku nesmí být `{`, `}` ani název klíče).
 
 ---
@@ -858,8 +1034,8 @@ skončí na Home.
    text toho, co se vrací, musí odpovídat.
 
 **Nesmí se rozbít:** XP za zápis, milníky 25/50/75 %, dokončení a jeho vrácení při odečtení pod cíl
-(`sqliteGoalStorage.progressXP.test.ts`), denní strop zápisů, parametr `?quickAction=addGoal`, nápověda
-(`goals.overview`).
+(`sqliteGoalStorage.progressXP.test.ts`), denní strop zápisů, parametr `?quickAction=addGoal`.
+(Nápověda `goals.overview` zaniká – 7.10.) Rozhodnutí D-4 před bodem 6.
 **Testy:** funkce tempa (napřed / v plánu / pozadu / bez termínu / po termínu) s negativní zkouškou.
 **Průvodci:** `Goals.md` (tempo, rychlý zápis).
 **Petr ověří:** zápis a Zpět, dokončení cíle ze zápisu, němčina na kartě.
@@ -882,8 +1058,8 @@ skončí na Home.
    a Předpovědi s pěti metodami zanikají – tempo je jedna funkce z E14. Jeden cíl = jeden graf (P38).
 
 **Nesmí se rozbít:** úprava existujícího cíle, historie zápisů a jejich mazání, trasa `/goal-stats?goalId=`.
-**Pozor:** nápověda `goals.predictions` žije v `GoalCompletionPredictions`, která zaniká – nový hostitel
-podle L-4. Graf používá ověřenou paletu (P32, P38).
+**Pozor:** nápověda `goals.predictions` žije v `GoalCompletionPredictions`, která zaniká – nové téma `pace`
+(7.10) jako tiché „i“ u čipu tempa v detailu. Graf používá ověřenou paletu (P32, P38).
 **Průvodci:** `Goals.md` – kapitolu „Target Date Step-by-Step Selection Modal“ přepsat.
 
 ---
@@ -934,10 +1110,23 @@ vrácení u „Messen“, milníky u směru dolů; XP pravidla u „Hochzählen�
 2. Živá aktualizace přes `monthly_progress_updated` (jinak „mrtvé okno“ – viz průvodce).
 3. Nikdy neukazovat baseline, násobiče škálování ani „bonusy“ šablon; nikdy neslibovat „příští měsíc N hvězd“
    (hvězdy patří kategorii a další výzva bývá z jiné).
+4. **Stavy karty na Home (L-7, `ChallengeCardStates.tsx`):** stav z `challengeCardState({hasChallenge, loading,
+   failed})` – **známá data vždy vyhrají**: `MonthlyChallengeSection.loadMonthlyChallenge` dnes nastaví
+   `loading` při každém obnovení a schová kartu → při obnovení se už známá výzva neschovává a neúspěšné
+   obnovení ji nepřepíše chybou. Kostra až po `SKELETON_DELAY_MS` (250 ms), bez třpytu; „na cestě“ se
+   změní samo po události `monthly_challenge_challenge_generated` (už se poslouchá); chyba jednou větou
+   s jedním „Zkusit znovu“ = `loadMonthlyChallenge()`, **nikdy `⚠️ {error}`**. Nové texty nahradí
+   `monthlyChallenge.preparing`, `noActiveChallenge`, `errorLoading` (emoji, německé useknuté tvary).
+   Výzva po čekání se objeví prolnutím.
+5. Konstanty, které laboratoř drží jako kopie (`KEEP_LEVEL_SHARE`, `CHALLENGE_MILESTONES`), **vyvézt ze služeb
+   appky** (`starRatingService` – 70 %, `monthlyProgressTracker` – XP milníků) a obrazovky, testy i stránku
+   pravidel (E22) napojit na ně.
+6. Nápověda: téma `stars` (7.10) jako tiché „i“ u nadpisu hvězd v detailu.
 
 **Nesmí se rozbít:** sledování průběhu, všech 14 šablon, zahřívací výzvy.
-**Testy:** `challengeLogic` přenést i s testy (porovnávají se s konstantami appky).
-**Průvodci:** `Monthly-Challenges.md` (detail, tempo; smazat texty „bonusů“ šablon z locales).
+**Testy:** `challengeLogic` přenést i s testy (porovnávají se s konstantami appky), vč. `challengeCardState`.
+**Průvodci:** `Monthly-Challenges.md` (detail, tempo, stavy karty; smazat texty „bonusů“ šablon z locales).
+**Petr ověří:** detail výzvy; karta při načítání, „na cestě“ a chybě (vyvolat laděním).
 
 ---
 
@@ -947,16 +1136,23 @@ vrácení u „Messen“, milníky u směru dolů; XP pravidla u „Hochzählen�
 posluchače v `MonthlyChallengeSection.tsx`, `ModalQueueContext.tsx`.
 **Závisí na:** L-8.
 
-1. Milník 25/50/75 % = tiché oznámení (víc milníků v jedné aktualizaci = jedno oznámení se součtem XP).
+0. Okno `multiplier_activation` se pro výzvu neřadí – 1,5× je řádek v okně „Výzva splněna“ (L-11, bod 4).
+1. Milník 25/50/75 % = tiché oznámení. Víc milníků jedním zápisem (`milestonesCrossed(před, po)`) = **jedno**
+   oznámení se součtem XP – události `monthly_milestone_reached` téhož zápisu se skládají.
 2. Splnění = jedno okno; událost `star_level_changed` téhož měsíce se **vloží do něj** místo vlastního okna.
 3. Konec měsíce bez splnění = jedno klidné okno; odložené sesazení (`pending_star_demotion`) se vloží do něj.
 4. Řádek o násobiči 1,5× jen když ho appka opravdu zapnula (ne u zahřívací výzvy, ne při běžícím jiném
-   násobiči nebo ochranné lhůtě).
+   násobiči nebo ochranné lhůtě). Bonusové XP za zapnutí se neukazuje – neexistuje (O-16).
+5. **Snížení hvězd po třetí zahřívací výzvě (L-8, `warmUpStepDown`):** klidný řádek ve stejném okně „Výzva
+   splněna“ (resp. v okně konce měsíce) – šipka dolů, měkké varování, „další budou sedět líp“. Událost
+   `star_level_changed` s důvodem `warmup_penalty` (`starRatingService.ts`) **neřadí vlastní okno**.
+   Text `monthlyChallenge.starChange.reason.warmupPenalty` se smaže (v E26).
 
 **Nesmí se rozbít:** uzavření měsíce (`monthlyChallengeLifecycle.closure.test.ts`), hvězdy, série měsíců,
 priority fronty.
+**Testy:** `milestonesCrossed`, `warmUpStepDown` (v `challengeLogic.test.ts`) přenést.
 **Průvodci:** `Monthly-Challenges.md`, `Gamification-UI.md`.
-**Petr ověří:** všechny tři momenty; přelom měsíce se dá vyvolat jen laděním – domluvit postup.
+**Petr ověří:** všechny tři momenty, dva milníky jedním zápisem, třetí zahřívací výzvu; přelom měsíce podle D-6.
 
 ---
 
@@ -970,10 +1166,14 @@ priority fronty.
 2. Zeď = `FlatList` bez animace na položku; filtry jako **prvek** v `ListHeaderComponent` (ne funkce – jinak
    hledání ztratí fokus). Tajné trofeje skryté i v hledání, včetně popisu (P50).
 3. Stav z `AchievementStorage` / `AchievementService`, průběh hromadně (`batchUserStats`), ne po kartách.
-4. Pryč: statistické tabulky a Spotlight rotující po 30 s.
+4. Pryč: statistické tabulky (`TrophyRoomStats`) a Spotlight rotující po 30 s (`AchievementSpotlight`).
+5. Mapa dnešních dílů: `AchievementHistory` → Nedávné; `AchievementGrid`, `AchievementCard`, `CategorySection`,
+   `AchievementFilters` → zeď s filtry; `AchievementDetailModal` → list trofeje (sheet); `TrophyCollectionCard3D`,
+   `TrophyCombinations` → Sbírky; `LoyaltyProgressCard` → Věrnostní cesta; `AchievementTooltip` → zaniká.
 
 **Nesmí se rozbít:** sbírky a jejich bonus (už fungují), sdílení trofeje, pokud existuje.
 **Průvodci:** `Achievements.md`.
+**Petr ověří:** zeď s hledáním a filtry na slabším Androidu, sbírka, tajné trofeje skryté.
 
 ---
 
@@ -985,12 +1185,16 @@ priority fronty.
    **Všechny dnešní řádky musí zůstat:** vypínač haptiky, zásady ochrany soukromí (prohlížeč v appce se
    záložní cestou), „Jak SelfRise funguje“, reset tutoriálu s potvrzením, pruh „oznámení vypnutá“. Než
    začneš, vypiš si řádky z dnešního `settings.tsx` a u každého zapiš, kde je v novém návrhu; co v laboratoři
-   chybí → zastavit. Vypínač zvuku přibude v E25.
+   chybí → zastavit. **Nový řádek „Zvuky“** pod vypínačem haptiky (L-6, vypínač z E2).
+1a. `NotificationSettings.tsx` – všech 8 `Alert.alert` podle 7.9 (`ProblemNote`, oprávnění = `ConfirmSheet`);
+   při neúspěchu se přepínač / čas vrátí do původního stavu.
 2. Logika beze změny: `ThemeContext`, jazyk, `notificationService` **včetně pruhu „oznámení vypnutá“**,
    reset tutoriálu; „Privacy Settings“ jen když `isPrivacyOptionsRequired()`; vývojářské řádky jen ve vývoji
    (včetně vstupu do laboratoře).
 
 **Nesmí se rozbít:** připomínky, souhlas s reklamami, přepnutí jazyka za běhu.
+**Petr ověří:** všechny řádky, zvuky vypnout/zapnout, odepřené oprávnění k oznámením.
+**Průvodci:** `Notifications.md` (okna chyb), `Design-System.md` (vypínač zvuků).
 
 ---
 
@@ -1026,15 +1230,34 @@ bez ní) a přečíst je – přeskočitelný krok nesmí nechat větu, která t
 
 ### E22 – Zbylé obrazovky a okna
 
-**Závisí na:** L-3, L-4. **Cíl:** `src/screens/help/HowItWorksScreen.tsx`, `app/+not-found.tsx`,
+**Závisí na:** L-3, L-4; D-10. **Zdroj:** `HowItWorksConcept.tsx`, `labHelp.tsx`, `systemScreens.tsx`.
+**Cíl:** `src/screens/help/HowItWorksScreen.tsx`, `app/how-it-works.tsx`, `app/+not-found.tsx`,
 `DatabaseErrorScreen` v `app/_layout.tsx`, `src/components/common/{ConfirmationModal,ErrorModal,BaseModal,HelpTooltip}.tsx`,
-trasa `habit-stats` podle rozhodnutí v L-4.
+`src/constants/helpTopics.ts`, `src/locales/__tests__/helpTooltipKeys.test.ts`.
 
-**Pozor:** obrazovka chyby databáze se kreslí **před** `RootProvider` – nemá kontext vzhledu. Tokeny si
-musí vzít napřímo (světlá paleta), ne přes `useTheme()`.
-Nápověda: tabulka „klíč → nový hostitel“ z L-4 musí být po této etapě celá vyřízená (11 klíčů,
-`helpTooltipKeys.test.ts`); průvodce `Help-Tooltips.md` ve stejném commitu. Systémová okna `Alert.alert`
-podle L-4. Stavový řádek na zbylých obrazovkách karet podle režimu.
+1. **„Jak SelfRise funguje“ (L-3):** sedm oddílů skrytých mechanik; každé číslo jako interpolace z konstanty
+   appky (`XP_REWARDS`, `XP_MULTIPLIERS`, `ACHIEVEMENT_XP_REWARDS`, `JOURNAL_STREAK_REWARDS`,
+   `MAX_GOAL_TRANSACTIONS_PER_DAY` z `xpLimits.ts`, konstanty výzvy vyvezené v E17). Konstanty, které drží
+   jen stránka laboratoře (`WARM_UP_ACTIVE_DAYS`, `MAX_DEBT_DAYS`), přesuň do `src/constants` a napoj na
+   místa, kde appka to pravidlo opravdu počítá (zastavit, pokud se čísla liší). Čtyři tiché obrázky skryté
+   pro čtečku. Parametr `?section=` otevře stránku na oddílu (D-10); vstupy: Nastavení, konec úvodu
+   (`FirstCheckCard.tsx`), „Všechna pravidla“ z nápovědy.
+2. **Nápověda (L-4):** `HelpTooltip` → tiché „i“ + spodní okno ve vrstvě 2a podle tabulky 7.10 – témata
+   vložená už v E6, E9, E12, E15, E17 tady jen zkontroluj, zbylé zapoj. **Texty `help.*` = texty stránky
+   pravidel** (jeden zdroj; dnešní věcně chybné texty se přepíší). Test `helpTooltipKeys.test.ts` a stráž
+   `HOW_IT_WORKS_SECTIONS` přepsat na nová témata; průvodce `Help-Tooltips.md` ve stejném commitu.
+3. **Chyby (kolo 49):** `ProblemNote` (vrstva 2b) nahradí `ErrorModal` ve všech místech, která zbyla
+   (`HabitsScreen`, `GoalsScreen`, `GoalStatsScreen`, `HabitForm`, `GoalForm`, `ProgressEntryForm`,
+   `TargetDateStepSelectionModal`; `GratitudeInput` už v E12) – text podle akce, **nikdy `error.message`**
+   (jde dál do logu a Crashlytics); formulář při neúspěchu zůstane otevřený. Stráž: v `src/` ani `app/` není
+   `Alert.alert` (kromě `__tests__`) – poslední místa zmizela v E11–E20, tady stráž přidej.
+4. **„Nenalezeno“:** klidná stránka, jediné tlačítko „Zpět na dnešek“ = `router.replace('/(tabs)')`.
+5. **Chyba databáze:** kreslí se **před** `RootProvider` – nemá kontext vzhledu; barvy z `useColorScheme()`
+   a tokenů napřímo; texty `errors.database.*` zůstávají; stav „Zkouším znovu…“.
+6. Stavový řádek na zbylých obrazovkách karet podle režimu.
+
+**Petr ověří:** stránka pravidel (i z nápovědy na oddílu), každé „i“, pruh chyby (vyvolat laděním),
+„nenalezeno“.
 
 ---
 
@@ -1056,12 +1279,18 @@ opony (dnes průvodce říká, že každé startovní UI je až za `awaitStartup
 
 ---
 
-### E24 – Vlastní ikony (R-34) · E25 – Zvuk a hmat (R-35)
+### E24 – Vlastní ikony (R-34) — přesunuto do E1–E3
 
-**Závisí na:** L-5, resp. L-6 a nativním buildu z E0. Ikony nahradí emoji ⭐🔥👑 a obecnou sadu na
-podpisových místech. Zvuk i hmatové vzory musí jít vypnout v Nastavení a respektují tichý režim.
+Písmo ikon nepotřebuje nativní build (P78), proto se staví hned na začátku, aby žádná etapa nekreslila
+emoji a pak se nepředělávala: písmo v E1, komponenty v E2 (bod 4a), ikony lišty v E3. Tady jen kontrola:
+v `src/` a `app/` se nikde nekreslí ⭐🔥👑🏆 jako emoji (stráž v testech).
 
-**E25 podrobně (kolo 50, O-12):** slovník `labFeel.ts` (+ test) přesunout do `src/constants/feel.ts`;
+### E25 – Zvuk a hmat (R-35) — přesunuto do E2 a E20
+
+Slovník a přehrávač vznikají v E2 (bod 4; `expo-audio` je z buildu E0), řádek „Zvuky“ v E20. Tady jen
+kontrola, že žádná nová obrazovka nevolá `impact()` / `notification()` napřímo.
+
+**Podrobnosti ke slovníku (kolo 50, O-12) – platí pro E2:** slovník `labFeel.ts` (+ test) přesunout do `src/constants/feel.ts`;
 přehrávač `feelPlayer.ts` do `src/services/` – hmat přes `hapticsService`, zvuk přes `expo-audio`
 (jeden přednačtený přehrávač na zvuk, hlasitost ~0,6, `playsInSilentMode: false`, chyba přehrání nikdy
 neshodí okamžik). Přepínač „Zvuky“ v Nastavení pod „Hmatová odezva“, uložený jako ona. **Všechna ruční
@@ -1078,14 +1307,38 @@ v `PREVOD.md` (řádek `labFeel.ts`). Zvuky zatím syntetizované návrhy – p�
    stará okna (`CelebrationModal`, `MonthlyChallenge*Modal`, `StarLevelChangeModal`,
    `MultiplierActivationModal`, `GoalCompletionModal` – jen pokud je nahradil nový díl), `SafeLinearGradient`,
    `src/hooks/useLevelUpCelebrations.ts`, `StarProgressIndicator`, `StarRatingBadge`, `XpMultiplierIndicator`,
-   pozůstatky šablony Expo (kořenová složka `components/`: `HapticTab`, `IconSymbol`, `TabBarBackground`,
-   `CompletionAnimation`), nepoužívané `nativeID`. **`lottie-react-native` nemazat** (plamen série).
+   nepoužívané `nativeID`. **`lottie-react-native` nemazat** (plamen série).
+1a. Home (E9, E11): `XpMultiplierSection`, `MultiplierCountdownTimer`, `HabitStatsDashboard`,
+   `WeeklyHabitChart`, `Monthly30DayChart`, `YearlyHabitOverview`, `HabitPerformanceIndicators`,
+   `HabitTrendAnalysis`, `PersonalizedRecommendations`, `HomeCustomizationModal`, `StreakHistoryGraph`
+   + `streakHistoryGraphLayout.ts` a jejich testy.
+1b. Cíle (E15): `GoalCompletionPredictions`, `ProgressTrendAnalysis`.
+1c. Nápověda a chyby (E22): `HelpTooltip`, `helpTopics.ts` (pokud stránka čte nová témata), texty
+   `help.home.quickActions`, `help.home.recommendations`, `help.goals.overview`, `help.habits.scheduling`
+   a `help.habits.bonusConversion` (EN/DE/ES), `ErrorModal` / `ConfirmationModal` / `BaseModal`, pokud je
+   nic nečte, `WarmUpErrorModal`.
+1d. Trasa návykových statistik (O-11): `app/habit-stats.tsx`, `Stack.Screen name="habit-stats"`
+   (`app/_layout.tsx`), `IndividualHabitStatsScreen`, `DailyHabitTrackingScreen`, export v
+   `src/screens/habits/index.ts`; smluvený parametr z kap. 2.2 a 3.4.
+1e. Pozůstatky šablony Expo v kořenové složce `components/` (`Collapsible`, `ExternalLink`, `HapticTab`,
+   `HelloWave`, `ParallaxScrollView`, `ThemedText`, `ThemedView`, `ui/` – `IconSymbol`, `TabBarBackground`) –
+   **až když je nic nečte**: `IconSymbol` dnes čtou `journal-stats`, `journal-history`, `habit-stats`
+   (zmizí po E13 a 1d), `ThemedText`/`ThemedView` čte `app/+not-found.tsx` (zmizí po E22).
+   `CompletionAnimation` je v `src/components/habits/` (export v `habits/index.ts`) – smazat jen když ho nic nečte.
+1g. Další mrtvé nebo nahrazené díly z finální kontroly: `DailyHabitTracker`, `HabitStatsAccordionItem`
+   (patří k rušené trase `habit-stats`), `ParticleEffects` (jen export, nikdo ho nečte), `StarRatingDisplay`
+   (nahradí `Stars` v E17/E18), `PremiumTrophyIcon` (nahradí tlačítko trofejí s ikonou `trophy` v E11),
+   staré díly Síně trofejí z E19 bod 4–5.
+1f. Konstanty: `XP_REWARDS.HABIT.STREAK_*` a zdroj `HABIT_STREAK_MILESTONE` (O-1, i jeho užití v
+   `XpPopupAnimation`); ověřit a případně smazat `XP_REWARDS.SPECIAL.HARMONY_STREAK_7`; text
+   `monthlyChallenge.starChange.reason.warmupPenalty`.
 2. Nepoužité texty v locales (EN/DE/ES zároveň): staré okna, „bonusy“ šablon výzev; konstanty série návyku
    podle O-1.
 3. Ráčna pokrývá všechny obrazovky.
 4. O-6: laboratoř ponechat, nebo smazat.
 
 **Jak poznat, že něco „už nic nečte“:** hledat název v celém `src/` a `app/`; po smazání `tsc` + testy.
+**Petr ověří:** celá appka po úklidu (rychlé projití všech obrazovek).
 
 ---
 
@@ -1132,9 +1385,9 @@ Až po vydáních. Samostatná práce s vlastním plánem (Reanimated, worklets,
 
 | Změna | Etapa | Poznámka |
 |---|---|---|
-| Uložené přizpůsobení Home bez sekce `xpProgressBar` | E11 | filtr už existuje (`mergeHomeComponents`), jen odebrat sekci z výchozích a rozšířit test |
+| Uložené přizpůsobení Home: převod 10 → 7 sekcí (`migrateHomeSections` uvnitř `mergeHomeComponents`, `hasCustomOrder`) | E11 | jedno pravidlo s testem (E11 bod 3b); bez nového sloupce |
 | Cíl: druh + počáteční hodnota | E16 | migrace + záloha/obnova |
-| Návyk: část dne | E28 | migrace + záloha/obnova |
+| Klíč „násobič oznámen pro toto připravení“ (AsyncStorage) | E9 | nový klíč, bez migrace (D-9) |
 | Trofeje: nový katalog, vyčištění uložených | E29 | podle `achievements-rework-plan.md` |
 
 Každá migrace: test nad daty staré verze, zpětná kompatibilita zálohy, marketingová demo data, a **zastavit
@@ -1185,7 +1438,7 @@ Narazíš-li na funkci z kulis, která tu není a appka pro ni nemá obdobu → 
 
 ### 7.8 Návrat zpět
 
-Jedna etapa = jeden commit ve větvi → `git revert <commit>`. Etapy s migrací dat (E16, E28, E29) musí mít
+Jedna etapa = jeden commit ve větvi → `git revert <commit>`. Etapy s migrací dat (E16, E29) musí mít
 napsáno, co se stane s daty při návratu ke starší verzi appky, dřív než se pustí ven.
 
 ---
@@ -1211,6 +1464,30 @@ Rozhodnutí = `ConfirmSheet` (`journalParts.tsx`). Texty do locales EN/DE/ES.
 | `app/journal-history.tsx:114` | smazání záznamu selhalo | `ProblemNote` „Záznam se nesmazal. Je pořád v deníku.“ |
 
 **Test:** stráž v testech, že `Alert.alert` se ve `src/` a `app/` nevyskytuje (kromě `__tests__`).
+
+### 7.10 Nápověda: klíč → téma → hostitel (L-4, kolo 48)
+
+Dnes 11 bublin `HelpTooltip` (`helpKey=`). Po převodu 6 témat (`HELP_TOPICS` v `labHelp.tsx`), texty =
+texty stránky „Jak SelfRise funguje“ (jeden zdroj).
+
+| Dnešní klíč (hostitel) | Nově | Etapa |
+|---|---|---|
+| `habits.makeupFunction` (`HabitCalendarView`) | téma `makeUp` – „i“ u legendy kalendáře v detailu návyku | E6 |
+| `habits.bonusConversion` (`HabitItemWithCompletion`) | **zaniká** – obsah pokrývá téma `makeUp` (den navíc nahrazuje vynechaný) | E5 |
+| `habits.scheduling` (`HabitForm`) | **zaniká** – výběr dnů je vidět | E6 |
+| `journal.selfRiseStreak` (`DailyGratitudeProgress`) | téma `journalDay` – „i“ u „Dnes“ v Deníku (3 záznamy + ⭐🔥👑) | E12 |
+| `journal.debtRecovery` (`DailyGratitudeProgress`) | téma `frozen` – „i“ v kartě zamrzlé série | E12 |
+| `goals.predictions` (`GoalCompletionPredictions`, zaniká) | téma `pace` – „i“ u čipu tempa v detailu cíle | E15 |
+| `goals.overview` (`GoalListWithDragAndDrop`) | **zaniká** – tvorba cíle je vidět | E14 |
+| `home.xpSystem` (`OptimizedXpProgressBar`, zaniká) | téma `multiplier` – „i“ u řádku harmonie v panelu úrovně | E9 |
+| `home.quickActions` (`QuickActionButtons`) | **zaniká** – tlačítka říkají, co dělají | E11 |
+| `home.recommendations` (`PersonalizedRecommendations`, zaniká) | **zaniká** | E11 |
+| `challenges.starDifficulty` ×2 (`MonthlyChallengeCard`) | téma `stars` – „i“ u nadpisu hvězd v detailu výzvy | E17 |
+
+### 7.11 Kdo převádí řádky mapy 7.9 (`Alert.alert`)
+
+`HomeCustomizationModal` → E11 · `EditGratitudeModal` → E12 · `app/journal-history.tsx` → E13 ·
+`NotificationSettings` ×8 → E20 · stráž „žádné `Alert.alert`“ → E22.
 
 ## 8. NOVÉ FUNKCE, KTERÉ OSTRÁ APPKA NEMÁ (soupis)
 
@@ -1240,8 +1517,19 @@ Rozhodnutí = `ConfirmSheet` (`journalParts.tsx`). Texty do locales EN/DE/ES.
 | Nájezd jen při první návštěvě záložky | R-32 | `DesignLabScreen.tsx` | E3 |
 | Tažné zavírání | R-33 | `dragToClose.tsx` | E4 |
 | Opona při spuštění | R-9 | `introTimeline.tsx` | E23 |
-| Vlastní ikony, zvuk, hmatové vzory | R-34, R-35 | zatím nic (L-5, L-6) | E24, E25 |
-| Části dne | R-30 | zatím nic (L-1) | E28 |
+| Vlastní ikony (⭐🔥👑🏆) a ikony spodní lišty | R-34 | `SignatureIcon.tsx`, `SelfRiseIcons.ttf` | E1–E3 |
+| Slovník dotyku a zvuku, přepínač „Zvuky“ | R-35 | `labFeel.ts`, `feelPlayer.ts` | E2, E20 |
+| Klid při posunu (pevná výška, plamen stojí) | – | `useScrollRest`, `HomeConcept.tsx` | E2, E11, E12 |
+| Statistiky návyků na Home (týden / 30 dní / rok) | – | `HabitStatsConcept.tsx` | E11 |
+| Přehledy, Pro tebe, sheet přizpůsobení s převodem rozložení | – | `HomeSectionsConcept.tsx` | E11 |
+| Záchrana zamrzlé série přímo na Home | – | `HomeConcept.tsx`, `WarmUpControls` | E11 |
+| Násobič na odznaku a v panelu úrovně | O-4 | `multiplierLogic.ts`, `xpFlight.tsx`, `levelPanel.tsx` | E7, E8, E9 |
+| Stavy karty výzvy (načítání, na cestě, chyba) | – | `ChallengeCardStates.tsx` | E17 |
+| Jedna oslava i napříč událostmi (kapitola + trofej, víc milníků, snížení hvězd) | R-29 | `momentRules.ts`, `challengeLogic.ts` | E8, E10, E18 |
+| Nová stránka „Jak SelfRise funguje“ | – | `HowItWorksConcept.tsx` | E22 |
+| Nápověda na místě (6 témat) | – | `labHelp.tsx` | E6, E9, E12, E15, E17, E22 |
+| Pruh neúspěšné akce, „nenalezeno“, chyba databáze | – | `systemScreens.tsx` | E11–E22 |
+| ~~Části dne~~ | R-30 | zrušeno (O-13) | – |
 | Nový katalog trofejí | R-28 | `achievements-rework-plan.md` | E29 |
 
 ---
@@ -1271,7 +1559,7 @@ vede v téhle tabulce; rozhodnutí a poučení dál v `premium-design-plan.md`.
 
 | Etapa | Stav | Commit | Petr schválil |
 |---|---|---|---|
-| B0 – potvrzení rozhodnutí 4.2 a O-2 | ☐ | – | |
+| B0 – potvrzení rozhodnutí 4.2 (✅ 2026-11-22), zvuky D-7, souhlas s buildem | ☐ | – | |
 | E0 – příprava, build, měření (→ B1) | ☐ | | |
 | E1 – tokeny, fonty, testy | ☐ | | |
 | E2 – primitiva, Design-System | ☐ | | |
@@ -1296,12 +1584,12 @@ vede v téhle tabulce; rozhodnutí a poučení dál v `premium-design-plan.md`.
 | E21 – úvod | ☐ | | |
 | E22 – zbylé obrazovky | ☐ | | |
 | E23 – opona | ☐ | | |
-| E24 – ikony | ☐ | | |
-| E25 – zvuk a hmat | ☐ | | |
+| E24 – ikony (přesunuto do E1–E3, zbývá kontrola) | ☐ | | |
+| E25 – zvuk a hmat (přesunuto do E2, E20, zbývá kontrola) | ☐ | | |
 | E26 – úklid | ☐ | | |
 | E27 – vydání A (vyžaduje B4) | ☐ | | |
 | E28 – části dne | ✖ zrušeno (O-13) | | |
 | E29 – katalog trofejí | ☐ | | |
 | E30 – Expo | ☐ | | |
 
-Laboratorní dluhy (Petr prošel kola 41–49 na zařízení 2026-11-21: „všechno vypadá skvěle“): L-1 ✖ (zrušeno, O-13) · L-2 ☑ (kolo 41–42) · L-3 ☑ (kolo 47, schváleno 2026-11-21) · L-4 ☑ (kola 48–49 + mapa 7.9, schváleno) · L-5 ☑ (kolo 51) · L-6 ☑ (kolo 50; zvuky slyšet až po E0) · L-7 ☑ (kolo 45, schváleno 2026-11-21) · L-8 ☑ (kolo 46, schváleno 2026-11-21) · L-9 ☑ (ověřeno 2026-11-21) · L-10 ☑ (kolo 44, schváleno 2026-11-21)
+Laboratorní dluhy (Petr prošel kola 41–49 na zařízení 2026-11-21: „všechno vypadá skvěle“): L-1 ✖ (zrušeno, O-13) · L-11 ☑ postaveno (kolo 53), čeká na schválení · L-2 ☑ (kolo 41–42) · L-3 ☑ (kolo 47, schváleno 2026-11-21) · L-4 ☑ (kola 48–49 + mapa 7.9, schváleno) · L-5 ☑ postaveno (kolo 51), čeká na schválení · L-6 ☑ postaveno (kolo 50), čeká na schválení; zvuky slyšet až po E0 · kolo 52 (plynulost posunu) postaveno, čeká na schválení · L-7 ☑ (kolo 45, schváleno 2026-11-21) · L-8 ☑ (kolo 46, schváleno 2026-11-21) · L-9 ☑ (ověřeno 2026-11-21) · L-10 ☑ (kolo 44, schváleno 2026-11-21)

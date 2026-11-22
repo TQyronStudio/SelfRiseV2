@@ -74,7 +74,12 @@ import {
 } from './labPrimitives';
 import { labFonts, LabPalette, labRadius, labSpace } from './labTokens';
 import { useIntro } from './introTimeline';
-import { ScrollCard, ScrollFrameProvider } from './scrollChoreography';
+import {
+  RestSignal,
+  ScrollCard,
+  ScrollFrameProvider,
+  useScrollRest,
+} from './scrollChoreography';
 import { RollingNumber } from './RollingNumber';
 import { MOCK_COPY } from './mockCopy';
 import { useLabXpAward } from './xpFlight';
@@ -141,6 +146,8 @@ export function JournalConcept({ bottomInset }: { bottomInset: number }) {
   const [confirmFresh, setConfirmFresh] = useState(false);
   // The frozen streak and its warm-up are shared with Home (journalMock, kolo 43).
   const { frozen, flame, streak, onFlame } = journal;
+
+  const rest = useScrollRest();
 
   // --- Native-driven scroll (see scrollChoreography.tsx for why) -------------------
   const scrollRef = useRef<ScrollView>(null);
@@ -282,6 +289,8 @@ export function JournalConcept({ bottomInset }: { bottomInset: number }) {
           ]}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
+          // The flame's loop rests while the page scrolls (kolo 52).
+          {...rest.handlers}
           scrollEventThrottle={16}
         >
           {/* Title row — the level badge is pinned on the left by the lab screen. */}
@@ -327,6 +336,7 @@ export function JournalConcept({ bottomInset }: { bottomInset: number }) {
                 frozen={!!frozen}
                 onFlame={onFlame}
                 onOpenStats={() => setPage('stats')}
+                rest={rest.signal}
               />
             </Rise>
           </ScrollCard>
@@ -515,6 +525,7 @@ function TodayCard({
   frozen,
   onFlame,
   onOpenStats,
+  rest,
 }: {
   count: number;
   streak: number;
@@ -523,6 +534,7 @@ function TodayCard({
   frozen: boolean;
   onFlame: (next: FlameState) => void;
   onOpenStats: () => void;
+  rest: RestSignal;
 }) {
   const { c, lang, mode } = useLab();
   const t = useJournalT();
@@ -608,6 +620,7 @@ function TodayCard({
             state={flame}
             onStateChange={onFlame}
             size={60}
+            rest={rest}
             label={MOCK_COPY[lang].flameHint}
           />
           <View style={{ alignItems: 'flex-end' }}>

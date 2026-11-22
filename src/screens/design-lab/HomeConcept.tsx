@@ -96,6 +96,7 @@ import {
   labSkyGold,
   labSpace,
   labSun,
+  labType,
 } from './labTokens';
 import { RollingNumber } from './RollingNumber';
 import { StreakFlame } from './StreakFlame';
@@ -128,7 +129,11 @@ import { useLabXpAward, XpPop } from './xpFlight';
 import { useLabToday } from './habitsMock';
 import { useLabJournal } from './journalMock';
 import { useIntro, useIntroWindow } from './introTimeline';
-import { ScrollCard, ScrollFrameProvider } from './scrollChoreography';
+import {
+  ScrollCard,
+  ScrollFrameProvider,
+  useScrollRest,
+} from './scrollChoreography';
 import { MOCK_COPY, MOCK_HABITS, MOCK_STATS, MockHabit } from './mockCopy';
 
 const SCREEN_PADDING = labSpace.xl;
@@ -271,6 +276,8 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
   const onScreen = useRef(pageActive);
   const dragging = useRef(false);
   const gliding = useRef(false);
+  // The streak flame's loop rests while Home scrolls, like the sun (kolo 52).
+  const rest = useScrollRest();
   const updateAmbient = () => {
     const on =
       onScreen.current &&
@@ -417,18 +424,22 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
           onScrollBeginDrag={() => {
             dragging.current = true;
             updateAmbient();
+            rest.update({ dragging: true });
           }}
           onScrollEndDrag={() => {
             dragging.current = false;
             updateAmbient();
+            rest.update({ dragging: false });
           }}
           onMomentumScrollBegin={() => {
             gliding.current = true;
             updateAmbient();
+            rest.update({ gliding: true });
           }}
           onMomentumScrollEnd={() => {
             gliding.current = false;
             updateAmbient();
+            rest.update({ gliding: false });
           }}
           contentContainerStyle={[
             contentColumn,
@@ -456,6 +467,8 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
               <Rise window={headerWindow} style={styles.headerButtons}>
                 <RoundButton
                   icon="trophy"
+                  // The signature trophy (kolo 51), not the generic glyph.
+                  signature="trophy"
                   tint={c.rewardText}
                   background={c.rewardSoft}
                   label="Trophies"
@@ -577,11 +590,8 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
                   distance={6}
                   style={styles.chipRow}
                 >
-                  <Chip
-                    icon="flame"
-                    label={copy.streakChip(MOCK_STATS.streakDays)}
-                    tone="flame"
-                  />
+                  {/* Only today's XP: the journal streak has its own card below (P60;
+                      Petr 2026-11-22 – the same number twice on a screen makes no sense). */}
                   <Chip icon="sparkles" tone="reward">
                     <RollingNumber
                       text={`+${xpToday} XP ${xpWord}`}
@@ -706,6 +716,7 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
                               <StreakFlame
                                 state={flame}
                                 onStateChange={journal.onFlame}
+                                rest={rest.signal}
                                 size={56}
                                 label={copy.flameHint}
                               />
@@ -1070,6 +1081,14 @@ export function HomeConcept({ bottomInset, onOpenTrophies }: HomeConceptProps) {
 /** The guide's voice. Cross-fades when the sentence changes instead of jumping. */
 function Encouragement({ text }: { text: string }) {
   const [shown, setShown] = useState(text);
+  // Two lines are always kept (kolo 52): the last habit changes the sentence to a
+  // longer one, and a hero that grows by a line moves every card below it — each
+  // rebuilds its scroll animation right when the user starts to scroll (a hitch).
+  const { fontScale } = useWindowDimensions();
+  const twoLines =
+    2 *
+    labType.titleSm.lineHeight *
+    Math.min(fontScale, labType.titleSm.maxScale);
   const opacity = useSharedValue(1);
   const first = useRef(true);
 
@@ -1095,8 +1114,22 @@ function Encouragement({ text }: { text: string }) {
   }));
 
   return (
-    <Animated.View style={[{ marginTop: labSpace.lg }, style]}>
-      <LabText variant="titleSm" italic style={{ textAlign: 'center' }}>
+    <Animated.View
+      style={[
+        {
+          marginTop: labSpace.lg,
+          minHeight: twoLines,
+          justifyContent: 'center',
+        },
+        style,
+      ]}
+    >
+      <LabText
+        variant="titleSm"
+        italic
+        numberOfLines={2}
+        style={{ textAlign: 'center' }}
+      >
         {shown}
       </LabText>
     </Animated.View>
@@ -1202,8 +1235,11 @@ function RoundButton({
   background,
   label,
   onPress,
+  signature,
 }: {
   icon: React.ComponentProps<typeof Ionicons>['name'];
+  /** Draw this signature icon instead of the Ionicon. */
+  signature?: SignatureName;
   tint: string;
   background: string;
   label: string;
@@ -1220,7 +1256,11 @@ function RoundButton({
         { backgroundColor: background, borderColor: c.border },
       ]}
     >
-      <Ionicons name={icon} size={20} color={tint} />
+      {signature ? (
+        <SignatureIcon name={signature} size={22} />
+      ) : (
+        <Ionicons name={icon} size={20} color={tint} />
+      )}
     </PressableScale>
   );
 }

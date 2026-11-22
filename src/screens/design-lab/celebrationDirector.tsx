@@ -103,9 +103,25 @@ export interface LabNote {
   action?: { label: string; run: () => void };
 }
 
+/**
+ * A multiplier the action switched on by itself (kolo 53, L-11: a trophy combo) —
+ * told inside the same moment, never as a window of its own (P75).
+ */
+export interface MomentBoost {
+  /** Printed factor without the sign ("2,5") – the texts add the ×. */
+  factor: string;
+  hours: number;
+}
+
 export type Moment =
-  | { id: number; kind: 'quiet'; items: LabTrophy[] }
-  | { id: number; kind: 'big'; headliner: LabTrophy; also: LabTrophy[] }
+  | { id: number; kind: 'quiet'; items: LabTrophy[]; boost?: MomentBoost }
+  | {
+      id: number;
+      kind: 'big';
+      headliner: LabTrophy;
+      also: LabTrophy[];
+      boost?: MomentBoost;
+    }
   | { id: number; kind: 'note'; note: LabNote }
   /** Any other full-screen moment; it calls `done` when it has closed. */
   | { id: number; kind: 'window'; render: (done: () => void) => ReactNode };
@@ -132,13 +148,18 @@ export function labTrophy(id: string, rarity: LabRarity): LabTrophy {
 }
 
 /** The rule: what one action unlocked becomes exactly one moment. */
-export function momentFor(batch: LabTrophy[], id = 0): Moment | null {
+export function momentFor(
+  batch: LabTrophy[],
+  id = 0,
+  boost?: MomentBoost
+): Moment | null {
   if (batch.length === 0) return null;
   const sorted = [...batch].sort((a, b) => RANK[b.rarity] - RANK[a.rarity]);
   const top = sorted[0]!;
+  const extra = boost ? { boost } : null;
   return RANK[top.rarity] >= RANK.epic
-    ? { id, kind: 'big', headliner: top, also: sorted.slice(1) }
-    : { id, kind: 'quiet', items: sorted };
+    ? { id, kind: 'big', headliner: top, also: sorted.slice(1), ...extra }
+    : { id, kind: 'quiet', items: sorted, ...extra };
 }
 
 export function momentXp(moment: Moment): number {
@@ -156,7 +177,11 @@ export function momentXp(moment: Moment): number {
 export function enqueueMoment(queue: Moment[], next: Moment): Moment[] {
   const last = queue[queue.length - 1];
   if (queue.length >= 2 && last?.kind === 'quiet' && next.kind === 'quiet') {
-    const merged = momentFor([...last.items, ...next.items], last.id);
+    const merged = momentFor(
+      [...last.items, ...next.items],
+      last.id,
+      last.boost ?? next.boost
+    );
     return merged ? [...queue.slice(0, -1), merged] : queue;
   }
   return [...queue, next];
@@ -190,9 +215,8 @@ export const CELEBRATION_SCENARIOS: { label: string; batch: LabTrophy[] }[] = [
 // State: a stable `celebrate`, and the moment on screen
 // ---------------------------------------------------------------------------
 
-const CelebrateContext = createContext<((batch: LabTrophy[]) => void) | null>(
-  null
-);
+type Celebrate = (batch: LabTrophy[], boost?: MomentBoost) => void;
+const CelebrateContext = createContext<Celebrate | null>(null);
 interface MomentsApi {
   showNote: (note: LabNote) => void;
   showWindow: (render: (done: () => void) => ReactNode) => void;
@@ -209,8 +233,8 @@ export function LabCelebrationProvider({ children }: { children: ReactNode }) {
   const [queue, setQueue] = useState<Moment[]>([]);
   const nextId = useRef(1);
   const noteTap = useRef<(() => void) | null>(null);
-  const celebrate = useCallback((batch: LabTrophy[]) => {
-    const moment = momentFor(batch, nextId.current++);
+  const celebrate = useCallback((batch: LabTrophy[], boost?: MomentBoost) => {
+    const moment = momentFor(batch, nextId.current++, boost);
     if (moment) setQueue(q => enqueueMoment(q, moment));
   }, []);
   const finish = useCallback(() => setQueue(q => q.slice(1)), []);
@@ -243,7 +267,7 @@ export function LabCelebrationProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useLabCelebrate(): (batch: LabTrophy[]) => void {
+export function useLabCelebrate(): Celebrate {
   const ctx = useContext(CelebrateContext);
   if (!ctx) throw new Error('useLabCelebrate needs LabCelebrationProvider');
   return ctx;
@@ -297,6 +321,7 @@ export function CelebrationModalOutlet() {
       key={current.id}
       headliner={current.headliner}
       also={current.also}
+      {...(current.boost ? { boost: current.boost } : null)}
       onClosed={finish}
     />
   );
@@ -317,6 +342,7 @@ export function CelebrationNoteOutlet({
     <TrophyNote
       key={current.id}
       items={current.items}
+      {...(current.boost ? { boost: current.boost } : null)}
       onDone={finish}
       onOpen={onOpenTrophies}
     />
@@ -331,10 +357,12 @@ const HOLD_MS: Record<'common' | 'rare', number> = { common: 2600, rare: 3400 };
 
 function TrophyNote({
   items,
+  boost,
   onDone,
   onOpen,
 }: {
   items: LabTrophy[];
+  boost?: MomentBoost;
   onDone: () => void;
   onOpen: () => void;
 }) {
@@ -441,7 +469,11 @@ function TrophyNote({
       <PressableScale
         onPress={() => leave(true)}
         haptic={null}
-        accessibilityLabel={`${overline}. ${names}. +${xp} XP. ${copy.openTrophies}`}
+        accessibilityLabel={`${overline}. ${names}. +${xp} XP.${
+          boost
+            ? ` ${MOCK_COPY[lang].challenge.multiplier(boost.factor, boost.hours)}.`
+            : ''
+        } ${copy.openTrophies}`}
         style={[
           styles.note,
           {
@@ -483,6 +515,21 @@ function TrophyNote({
             {`+${xp} XP`}
           </Text>
         </View>
+        {/* The trophy that completed a combo also switched 2,5× on (L-11). */}
+        {boost && (
+          <View style={[styles.noteAction, { backgroundColor: c.rewardSoft }]}>
+            <Text
+              maxFontSizeMultiplier={1.2}
+              numberOfLines={1}
+              style={[
+                typeStyle('label', mode === 'light' ? c.rewardText : c.reward),
+                { fontFamily: labFonts.bold },
+              ]}
+            >
+              {`${boost.factor}× XP`}
+            </Text>
+          </View>
+        )}
       </PressableScale>
     </RNAnimated.View>
   );

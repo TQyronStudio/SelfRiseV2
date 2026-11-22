@@ -24,8 +24,9 @@
  * - No entrance per section: the page slides in, that is the motion.
  *
  * GOING LIVE (1:1) — see PREVOD.md: app/how-it-works.tsx renders this; texts into
- * src/locales EN/DE/ES with the numbers as interpolation; the `?` tooltips keep
- * their own short texts (helpTopics.ts) — this page no longer renders them, so the
+ * src/locales EN/DE/ES with the numbers as interpolation. The in-place help
+ * (labHelp.tsx, kolo 48) reads THESE texts — one source for the page and the
+ * help sheet (the old `help.*` texts are rewritten, not kept beside them); the
  * i18n guard test for HOW_IT_WORKS_SECTIONS moves to the new keys.
  */
 import React, { useRef } from 'react';

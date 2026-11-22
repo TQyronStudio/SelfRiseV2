@@ -1,4 +1,7 @@
+import { XP_MULTIPLIERS } from '../../../constants/gamification';
 import {
+  boostMoment,
+  boostOf,
   badgeMark,
   formatFactor,
   multiplierStatus,
@@ -103,5 +106,26 @@ describe('formatFactor', () => {
     expect(formatFactor(2, '.')).toBe('2×');
     expect(formatFactor(1.5, '.')).toBe('1.5×');
     expect(formatFactor(2.5, ',')).toBe('2,5×');
+  });
+});
+
+describe('multipliers that switch on by themselves (L-11)', () => {
+  it("runs what the app's service sets", () => {
+    expect(boostOf('achievement_combo')).toEqual({
+      factor: XP_MULTIPLIERS.ACHIEVEMENT_COMBO_MULTIPLIER,
+      hours: XP_MULTIPLIERS.ACHIEVEMENT_COMBO_DURATION,
+    });
+    expect(boostOf('challenge_completion')).toEqual({
+      factor: XP_MULTIPLIERS.CHALLENGE_COMPLETION_MULTIPLIER,
+      hours: XP_MULTIPLIERS.CHALLENGE_COMPLETION_DURATION,
+    });
+    expect(boostOf('inactive_user_return')).toEqual({ factor: 2, hours: 48 });
+  });
+
+  it('never gives an automatic multiplier a window of its own', () => {
+    expect(boostMoment('harmony_streak')).toBe('ownWindow');
+    expect(boostMoment('achievement_combo')).toBe('trophyMoment');
+    expect(boostMoment('challenge_completion')).toBe('challengeWindow');
+    expect(boostMoment('inactive_user_return')).toBe('welcomeNote');
   });
 });
