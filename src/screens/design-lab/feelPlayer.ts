@@ -2,11 +2,10 @@
  * Plays a moment of the feel vocabulary (labFeel.ts): its taps through the app's
  * haptics service (which already honours the user's switch) and its sound.
  *
- * SOUND IN THE LAB: the app has no audio player yet — expo-audio is a native
- * module and must come with the E0 build (design-migration-plan.md). Until then
- * `playSound` is a no-op that logs in development, so the lab already calls it at
- * the right moments and the Settings switch already works. The candidate sounds
- * are in assets/sounds/ (see the README there).
+ * SOUND: expo-audio, in the build since E0 (2026-11-22). One player per sound,
+ * made on first use, volume 0.6, mixed with other audio, silent switch wins.
+ * On an older build without the native module the lab stays silent (logs only).
+ * The candidate sounds are in assets/sounds/ (see the README there).
  */
 import { useSyncExternalStore } from 'react';
 import {
@@ -55,10 +54,77 @@ function playTap(tap: Tap): void {
   }
 }
 
+// --- Sound (expo-audio, in the build since E0, 2026-11-22) -----------------------
+const SOURCES: Record<SoundId, number> = {
+  celebrate: require('../../../assets/sounds/celebrate.m4a'),
+  chapter: require('../../../assets/sounds/chapter.m4a'),
+  complete: require('../../../assets/sounds/complete.m4a'),
+  boost: require('../../../assets/sounds/boost.m4a'),
+};
+/** Quiet: a sound under the moment, never over the user's music. */
+const VOLUME = 0.6;
+
+type Player = {
+  volume: number;
+  play: () => void;
+  seekTo: (s: number) => Promise<void>;
+};
+let audio:
+  | {
+      createAudioPlayer: (source: number) => Player;
+      setAudioModeAsync: (mode: object) => Promise<void>;
+    }
+  | null
+  | undefined;
+const players: Partial<Record<SoundId, Player>> = {};
+
+/**
+ * The player is loaded on first use, inside a try: on a build without
+ * expo-audio (anything older than E0) the lab stays silent instead of crashing.
+ */
+function audioModule() {
+  if (audio !== undefined) return audio;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    audio = require('expo-audio');
+    // Mix with whatever plays (no ducking, no pause); the silent switch wins.
+    void audio!
+      .setAudioModeAsync({
+        playsInSilentMode: false,
+        interruptionMode: 'mixWithOthers',
+        shouldPlayInBackground: false,
+        allowsRecording: false,
+      })
+      .catch(() => undefined);
+  } catch {
+    audio = null;
+  }
+  return audio;
+}
+
 function playSound(sound: SoundId): void {
-  // No player until the E0 build (expo-audio). Live: one preloaded player per
-  // sound, volume ~0.6, playsInSilentMode false.
-  if (__DEV__) console.log(`[feel] sound: ${sound}`);
+  const module = audioModule();
+  if (!module) {
+    if (__DEV__)
+      console.log(`[feel] sound (no player in this build): ${sound}`);
+    return;
+  }
+  try {
+    let player = players[sound];
+    if (!player) {
+      player = module.createAudioPlayer(SOURCES[sound]);
+      player.volume = VOLUME;
+      players[sound] = player;
+    }
+    // From the start every time (the same sound may come twice in a row).
+    const p = player;
+    p.seekTo(0)
+      .catch(() => undefined)
+      .finally(() => p.play());
+  } catch (error) {
+    // A sound must never break the moment it belongs to.
+    if (__DEV__) console.warn('[feel] sound failed', sound, error);
+  }
 }
 
 /** Feel a moment: its pattern of taps and, at the big moments, its sound. */

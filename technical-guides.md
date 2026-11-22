@@ -51,6 +51,10 @@
 - Primary development and testing on iOS simulator/device
 - Android testing via Android Studio emulator or Expo Go on real devices
 - Cross-platform UI testing required before production release
+- **Maestro** (UI flows and before/after screenshots on simulators) is installed on the dev Mac since
+  2026-11-22 (`~/.maestro/bin/maestro`, v2.12.1). Flows live in `.maestro/`. Keep only the minimum of
+  simulators (one small iPhone, one large iPhone, one Android) – disk space is tight. On a new Mac
+  reinstall with `curl -fsSL "https://get.maestro.mobile.dev" | bash` (needs Java 17).
 
 **Build & Deployment:**
 - iOS builds: EAS Build → TestFlight → App Store
