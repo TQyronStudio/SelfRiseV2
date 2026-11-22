@@ -138,8 +138,19 @@ for n in order:
     lsb[n] = getattr(g, 'xMin', 0)
 fb.setupHorizontalMetrics({n: (1000, lsb[n]) for n in order})
 fb.setupHorizontalHeader(ascent=800, descent=-200)
-fb.setupNameTable({'familyName': 'SelfRiseIcons', 'styleName': 'Regular'})
-fb.setupOS2(sTypoAscender=800, sTypoDescender=-200, usWinAscent=800, usWinDescent=200)
+# iOS finds a font by its PostScript name (nameID 6): without it the font may not
+# resolve and every icon draws as a "?" box (Petr 2026-11-22). Full set of names,
+# like every shipped font has.
+fb.setupNameTable({
+    'familyName': 'SelfRiseIcons',
+    'styleName': 'Regular',
+    'uniqueFontIdentifier': 'SelfRiseIcons-Regular-1.001',
+    'fullName': 'SelfRiseIcons',
+    'psName': 'SelfRiseIcons',
+    'version': 'Version 1.001',
+})
+fb.setupOS2(sTypoAscender=800, sTypoDescender=-200, sTypoLineGap=0, usWinAscent=800,
+            usWinDescent=200, usWeightClass=400, fsType=0, achVendID='SLFR')
 fb.setupPost()
 out = sys.argv[1] if len(sys.argv) > 1 else 'assets/fonts/SelfRiseIcons.ttf'
 fb.save(out)

@@ -454,9 +454,15 @@ Uvnitř jedné záložky             stránka → její sheety a detaily (ne tra
    vyžaduje, se do té doby nepouští:
    - přepínač Reanimatedu `USE_COMMIT_HOOK_ONLY_FOR_REACT_COMMITS` (statický; ověř přesný zápis
      v dokumentaci nainstalované verze, než ho napíšeš do `package.json`);
-   - 120 Hz na Androidu (ověřit postup pro Expo 55); iPhone už má klíč v Info.plist;
+   - 120 Hz: **iPhone** – klíč `CADisableMinimumFrameDurationOnPhone` je od 2026-11-22 v `app.json`
+     (`ios.infoPlist`). Dřív byl jen v místní složce `ios/`, kterou git ignoruje – EAS ho tedy nikdy
+     nestavěl a appka běžela na 60 Hz. **Android** – žádné nastavení: React Native jede v tempu displeje,
+     ověřit měřením na 120Hz telefonu;
    - **`expo-audio`** pro zvuky R-35 – rozsah je určený (O-12, kolo 50): 6 okamžiků, 4 zvuky
-     v `assets/sounds/`. Nainstalovat `npx expo install expo-audio` (verze podle Expo 55). Hmat zvládá
+     v `assets/sounds/`. Nainstalováno 2026-11-22 (`~55.0.18`). **Plugin má výchozí nastavení, které by
+     přidalo oprávnění k mikrofonu, zvuk na pozadí a službu na popředí (Android) – v `app.json` je vypnuté**
+     (`microphonePermission`, `recordAudioAndroid`, `enableBackgroundPlayback`, `enableBackgroundRecording`
+     = false). Nikdy nevracet bez důvodu – obchody by chtěly zdůvodnění. Hmat zvládá
      stávající `expo-haptics` (vzory jsou časované tapy, `labFeel.ts`) – další knihovna **není potřeba**.
    Přepínač Reanimatedu je od verze 4.3 výchozí – při přechodu na nové Expo (E30) se z konfigurace odstraní.
 4. Měření v laboratoři na novém buildu (kap. 7.4): odškrtnutí návyku na Home a v Návycích, zápis pokroku
@@ -495,7 +501,8 @@ Uvnitř jedné záložky             stránka → její sheety a detaily (ne tra
 2. `useTheme()` rozšířit o `design` (tokeny pro aktuální režim). Staré `colors` zůstávají, dokud je něco čte.
 3. Fonty (Fraunces, Figtree **a písmo ikon `SelfRiseIcons`** – soubory už jsou v `assets/fonts`) načíst
    v `app/_layout.tsx` vedle `SpaceMono`. Jedna rodina na tloušťku, nikdy `fontWeight` (Android by potichu
-   použil systémové písmo). Písmo ikon nepotřebuje nativní modul (P78).
+   použil systémové písmo). Písmo ikon nepotřebuje nativní modul (P78); **ověř, že má PostScript název**
+   (nameID 6, skript ho od 2026-11-22 zapisuje) – iOS bez něj ikony kreslí jako „?“.
 4. Jednotná paleta barev návyků – oprava „zelená = modrá“ (stejný odstín v obou režimech).
 5. Testy (nové, s negativní zkouškou):
    - kontrast WCAG AA pro každou dvojici text/povrch v obou režimech, včetně `labTier`, `labRarity`
@@ -1560,7 +1567,7 @@ vede v téhle tabulce; rozhodnutí a poučení dál v `premium-design-plan.md`.
 | Etapa | Stav | Commit | Petr schválil |
 |---|---|---|---|
 | B0 – potvrzení rozhodnutí 4.2 (✅ 2026-11-22), zvuky D-7, souhlas s buildem | ☐ | – | |
-| E0 – příprava, build, měření (→ B1) | ☐ | | |
+| E0 – příprava, build, měření (→ B1) | ◐ 2026-11-22: větev `design-v2`, Maestro 2.12.1, nastavení buildu hotové; čeká build, snímky „před“, měření | | |
 | E1 – tokeny, fonty, testy | ☐ | | |
 | E2 – primitiva, Design-System | ☐ | | |
 | E3 – chrome | ☐ | | |

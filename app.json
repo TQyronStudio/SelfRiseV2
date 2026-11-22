@@ -19,6 +19,7 @@
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
+        "CADisableMinimumFrameDurationOnPhone": true,
         "NSUserTrackingUsageDescription": "We use this to measure ad performance and personalize your experience. This keeps SelfRise free for everyone.",
         "SKAdNetworkItems": [
           {
@@ -232,7 +233,11 @@
         {
           "ios": {
             "useFrameworks": "static",
-            "forceStaticLinking": ["RNFBApp", "RNFBAnalytics", "RNFBCrashlytics"]
+            "forceStaticLinking": [
+              "RNFBApp",
+              "RNFBAnalytics",
+              "RNFBCrashlytics"
+            ]
           },
           "android": {
             "enableMinifyInReleaseBuilds": true,
@@ -244,7 +249,16 @@
       "expo-font",
       "expo-localization",
       "expo-web-browser",
-      "expo-image"
+      "expo-image",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false,
+          "enableBackgroundRecording": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

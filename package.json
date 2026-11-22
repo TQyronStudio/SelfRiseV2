@@ -32,6 +32,7 @@
     "@types/uuid": "^10.0.0",
     "ajv": "^8.17.1",
     "expo": "55.0.27",
+    "expo-audio": "~55.0.18",
     "expo-build-properties": "~55.0.15",
     "expo-constants": "~55.0.16",
     "expo-dev-client": "~55.0.36",
@@ -84,5 +85,10 @@
     "react-test-renderer": "^19.2.0",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "reanimated": {
+    "staticFeatureFlags": {
+      "USE_COMMIT_HOOK_ONLY_FOR_REACT_COMMITS": true
+    }
+  }
 }

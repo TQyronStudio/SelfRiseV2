@@ -1333,7 +1333,9 @@ s touto kapitolou kontroluje každá obrazovka. Pravidla se po schválení přes
     vibrací; co se děje denně, zní ticho (kolo 50).
 78. **Ikona, která není emoji, je písmo.** Bez nativní knihovny, ostrá, levná v seznamu; dvě vrstvy dají
     hloubku. Tvary kontrolovat na vykresleném náhledu – chyby metrik a směru obrysů jsou okem vidět hned,
-    v kódu ne (kolo 51).
+    v kódu ne (kolo 51). **Písmo musí mít úplnou tabulku názvů včetně PostScript názvu** (nameID 6): iOS
+    podle něj písmo hledá – bez něj se ikony kreslily jako „?“ v rámečku, i když kód hlásil písmo jako
+    načtené (Petr 2026-11-22; opraveno ve `scripts/build-icon-font.py`).
 79. **Při posunu nesmí nic měnit výšku ani nic nesmí běžet ve smyčce.** Karty s animací posunu se při změně
     výšky nad nimi přestavují všechny; běžná změna stavu (odškrtnutí, nová věta) proto drží výšku a smyčky
     (slunce, plamen) se při posunu zastaví (kolo 52).
