@@ -17,6 +17,8 @@ module.exports = {
     '^@/(.*)$': '<rootDir>/$1',
     '^@/src/(.*)$': '<rootDir>/src/$1',
     '^@/components/(.*)$': '<rootDir>/components/$1',
+    // Bundled sounds and fonts (feelService, src/design/fontFiles.ts).
+    '\\.(m4a|mp3|wav|ttf|otf)$': '<rootDir>/__tests__/mocks/fileMock.js',
   },
   transformIgnorePatterns: [
     // Prefix match (no trailing slash) so that e.g. `expo` also covers

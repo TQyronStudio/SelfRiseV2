@@ -30,10 +30,14 @@ export type Tap =
 export type SoundId = 'celebrate' | 'chapter' | 'complete' | 'boost';
 
 export type FeelMoment =
-  /** A toggle, a tab, a choice in a list. */
+  /** A toggle, a tab, a choice in a list — and PressableScale's default press. */
   | 'tap'
-  /** A button press (PressableScale's default). */
+  /** A firmer button press (light impact), where a tick is too little. */
   | 'press'
+  /** A habit checked off (CheckButton) — a firmer answer than a press. */
+  | 'check'
+  /** A check taken back. */
+  | 'uncheck'
   /** Something was saved or added: a habit, a goal, an entry, a log. */
   | 'saved'
   /** The input cannot be saved as it is (validation at the field). */
@@ -76,6 +80,8 @@ export interface Feel {
 export const FEEL: Record<FeelMoment, Feel> = {
   tap: { pattern: [{ at: 0, tap: 'selection' }], sound: null },
   press: { pattern: [{ at: 0, tap: 'light' }], sound: null },
+  check: { pattern: [{ at: 0, tap: 'medium' }], sound: null },
+  uncheck: { pattern: [{ at: 0, tap: 'light' }], sound: null },
   saved: { pattern: [{ at: 0, tap: 'success' }], sound: null },
   invalid: { pattern: [{ at: 0, tap: 'warning' }], sound: null },
   note: { pattern: [{ at: 0, tap: 'light' }], sound: null },

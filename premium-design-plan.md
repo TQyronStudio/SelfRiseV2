@@ -1155,7 +1155,9 @@ s touto kapitolou kontroluje každá obrazovka. Pravidla se po schválení přes
 20. **Vynechaný den nesmí být šedý** – působí, „jako by na tom nezáleželo" → rudý × (kolo 17–19).
 20b. **Žádné trvalé pulzování stavů** – animace jen v okamžiku vzniku (bonus se rozvlní jednou) (kolo 18).
 20c. **Symbol na barvě návyku volí kontrastní barvu podle jasu** (tmavý na žluté, bílý jinde) –
-    `onHabitColor()`; pevná bílá na žluté mizí (kolo 19).
+    `onHabitColor()`; pevná bílá na žluté mizí (kolo 19). **Bílá zůstává, jen dokud má aspoň 3 : 1** (hranice jasu 0,3,
+    ne 0,4): s původní hranicí byla bílá fajfka v tmavém režimu na fialové, oranžové, růžové a červené
+    jen 2,4–3,0 : 1 – našel ji test kontrastu v E1 (2026-11-23, P80).
 21. **Nikdy jen barva** – stav nese i symbol (×, ★, ↺) nebo tvar (WCAG 1.4.1).
 22. **Nahrazování se ukazuje jako vztah**: spojnice mezi dnem navíc a zachráněným dnem; párování je
     chronologické (nejstarší vynechaný ↔ nejstarší den navíc v týdnu Po–Ne), takže spojnice nesmí vést
@@ -1344,6 +1346,12 @@ s touto kapitolou kontroluje každá obrazovka. Pravidla se po schválení přes
 79. **Při posunu nesmí nic měnit výšku ani nic nesmí běžet ve smyčce.** Karty s animací posunu se při změně
     výšky nad nimi přestavují všechny; běžná změna stavu (odškrtnutí, nová věta) proto drží výšku a smyčky
     (slunce, plamen) se při posunu zastaví (kolo 52).
+80. **Kontrast nehlídá oko, ale test.** Každá dvojice text/podklad a symbol/barva má v
+    `src/design/__tests__/contrast.test.ts` svůj řádek; po každém doladění barvy se pustí. Při převodu tokenů
+    (E1, 2026-11-23) našel tři chyby, které v laboratoři nikdo neviděl: nadpis zamrzlé série (ledová na
+    ledovém podkladu 4,05 : 1 → tmavší led `#216DB3`, 4,69), bílý symbol na čtyřech tmavých barvách návyků
+    (→ P20c) a tlumený bílý text úvodu na nejsvětlejším místě denního nebe (4,32 : 1 → průhlednost
+    0,72 → 0,76, 4,62). Opraveno v laboratoři i v tokenech.
 49. **Co obrazovka slibuje, musí kód plnit.** Sbírky ukazovaly bonus XP, který nikdo nevyplácí, a čtyři z nich
     čekaly na neexistující trofeje; dvě trofeje blokoval strop formuláře. Při převodu ke každému slibu
     dohledat kód, který ho plní, a odkazy na katalog hlídat testem (kolo 28).

@@ -16,7 +16,15 @@ describe('the feel of SelfRise', () => {
       }
     }
     // Everyday moments stay silent.
-    for (const daily of ['tap', 'press', 'saved', 'dayDone', 'note'] as const) {
+    for (const daily of [
+      'tap',
+      'press',
+      'check',
+      'uncheck',
+      'saved',
+      'dayDone',
+      'note',
+    ] as const) {
       expect(FEEL[daily].sound).toBeNull();
     }
   });

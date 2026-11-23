@@ -120,7 +120,11 @@ function playSound(sound: SoundId): void {
     const p = player;
     p.seekTo(0)
       .catch(() => undefined)
-      .finally(() => p.play());
+      .then(() => p.play())
+      // A sound that fails to start must not surface as an unhandled rejection.
+      .catch(error => {
+        if (__DEV__) console.warn('[feel] sound failed', sound, error);
+      });
   } catch (error) {
     // A sound must never break the moment it belongs to.
     if (__DEV__) console.warn('[feel] sound failed', sound, error);

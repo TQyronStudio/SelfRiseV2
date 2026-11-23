@@ -38,6 +38,9 @@ import { finalizeAdsAndDiagnostics } from '../src/services/adConsentService';
 // SQLite Database
 import { initializeDatabase } from '../src/services/database/init'; // ENABLED: Development build ready
 import { initHaptics } from '../src/services/hapticsService';
+import { initSounds } from '../src/services/feelService';
+// Fonts of the new look (Fraunces, Figtree, the icon font) — design-migration-plan.md E1.
+import { fontFiles } from '../src/design/fontFiles';
 
 // Dev-only warning suppressions — keep this list SHORT and justified (audit N22).
 // Removed SDK 53-era entries (ExpoLinearGradient view config, ViewPropTypes,
@@ -178,9 +181,13 @@ const dbErrorStyles = StyleSheet.create({
 const DB_INIT_MAX_ATTEMPTS = 3;
 
 export default function RootLayout() {
-  const [loaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    ...fontFiles,
   });
+  // A font that fails to load must never keep the app on a blank screen: text
+  // then falls back to the system font, which is still a working app.
+  const fontsReady = fontsLoaded || fontError != null;
   const [dbInitialized, setDbInitialized] = useState(false);
   const [dbInitFailed, setDbInitFailed] = useState(false);
 
@@ -216,10 +223,18 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
+    if (fontError) console.warn('Font loading failed (falling back to system font):', fontError);
+  }, [fontError]);
+
+  useEffect(() => {
     initDatabase();
     // Haptics are non-critical — never block startup or trigger the error UI.
     initHaptics().catch(error => {
       console.warn('Haptics initialization failed (non-critical):', error);
+    });
+    // The sounds switch of the feel vocabulary — non-critical like haptics.
+    initSounds().catch(error => {
+      console.warn('Sounds preference failed to load (non-critical):', error);
     });
   }, [initDatabase]);
 
@@ -227,7 +242,7 @@ export default function RootLayout() {
     return <DatabaseErrorScreen onRetry={initDatabase} />;
   }
 
-  if (!loaded || !dbInitialized) {
+  if (!fontsReady || !dbInitialized) {
     // Wait for fonts AND database before showing app
     return null;
   }

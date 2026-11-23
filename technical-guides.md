@@ -209,6 +209,40 @@ SelfRise V2 implements a sophisticated dual-theme system (Light/Dark) with stric
 
 ---
 
+### Design Tokens of the New Look (redesign, since migration E1 – 2026-11-23)
+
+> Full guide (tokens, building blocks in `src/components/ui/`, the feel vocabulary, scroll rules):
+> **@technical-guides:Design-System.md**
+
+The premium redesign (`design-migration-plan.md`) brings its own tokens. **Converted screens read only
+these; old screens keep `colors` from `src/constants/colors.ts`** until nothing reads it (then it goes).
+
+| What | Where |
+|---|---|
+| Palettes (light/dark, named by role), type, space, radius, motion, rarity, level tiers, hero sky/sun, signature-icon tones, first-run night, shadows, `withAlpha()` (opaque `#RGB`/`#RRGGBB` only – throws otherwise), `onHabitColor()` | `src/design/tokens.ts` |
+| Font files (Fraunces, Figtree, the icon font `SelfRiseIcons`) – loaded at start next to SpaceMono | `src/design/fontFiles.ts` → `app/_layout.tsx` |
+| Tokens of the current mode in a component | `const { design } = useTheme(); design.c.surface, design.mode` |
+
+**Rules (each guarded by a test in `src/design/__tests__/`):**
+- **Contrast** (`contrast.test.ts`): every text/surface pair ≥ 4.5:1, large text, icons and chart marks
+  ≥ 3:1, both modes – incl. level tiers, rarity chips and the symbol on a habit colour. Run it after any
+  colour tweak.
+- **Fonts** (`fonts.test.ts`): one family per weight, **never `fontWeight`** with them (Android silently
+  falls back to the system font); every family has its file and a PostScript name (iOS draws the icon
+  font as "?" without one). A font that fails to load never blocks the start (system font fallback).
+- **Habit colours** (`habitPalette.test.ts`): one hue per colour in both modes (the old light palette
+  showed "green" as blue).
+- **The ratchet** (`ratchet.test.ts`): in a converted file no hex/rgb/hsl colour (also inside a shadow or
+  border string, or as an alpha suffix `${colour}33` – use `withAlpha()`), no named colour (`'white'`), no
+  literal `fontSize` or `borderRadius` (also in a ternary), no `fontWeight`, no `measureLabPerf`, no
+  `Modal` from `react-native`. **After each
+  migration stage add its files to the list – the list only grows.**
+- **Shadows in dark mode:** the new look uses a restrained shadow in dark mode too (`Palette.shadow`,
+  decided in the Design Lab, premium-design-plan 4.3). The "no shadows in dark mode" rule below applies
+  to the old screens.
+
+---
+
 ### Dark Mode Color Hierarchy (Primary Standard)
 
 **Critical Rule**: Dark mode uses a **2-tier elevation system** with gray backgrounds at different elevations.
@@ -1627,6 +1661,12 @@ SelfRise V2 is a React Native mobile application built with Expo and TypeScript,
 ## My Journal System
 
 **Technická pravidla a logika pro My Journal**: @technical-guides:My-Journal.md
+
+---
+
+## Design System (new look)
+
+**Tokeny, stavební prvky, slovník pocitů a pravidla plynulosti nového vzhledu**: @technical-guides:Design-System.md
 
 ---
 

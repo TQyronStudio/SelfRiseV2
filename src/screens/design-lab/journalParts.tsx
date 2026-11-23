@@ -94,10 +94,14 @@ export function useJournalT() {
   return useMemo(() => i18n.getFixedT(lang), [lang]);
 }
 
-/** Ice of a frozen streak — the one cold colour of the journal. */
+/**
+ * Ice of a frozen streak — the one cold colour of the journal.
+ * Light fg darkened from #2477C4 in E1 (2026-11-23): the frozen card's title on
+ * `soft` was 4.05:1, AA needs 4.5 (now 4.69; src/design/__tests__/contrast).
+ */
 export function iceColors(mode: LabMode) {
   return mode === 'light'
-    ? { fg: '#2477C4', soft: '#E4F1FC', ring: '#7DB9EC' }
+    ? { fg: '#216DB3', soft: '#E4F1FC', ring: '#7DB9EC' }
     : { fg: '#8FD0FF', soft: 'rgba(143, 208, 255, 0.13)', ring: '#5FA9DF' };
 }
 

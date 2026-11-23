@@ -116,7 +116,8 @@ const splashIcon = require('../../../assets/images/splash-icon.png');
 
 const NIGHT_INK = '#12123A';
 const HILL = '#080618';
-const WHITE_MUTED = 'rgba(255, 255, 255, 0.72)';
+// 0.72 until E1 (2026-11-23): 4.32:1 on the day sky's lightest stop, AA needs 4.5.
+const WHITE_MUTED = 'rgba(255, 255, 255, 0.76)';
 const GLASS = 'rgba(255, 255, 255, 0.09)';
 const GLASS_LINE = 'rgba(255, 255, 255, 0.16)';
 

@@ -485,8 +485,8 @@ export const labMotion = {
 } as const;
 
 /**
- * Text/symbol colour that stays readable on a habit colour: dark on light
- * colours (yellow, lime…), white on the rest. Users may pick any colour, so a
+ * Text/symbol colour that stays readable on a habit colour: white wherever it
+ * keeps 3:1 (the look of a white tick), dark ink on lighter colours. Users may pick any colour, so a
  * fixed white tick would vanish on yellow (kolo 19).
  */
 export function onHabitColor(hex: string): string {
@@ -496,5 +496,8 @@ export function onHabitColor(hex: string): string {
     return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
   });
   const luminance = 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
-  return luminance > 0.4 ? '#1A2233' : '#FFFFFF';
+  // White while it keeps 3:1 on the colour (1.05 / (L + 0.05) ≥ 3 ⇔ L ≤ 0.3),
+  // dark ink above. Was 0.4 until E1 (2026-11-23): a white tick on the dark-mode
+  // purple, orange, pink and red was 2.4–3.0:1 (src/design/__tests__/contrast).
+  return luminance > 0.3 ? '#1A2233' : '#FFFFFF';
 }

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { useColorScheme, Appearance } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { lightColors, darkColors, ThemeColors } from '../constants/colors';
+import { DesignTheme, designThemes } from '../design/tokens';
 
 // Storage key for theme preference
 const THEME_STORAGE_KEY = 'user_theme_preference';
@@ -12,6 +13,11 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 // Theme context type
 interface ThemeContextType {
   colors: ThemeColors;
+  /**
+   * Tokens of the new look for the current mode (src/design/tokens.ts). Converted
+   * screens read only this; `colors` stays for the old screens until none is left.
+   */
+  design: DesignTheme;
   themeMode: ThemeMode;
   isDark: boolean;
   setThemeMode: (mode: ThemeMode) => Promise<void>;
@@ -20,6 +26,7 @@ interface ThemeContextType {
 // Create context with default values
 const ThemeContext = createContext<ThemeContextType>({
   colors: lightColors,
+  design: designThemes.light,
   themeMode: 'light',
   isDark: false,
   setThemeMode: async () => {},
@@ -92,14 +99,16 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
   // Select the appropriate color palette
   const colors = isDark ? darkColors : lightColors;
+  const design = isDark ? designThemes.dark : designThemes.light;
 
   // 🚀 PERFORMANCE: Memoize context value to prevent unnecessary re-renders
   const value = useMemo<ThemeContextType>(() => ({
     colors,
+    design,
     themeMode,
     isDark,
     setThemeMode,
-  }), [colors, themeMode, isDark, setThemeMode]);
+  }), [colors, design, themeMode, isDark, setThemeMode]);
 
   return (
     <ThemeContext.Provider value={value}>
@@ -118,3 +127,9 @@ export const useTheme = (): ThemeContextType => {
 
   return context;
 };
+
+/**
+ * Tokens of the new look for the current mode — `{ mode, c }` (src/design/tokens.ts).
+ * What converted screens and src/components/ui read (the lab's `useLab()`).
+ */
+export const useDesign = () => useTheme().design;
