@@ -31,6 +31,11 @@ const CONVERTED: readonly string[] = [
   'src/components/ui/scrollChoreography.tsx',
   'src/components/ui/introTimeline.tsx',
   'src/components/ui/index.ts',
+  // E3 – the chrome: tab bar and top row
+  'src/components/ui/TabBar.tsx',
+  'src/components/ui/tabBarLogic.ts',
+  'src/components/ui/TopRow.tsx',
+  'app/(tabs)/_layout.tsx',
   'src/constants/feel.ts',
   'src/services/feelService.ts',
 ];

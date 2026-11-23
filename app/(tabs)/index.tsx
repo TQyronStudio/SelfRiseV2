@@ -37,9 +37,10 @@ import {
 } from '@/src/types/gamification';
 import { XP_REWARDS } from '@/src/constants/gamification';
 import { AdBanner } from '@/src/components/ads/AdBanner';
+import { RoundButton, TopRow } from '@/src/components/ui/TopRow';
 
 export default function HomeScreen() {
-  // const { t } = useI18n(); // Unused for now
+  const { t } = useI18n();
   const { colors } = useTheme();
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -56,7 +57,7 @@ export default function HomeScreen() {
   const mainScrollRef = useRef<ScrollView>(null);
 
 
-  // Listen for customize button press from header
+  // The customize button of the top row (migration E3; was the tab header)
   useEffect(() => {
     const customizeListener = DeviceEventEmitter.addListener(
       'openHomeCustomization',
@@ -283,6 +284,27 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
+      {/* Top row (E3): the left place waits for the level badge (E7). The timer
+          moves to the badge in E9; trophy room and customize get their final
+          form in E11. */}
+      <TopRow>
+        <MultiplierCountdownTimer
+          size="small"
+          variant="light"
+          showMultiplier={false}
+        />
+        <RoundButton
+          signature="trophy"
+          tone="reward"
+          label={t('achievements.title')}
+          onPress={() => router.push('/achievements')}
+        />
+        <RoundButton
+          icon="options-outline"
+          label={t('home.customization.title')}
+          onPress={() => DeviceEventEmitter.emit('openHomeCustomization')}
+        />
+      </TopRow>
       <ScrollView
         ref={mainScrollRef}
         style={styles.scrollView}

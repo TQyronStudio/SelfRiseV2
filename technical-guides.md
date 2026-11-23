@@ -1866,7 +1866,13 @@ Google od Android 15 (API 35) **povinne** vyzaduje edge-to-edge rendering. Aplik
 **Tab screeny** (Home, Habits, Journal, Goals, Settings):
 - `SafeAreaView edges={[]}` - tab bar automaticky resi bottom safe area
 - Banner a content padding zustava bez zmeny (jsou nad tab barem)
-- NEPRIDAVAT `insets.bottom` - tab bar to handluje
+- NEPRIDAVAT `insets.bottom` - tab bar to handluje (`src/components/ui/TabBar.tsx` si spodni okraj pricita sam)
+- **Od E3 (2026-11-23) bez modre hlavicky:** horni okraj resi `<TopRow />` (`src/components/ui/TopRow.tsx`) -
+  `insets.top` + radek 48 pt, vlevo misto pro odznak, tlacitka vpravo. Nepridavat `edges={['top']}`
+  (okraj by byl dvakrat). Status bar se ridi rezimem (`isDark ? 'light' : 'dark'`) v root i tab layoutu;
+  stack screeny, ktere jeste maji modrou hlavicku, si davaji vlastni `<StatusBar style="light" />`
+  (achievements, habit/journal stats, journal history v obrazovce; goal-stats, levels-overview, how-it-works
+  v souboru trasy).
 
 **Stack screeny** (Achievements, Habit Stats, Journal Stats, Journal History, Goal Stats, Levels, Reorder):
 - Pridat `useSafeAreaInsets()` hook

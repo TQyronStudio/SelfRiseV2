@@ -86,8 +86,7 @@ function LayoutContent() {
     };
   }, []);
 
-  const { colors } = useTheme();
-  const { t } = useI18n();
+  const { isDark } = useTheme();
 
   return (
     <TutorialProvider>
@@ -103,7 +102,9 @@ function LayoutContent() {
           <Stack.Screen name="design-lab" options={{ headerShown: false, presentation: 'card' }} />
           <Stack.Screen name="+not-found" />
         </Stack>
-        <StatusBar style="light" translucent={true} />
+        {/* Follows the mode (E3): the tabs lost their blue header. Card screens
+            that still have one set their own light status bar. */}
+        <StatusBar style={isDark ? 'light' : 'dark'} translucent={true} />
         {/* Last sibling so it paints over the navigator; a full-screen view, not
             a <Modal>, so it can never collide with a native or RN modal. */}
         <OnboardingFlow />

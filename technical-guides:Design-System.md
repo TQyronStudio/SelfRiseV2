@@ -161,6 +161,8 @@ V komponentě: `const { c, mode } = useDesign();` (`src/contexts/ThemeContext.ts
 | `StreakFlame` | plamen série deníku; stav zvenku, hraje jen na zaměřené obrazovce (`useIsFocused` – musí být uvnitř obrazovky navigace); konec zahřátí hlásí `onWarmed`, při sníženém pohybu hned |
 | `SignatureIcon`, `InlineIcon` | podpisové ikony ⭐ 🔥 👑 🏆 a záložky z písma `SelfRiseIcons` |
 | `ScrollCard`, `usePageScrollFrame`, `useCardSeen`, `useScrollRest` | choreografie posunu a klid při posunu |
+| `TabBar` (+ `tabBarLogic.ts`) | spodní lišta (E3): vlastní ikony, klouzavá pilulka; `tabPress` vždy, přepnutí jen nezaměřené záložky; ikona pro každou trasu `app/(tabs)` (test) |
+| `TopRow`, `RoundButton` | horní řádek záložky (E3): `insets.top` + 48 pt, vlevo místo pro odznak (E7), tlačítka vpravo; kulaté tlačítko 44 pt |
 
 ## Slovník pocitů
 

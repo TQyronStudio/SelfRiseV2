@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { StyleSheet, View, ScrollView, Text, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { TopRow } from '@/src/components/ui/TopRow';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useI18n } from '@/src/hooks/useI18n';
@@ -253,10 +254,15 @@ export default function JournalScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
+      {/* Top row (E3): the level badge (E7) and the screen's buttons come here. */}
+      <TopRow />
       <KeyboardAvoidingView 
         style={styles.keyboardAvoidingView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        // No offset since E3: the old 90 was the blue header above this view. The
+        // parent now starts at the top of the screen and the top row sits inside
+        // it, so the view's own position already accounts for it.
+        keyboardVerticalOffset={0}
       >
         <ScrollView 
           ref={scrollViewRef}

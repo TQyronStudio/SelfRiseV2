@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Switch, DeviceEventEmitter, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { TopRow } from '@/src/components/ui/TopRow';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -383,6 +384,8 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
+      {/* Top row (E3): the level badge (E7) and the screen's buttons come here. */}
+      <TopRow />
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         {/* Notifications Section */}
         <View style={styles.section}>

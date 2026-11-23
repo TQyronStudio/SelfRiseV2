@@ -1,127 +1,39 @@
 import { Tabs } from 'expo-router';
-import React, { useRef, useEffect } from 'react';
+import React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { TouchableOpacity, View, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+import { TabBar } from '@/src/components/ui/TabBar';
 import { useTheme } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
-import { PremiumTrophyIcon } from '@/src/components/home/PremiumTrophyIcon';
-import { MultiplierCountdownTimer } from '@/src/components/gamification/MultiplierCountdownTimer';
 
-// Trophy button with tutorial target registration
-function TrophyButton() {
-  const router = useRouter();
-  const trophyRef = useRef<View>(null);
-
-    return (
-    <TouchableOpacity
-      ref={trophyRef}
-      onPress={() => router.push('/achievements')}
-      style={{ marginLeft: 16 }}
-    >
-      <PremiumTrophyIcon size={28} />
-    </TouchableOpacity>
-  );
-}
-
+/**
+ * The five tabs (migration E3, design-migration-plan.md): no blue header — every
+ * screen draws its own top row (src/components/ui/TopRow.tsx) — and the new tab
+ * bar. The Home controls that lived in the old header (trophy room, multiplier
+ * timer, customize) are in Home's own top row now.
+ *
+ * Tabs stay mounted once visited (R-32): expo-router keeps them alive; never set
+ * `unmountOnBlur` / `lazy: false` here.
+ */
 function TabLayoutContent() {
   const { t } = useI18n();
-  const { colors } = useTheme();
-  const router = useRouter();
+  const { isDark } = useTheme();
 
   return (
     <>
-      <StatusBar style="light" />
+      {/* No blue header any more: the status bar icons follow the mode. */}
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <Tabs
-        screenOptions={{
-          tabBarActiveTintColor: colors.tabIconSelected,
-          tabBarInactiveTintColor: colors.tabIconDefault,
-          headerShown: true,
-          headerStyle: {
-            backgroundColor: colors.primary,
-          },
-          headerTintColor: colors.textInverse,
-          headerTitleAlign: 'center',
-          headerTitleStyle: {
-            fontWeight: 'bold',
-            fontSize: 18,
-          },
-          tabBarStyle: {
-            backgroundColor: colors.tabBarBackground,
-            borderTopColor: 'transparent',
-            borderTopWidth: 0,
-          },
-          tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: '600',
-          },
-          tabBarIconStyle: {
-          },
-        }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: t('tabs.home'),
-          tabBarIcon: ({ color }) => <IconSymbol size={22} name="house.fill" color={color} />,
-          tabBarButton: (props) => <HapticTab {...props} nativeID="home-tab" />,
-          headerLeft: () => <TrophyButton />,
-          headerRight: () => (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginRight: 16 }}>
-              <MultiplierCountdownTimer
-                size="small"
-                variant="light"
-                showMultiplier={false}
-              />
-              <TouchableOpacity
-                onPress={() => {
-                  const { DeviceEventEmitter } = require('react-native');
-                  DeviceEventEmitter.emit('openHomeCustomization');
-                }}
-              >
-                <Ionicons name="options" size={22} color={colors.textInverse} />
-              </TouchableOpacity>
-            </View>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="habits"
-        options={{
-          title: t('tabs.habits'),
-          tabBarIcon: ({ color }) => <IconSymbol size={22} name="repeat.circle.fill" color={color} />,
-          tabBarButton: (props) => <HapticTab {...props} nativeID="habits-tab" />,
-        }}
-      />
-      <Tabs.Screen
-        name="journal"
-        options={{
-          title: t('tabs.journal'),
-          tabBarIcon: ({ color }) => <IconSymbol size={22} name="book.fill" color={color} />,
-          tabBarButton: (props) => <HapticTab {...props} nativeID="journal-tab" />,
-        }}
-      />
-      <Tabs.Screen
-        name="goals"
-        options={{
-          title: t('tabs.goals'),
-          tabBarIcon: ({ color }) => <IconSymbol size={22} name="target" color={color} />,
-          tabBarButton: (props) => <HapticTab {...props} nativeID="goals-tab" />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: t('tabs.settings'),
-          tabBarIcon: ({ color }) => <IconSymbol size={22} name="gearshape.fill" color={color} />,
-          tabBarButton: (props) => <HapticTab {...props} nativeID="settings-tab" />,
-        }}
-      />
-        </Tabs>
+        tabBar={props => <TabBar {...props} />}
+        screenOptions={{ headerShown: false }}
+      >
+        <Tabs.Screen name="index" options={{ title: t('tabs.home') }} />
+        <Tabs.Screen name="habits" options={{ title: t('tabs.habits') }} />
+        <Tabs.Screen name="journal" options={{ title: t('tabs.journal') }} />
+        <Tabs.Screen name="goals" options={{ title: t('tabs.goals') }} />
+        <Tabs.Screen name="settings" options={{ title: t('tabs.settings') }} />
+      </Tabs>
     </>
   );
 }

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { TopRow } from '@/src/components/ui/TopRow';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { AdBanner } from '@/src/components/ads/AdBanner';
@@ -199,6 +200,8 @@ export function HabitsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
+      {/* Top row (E3): the level badge (E7) and the screen's buttons come here. */}
+      <TopRow />
       {/* Tlačítka Add a Edit/Reorder */}
       <View style={styles.addButtonContainer}>
         <View style={styles.buttonsRow}>

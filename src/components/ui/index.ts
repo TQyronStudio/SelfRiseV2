@@ -11,3 +11,5 @@ export * from './Ring';
 export * from './Stars';
 export * from './scrollChoreography';
 export * from './introTimeline';
+export * from './TabBar';
+export * from './TopRow';
