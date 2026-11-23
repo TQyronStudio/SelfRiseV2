@@ -1,0 +1,27 @@
+appId: com.petrturek.selfrise
+---
+# First run on a fresh iOS simulator up to demo data (EN, light). System dialogs
+# (open-in-app, tracking) are not visible to Maestro – tapped by position.
+- openLink: "exp+selfrisev2://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
+- tapOn:
+    point: "67%,54%"            # "Otevřít v aplikaci …?" -> Open
+- extendedWaitUntil:
+    visible: "Home"
+    timeout: 120000
+- waitForAnimationToEnd
+- tapOn:
+    point: "50%,63%"            # tracking prompt -> Ask App Not to Track
+    optional: true
+- scrollUntilVisible:             # dev client welcome (below the fold on small phones)
+    element: "Continue"
+    direction: DOWN
+    optional: true
+- tapOn:
+    text: "Continue"
+    optional: true
+- waitForAnimationToEnd
+- tapOn:
+    point: "90%,48%"            # close the dev menu (X)
+    optional: true
+- waitForAnimationToEnd
+- runFlow: setup-common.yaml

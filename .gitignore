@@ -51,3 +51,6 @@ android/
 
 # Metro log mirrored for Claude (`script -q .metro.log npm start`)
 .metro.log
+
+# Maestro screenshots (large, machine-specific)
+.maestro/out/

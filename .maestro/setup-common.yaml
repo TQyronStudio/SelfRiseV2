@@ -1,0 +1,57 @@
+appId: com.petrturek.selfrise
+---
+# Shared first-run steps after the platform dialogs: consent, language, theme,
+# reminders, onboarding with one habit and one goal, then the EN demo data.
+- tapOn:
+    text: "Consent"
+    optional: true
+- extendedWaitUntil:            # the consent sheet may still be closing
+    visible: "Choose Your Language.*"
+    timeout: 60000
+- waitForAnimationToEnd
+- tapOn: "Confirm"              # language
+- extendedWaitUntil:            # small phones are slower: wait for the next screen
+    visible: "Choose Your Look.*"
+    timeout: 60000
+- tapOn: "Confirm"              # theme
+- extendedWaitUntil:
+    visible: "Not now"
+    timeout: 60000
+- tapOn: "Not now"              # reminders
+- extendedWaitUntil:
+    visible: "Let's go"
+    timeout: 60000
+- tapOn: "Let's go"
+- extendedWaitUntil:
+    visible: "Drink water"
+    timeout: 60000
+- tapOn: "Drink water"
+- extendedWaitUntil:
+    visible: "Create Habit"
+    timeout: 60000
+- tapOn: "Create Habit"
+- extendedWaitUntil:
+    visible: "Continue"
+    timeout: 60000
+- tapOn: "Continue"             # first trophy
+- extendedWaitUntil:
+    visible: "Read Books"
+    timeout: 60000
+- tapOn: "Read Books"
+- extendedWaitUntil:
+    visible: "Create Goal"
+    timeout: 60000
+- tapOn: "Create Goal"
+- tapOn:
+    text: "Continue"
+    optional: true
+- extendedWaitUntil:
+    visible: "I'll do it later"
+    timeout: 60000
+- tapOn: "I'll do it later"
+- extendedWaitUntil:
+    visible: "Let's do this"
+    timeout: 60000
+- tapOn: "Let's do this"
+- waitForAnimationToEnd
+- runFlow: demo-data.yaml

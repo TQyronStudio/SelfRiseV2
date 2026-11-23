@@ -448,6 +448,8 @@ Uvnitř jedné záložky             stránka → její sheety a detaily (ne tra
    obrazovkami v `.maestro/`; po každé etapě snímky „po“ a porovnání. **Nutné minimum simulátorů** (na Macu
    je málo místa): jeden malý iPhone, jeden velký iPhone, jeden Android – ostatní simulátory a staré buildy
    pro simulátor mazat; tablet a další velikosti ručně (kap. 7.5).
+   **Rozsah snímků (2026-11-23, Petr nenamítal návrh):** EN světlý na všech třech zařízeních; tmavý režim
+   a DE/ES jen na iPhone 17 Pro Max. Vždy běží jen jeden simulátor (málo RAM).
 3. **Jeden nativní build pro všechno.** Rozdělení práce (Petr 2026-11-22): Claude změní nativní nastavení
    projektu (níže) a dá Petrovi přesný příkaz; **build spouští a instaluje Petr sám** přes EAS jako vývojový
    build (nikdy kabelem). Do instalace nového buildu Petr jede na tom současném – kód, který nový build
@@ -478,6 +480,14 @@ Uvnitř jedné záložky             stránka → její sheety a detaily (ne tra
    než začne E2. Výsledek zapsat do `premium-design-plan.md` (poučení 46) – nepřenášet smíšený stav.
 6. Zjistit (jen přečíst a zapsat): dá se React Compiler (`experiments.reactCompiler`) zapnout jen pro nové
    soubory? Nezapínat bez Petra.
+   **Zjištěno 2026-11-23 (z nainstalovaných balíčků, nic se nezapnulo):** ano, dvěma způsoby. Zapíná se
+   `experiments.reactCompiler: true` v `app.json` (Metro pak předá `supportsReactCompiler`
+   `babel-preset-expo`) a rozsah se omezí volbou presetu v `babel.config.js`:
+   `['babel-preset-expo', { 'react-compiler': { … } }]` s **`sources: (filename) => boolean`** (jen vybrané
+   složky, např. `src/design/` a nové obrazovky) nebo **`compilationMode: 'annotation'`** (jen komponenty
+   s direktivou `'use memo'`). Nainstalovaný `babel-plugin-react-compiler` 1.0.0 obojí má; `node_modules`
+   preset nikdy nekompiluje, vypnout jde i direktivou `'use no memo'`. Je to změna jen v JS (žádný nový
+   build). Před zapnutím ověřit soužití s Reanimated (čtení `.value` při vykreslení) – rozhoduje Petr.
 
 **Nesmí se rozbít:** nic – kód appky se nemění, jen konfigurace buildu.
 **Petr ověří:** build běží; plynulost v laboratoři; žádné problikávání při přechodech.
@@ -1567,7 +1577,7 @@ vede v téhle tabulce; rozhodnutí a poučení dál v `premium-design-plan.md`.
 | Etapa | Stav | Commit | Petr schválil |
 |---|---|---|---|
 | B0 – potvrzení rozhodnutí 4.2 (✅ 2026-11-22), zvuky D-7, souhlas s buildem | ☐ | – | |
-| E0 – příprava, build, měření (→ B1) | ◐ 2026-11-22: větev `design-v2`, Maestro 2.12.1, build nainstalovaný, zvuky hrají, měření hotové (P46 zrušeno); zbývá snímky „před“ přes Maestro | | |
+| E0 – příprava, build, měření (→ B1) | ☑ 2026-11-23: větev `design-v2`, Maestro 2.12.1, build v telefonu, zvuky hrají, měření hotové (P46 zrušeno), React Compiler zjištěn (bod 6). Simulátorové buildy v iPhone SE a 17 Pro Max, Android v emulátoru Pixel 7. Scénáře v `.maestro/` (návod, zařízení a pasti v `.maestro/README.md`). **Snímky „před“ (2026-11-23, čerstvá demo data):** iPhone SE EN světlý (25), Pixel 7 EN světlý (23), 17 Pro Max EN světlý / EN tmavý / DE světlý / ES světlý (po 18) v `.maestro/out/before/` (gitignored, jen na tomto Macu). Po každé etapě: `capture.sh <zařízení> after-E<n> <název>` a porovnat. Dořešeno: „Level 0, 0/100 XP po úvodu“ bylo jen zpoždění (po načtení Level 1, 100 XP za dvě trofeje). Deník: 4 snímky nedojedou na konec dlouhého seznamu zápisů (opakující se karty – záměrně). **Brána B1 splněna.** Zbývá jen commit `.maestro/` na Petrův pokyn | | |
 | E1 – tokeny, fonty, testy | ☐ | | |
 | E2 – primitiva, Design-System | ☐ | | |
 | E3 – chrome | ☐ | | |

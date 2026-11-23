@@ -1,0 +1,59 @@
+appId: com.petrturek.selfrise
+---
+# (Re)load the EN marketing demo data – it is dated from TODAY, so every run
+# (before and after, any device, any day) shows the same app state.
+# Needs EXPO_PUBLIC_ENABLE_MARKETING_DEMO=true in .env.
+- tapOn:
+    point: "90%,94%"            # Settings tab
+- waitForAnimationToEnd
+# The tab remembers its scroll – back to the top first, then search down.
+- swipe:
+    start: "50%,50%"
+    end: "50%,90%"
+    duration: 300
+- swipe:
+    start: "50%,50%"
+    end: "50%,90%"
+    duration: 300
+- swipe:
+    start: "50%,50%"
+    end: "50%,90%"
+    duration: 300
+- swipe:
+    start: "50%,50%"
+    end: "50%,90%"
+    duration: 300
+- swipe:
+    start: "50%,50%"
+    end: "50%,90%"
+    duration: 300
+- swipe:
+    start: "50%,50%"
+    end: "50%,90%"
+    duration: 300
+- swipe:
+    start: "50%,50%"
+    end: "50%,90%"
+    duration: 300
+- swipe:
+    start: "50%,50%"
+    end: "50%,90%"
+    duration: 300
+- scrollUntilVisible:           # "Load …" the first time, "Reload …" after
+    element: ".*Load Marketing Demo Data.*"
+    direction: DOWN
+- tapOn: ".*Load Marketing Demo Data.*"
+- extendedWaitUntil:
+    visible: "Delete my data.*"
+    timeout: 30000
+- tapOn: "Delete my data.*"      # the red button, not the title
+- extendedWaitUntil:
+    notVisible: "Loading.*"
+    timeout: 120000
+- waitForAnimationToEnd
+- tapOn:
+    text: "OK"
+    optional: true
+- tapOn:
+    point: "10%,94%"            # Home
+- waitForAnimationToEnd

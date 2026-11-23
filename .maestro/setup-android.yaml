@@ -1,0 +1,30 @@
+appId: com.petrturek.selfrise
+---
+# First run on a fresh Android emulator up to demo data (EN, light).
+# NOT YET RUN END TO END (2026-11-22) – written from the steps done by hand.
+# Before: emulator WITH a window (headless -no-window barely redraws: animations
+# crawl and taps time out), `adb reverse tcp:8081 tcp:8081`, Metro running.
+# Android has no tracking prompt (ATT is iOS only).
+- openLink: "exp+selfrisev2://expo-development-client/?url=http%3A%2F%2Flocalhost%3A8081"
+- extendedWaitUntil:              # dev client intro sheet; first bundle takes minutes
+    visible: "This is the developer menu.*"
+    timeout: 300000
+- tapOn: "Continue"
+- extendedWaitUntil:
+    notVisible: "This is the developer menu.*"
+    timeout: 60000
+- waitForAnimationToEnd
+# The full dev menu may stay open UNDER the app's first dialogs and swallow taps:
+# turn the floating tools button off and close the menu (positions on Pixel 7).
+- scrollUntilVisible:
+    element: "Tools button"
+    direction: DOWN
+    optional: true
+- tapOn:
+    point: "84%,68%"              # Tools button switch -> off
+    optional: true
+- tapOn:
+    point: "89%,10%"              # close (X)
+    optional: true
+- waitForAnimationToEnd
+- runFlow: setup-common.yaml
