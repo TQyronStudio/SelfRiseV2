@@ -539,6 +539,11 @@ do appky a když běžící násobič skončí.
 - Přidat `xpGained` do nového místa → zdvojí se počítání měsíční výzvy (`monthlyProgressIntegration`).
 - Měřit odznak jinde než jeho 48 × 48 → jiskry minou kroužek (P12); souřadnice vždy přepočítat do vrstvy jisker (P13).
 - Testovat na demo datech: mají vyčerpaný denní limit 1500 XP → žádný zisk, nic neletí (to není chyba).
+- Hýbat kroužkem, zatímco letí jiskry → jiskry ho přepíšou hodnotami spočtenými při startu. Odebrané XP během letu se
+  jen zaúčtuje (`ringXp`) a kroužek i úroveň se srovnají s knihou, až dopadne poslední jiskra (`showDirect`).
+- `registerBadge` / `setBadgeVisible` musí mít stálou identitu (nejnovější `pump` přes ref) – jinak úklid efektu
+  odznak odregistruje (změna velikosti okna na tabletu / split screen) a lety čekají navždy.
+- Časovače z doby před `sync()` (návrat z pozadí) se ignorují (`generation`) – nesmí sahat na novou knihu.
 
 ## Smart XP Notification (the summary bar) — ODPOJENO v E7 (historie, soubory zaniknou v E26)
 

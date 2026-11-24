@@ -206,10 +206,13 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
   const frameRef = useRef<View>(null);
   const nextId = useRef(1);
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
+  /** Bumped by every sync: a timer from before it must not touch the fresh books. */
+  const generation = useRef(0);
   const later = useCallback((fn: () => void, ms: number) => {
+    const born = generation.current;
     const id = setTimeout(() => {
       timers.current.delete(id);
-      fn();
+      if (born === generation.current) fn();
     }, ms);
     timers.current.add(id);
   }, []);
@@ -237,6 +240,7 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
   // --- Sync with storage (start, foreground, idle) --------------------------------
   const sync = useCallback(async () => {
     const real = await GamificationService.getTotalXP();
+    generation.current++;
     ledger.current = syncLedger(real);
     launched.current.clear();
     origins.current.clear();
@@ -317,9 +321,12 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
         setWaves(prev => prev.filter(w => w.id !== id));
         ledger.current = landFlight(ledger.current, flight.id);
         launched.current.delete(flight.id);
+        // The last spark is home: ring and level follow the books exactly (a gain
+        // taken back while sparks were flying is settled here, not mid-flight).
+        if (launched.current.size === 0) showDirect(false);
       }, (count - 1) * SPARK_STAGGER + SPARK_DURATION + 120);
     },
-    [later]
+    [later, showDirect]
   );
 
   /** Sends every flight that waits into the air — when the badge can be seen. */
@@ -392,7 +399,10 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
       const before = ledger.current.nextId;
       ledger.current = receiveGain(ledger.current, gain, Date.now(), !!origin);
       if (event.amount < 0) {
-        showDirect(false);
+        // Sparks in the air carry ring values baked at launch: moving the ring now
+        // would be overwritten by them. Book the loss and settle when they land.
+        if (launched.current.size > 0) ringXp.current += event.amount;
+        else showDirect(false);
       } else if (origin) {
         // The part that flies now starts at the control (the held part, later, at the centre).
         for (const f of ledger.current.flights) {
@@ -438,20 +448,22 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
   }, [pump]);
 
   // --- The badge ---------------------------------------------------------------------
+  // Stable identities: the badge registers once (a changing callback re-ran its
+  // cleanup, unregistered it and nothing registered again — e.g. after a window
+  // resize on a tablet or in split screen). The latest pump goes through a ref.
+  const pumpRef = useRef(pump);
+  pumpRef.current = pump;
   const registerBadge = useCallback(
     (measure: ((done: (center: Point) => void) => void) | null) => {
       badge.current = measure;
-      if (measure) pump();
+      if (measure) pumpRef.current();
     },
-    [pump]
+    []
   );
-  const setBadgeVisible = useCallback(
-    (visible: boolean) => {
-      badgeVisible.current = visible;
-      if (visible) pump();
-    },
-    [pump]
-  );
+  const setBadgeVisible = useCallback((visible: boolean) => {
+    badgeVisible.current = visible;
+    if (visible) pumpRef.current();
+  }, []);
 
   const value = useMemo(
     () => ({
