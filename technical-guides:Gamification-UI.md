@@ -488,7 +488,54 @@ Reduced Motion: Respect system accessibility settings
 
 ---
 
-## Smart XP Notification (the summary bar)
+## Odznak úrovně a jiskry XP (migrace E7, R-10 – od 2026-11-24)
+
+**Kód:** `src/components/xp/XpDisplay.tsx` (`XpDisplayProvider`, `LevelBadgeLayer`, `LevelBadge`),
+čisté účetnictví `src/services/xpDisplay/xpLedger.ts`, bod původu `xpOriginRegistry.ts`, okna →
+přidržené XP `heldMoments.ts` (vše s testy). Zapojení v `app/_layout.tsx`: odznak je vrstva nad `Stack`em
+(nad levým polem `TopRow`), jiskry poslední – nad vším kromě starých RN `<Modal>` oken (do E8/E10).
+**Souhrnná lišta a staré bubliny jsou odpojené** (`XpAnimationContainer` kreslí jen děti,
+`XpAnimationContext` poslouchá už jen `levelUp`); soubory a jejich testy se mažou v E26.
+
+### 🚨 KRITICKÁ PRAVIDLA
+**1. Odznak jen ZOBRAZUJE – skutečné XP zůstává v `GamificationService`.**
+```typescript
+// ✅ CORRECT: shown + ve vzduchu + přidržené = skutečný součet (xpLedger)
+ledger = receiveGain(ledger, gain, now, hasOrigin);
+// ❌ WRONG: připisovat nebo přepočítávat XP v UI
+```
+**Proč:** denní limity, násobiče a výzvy počítá úložiště; UI smí jen dohánět zobrazení.
+
+**2. Odznak je vždy poctivý: v klidu se srovná s úložištěm.** Nic neletí a nic není přidržené →
+2,5 s po posledním zisku se porovná zobrazené se `getTotalXP()` a rozdíl se dorovná (kladný doletí ze středu,
+záporný jen ubere kroužek). Tak se ukáže i XP připsané bez události (trofeje dávkové kontroly `skipNotification`).
+```typescript
+// ✅ CORRECT: srovnání v klidu (XpDisplay.reconcile)
+// ❌ WRONG: kvůli odznaku přidávat `xpGained` do dalších míst – poslouchá ho i počítání měsíční výzvy
+```
+
+**3. Bod původu registruje obrazovka TĚSNĚ před akcí** (`registerXpOrigin({source, sourceId}, střed)`) – dnes
+zaškrtávátko návyku. Bez bodu jiskry letí ze středu obrazovky. Měřit přesně ovládací prvek, ne řádek (P12).
+
+**4. XP momentu se přidrží a rozletí, až se zavře jeho okno** (trofej, dokončený cíl / výzva, série deníku,
+milníková část ⭐🔥👑 – `heldMoments.holdKindOfModal`); není-li okno do 2 s ve frontě (`queuedTypes`), rozletí se ze
+středu. Nic nezůstane přidržené navždy.
+
+**5. Když odznak není vidět, nic neletí – lety počkají.** Odznak je jen na pěti záložkách, ne během úvodu a ne pod
+otevřeným sheetem nebo detailem (`useOverlayCovered`). Tím se splní i „XP z úvodu se rozletí po jeho zavření“.
+Snížený pohyb: žádný let, kroužek se posune a odznak jednou pulzne. Odebrané XP: nic neletí, kroužek ubude.
+
+**Vzhled:** „+N XP“ u místa zisku (`achievements.card.xpReward`, záporné `gamification.xp.amountLost`), po 420 ms
+se rozpadne v 5–12 jisker (podle částky) po obloucích do kroužku; každý zásah = záblesk v místě dopadu, puls,
+odskok. Nová úroveň = kroužek se uzavře, záblesk, číslo se přeroluje, štítek `gamification.badge.levelUpTag`
+(DE „LEVEL UP“, ES „NUEVO NIVEL“). Staré okno nové úrovně (fronta) zatím zůstává – sloučí ho E8/E10.
+
+### ⚠️ NEBEZPEČNÉ ZÓNY
+- Přidat `xpGained` do nového místa → zdvojí se počítání měsíční výzvy (`monthlyProgressIntegration`).
+- Měřit odznak jinde než jeho 48 × 48 → jiskry minou kroužek (P12); souřadnice vždy přepočítat do vrstvy jisker (P13).
+- Testovat na demo datech: mají vyčerpaný denní limit 1500 XP → žádný zisk, nic neletí (to není chyba).
+
+## Smart XP Notification (the summary bar) — ODPOJENO v E7 (historie, soubory zaniknou v E26)
 
 The bar at the top that says "2 habits completed  +50 XP". It batches gains for 1.5 s
 (`BATCHING_WINDOW` in `XpAnimationContext`) and then summarises them.

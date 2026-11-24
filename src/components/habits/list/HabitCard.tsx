@@ -11,8 +11,8 @@
  *   re-renders only that card (P42, P47).
  * - Onboarding: the check pulses until it is ticked (the same condition as the
  *   old list — screen 3, the named habit).
- * - The XP of a check is still shown the old way (the XP bar) until E7; the
- *   check already measures its own position for the sparks of E7.
+ * - The check registers its point for the XP sparks (E7): "+N XP" pops there
+ *   and flies into the level badge.
  */
 import React, { memo, useEffect, useMemo, useRef } from 'react';
 import { Animated as RNAnimated, StyleSheet, View } from 'react-native';
@@ -36,6 +36,7 @@ import {
   Surface,
 } from '@/src/components/ui';
 import { getHabitIonicon } from '@/src/constants/habitIcons';
+import { registerXpOrigin } from '@/src/services/xpDisplay/xpOriginRegistry';
 import {
   DayStatus,
   DotShape,
@@ -102,6 +103,15 @@ function HabitCardView(props: HabitCardProps) {
     onMore,
   } = props;
   const { c } = useDesign();
+  // The check tells the XP layer where its sparks start (E7, xpOriginRegistry);
+  // the gain arrives a moment later, after storage wrote it.
+  const checkRef = useRef<View>(null);
+  const check = () => {
+    checkRef.current?.measureInWindow((x, y, w, h) =>
+      registerXpOrigin({ source: 'habit', sourceId: id }, { x: x + w / 2, y: y + h / 2 })
+    );
+    onToggle(id, kind);
+  };
 
   const glow = useSharedValue(done ? 1 : 0);
   useEffect(() => {
@@ -138,7 +148,7 @@ function HabitCardView(props: HabitCardProps) {
         { name: 'more', label: moreLabel },
       ]}
       onAccessibilityAction={e => {
-        if (e.nativeEvent.actionName === 'check') onToggle(id, kind);
+        if (e.nativeEvent.actionName === 'check') check();
         else if (e.nativeEvent.actionName === 'more') onMore(id);
       }}
     >
@@ -228,13 +238,13 @@ function HabitCardView(props: HabitCardProps) {
               color={c.textMuted}
             />
           </PressableScale>
-          <View collapsable={false}>
+          <View collapsable={false} ref={checkRef}>
             {highlight && !done && <CheckHalo color={c.primary} />}
             <CheckButton
               done={done}
               tone={kind === 'bonus' && !makeupText ? 'reward' : 'success'}
               label={checkLabel}
-              onToggle={() => onToggle(id, kind)}
+              onToggle={check}
             />
           </View>
         </View>

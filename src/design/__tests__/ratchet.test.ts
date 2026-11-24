@@ -57,6 +57,9 @@ const CONVERTED: readonly string[] = [
   'src/components/habits/composer/HabitComposer.tsx',
   'src/components/habits/habitFormRules.ts',
   'src/components/habits/list/HabitsReorderView.tsx',
+  // E7 (part 2) – the level badge and the sparks
+  'src/components/xp/XpDisplay.tsx',
+  'src/services/xpDisplay/heldMoments.ts',
   // E7 (part 1) – the XP display: books, origins, multiplier mark rules
   'src/services/xpDisplay/xpLedger.ts',
   'src/services/xpDisplay/xpOriginRegistry.ts',

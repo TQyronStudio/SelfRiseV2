@@ -2,6 +2,7 @@ import 'react-native-get-random-values';
 
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
+import { LevelBadgeLayer, XpDisplayProvider } from '@/src/components/xp/XpDisplay';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -90,6 +91,8 @@ function LayoutContent() {
 
   return (
     <TutorialProvider>
+      {/* E7: the XP display — the badge layer above the navigator, the sparks on top of everything (plan 6.0). */}
+      <XpDisplayProvider>
             <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="achievements" options={{ headerShown: false, presentation: 'card' }} />
@@ -107,7 +110,10 @@ function LayoutContent() {
         <StatusBar style={isDark ? 'light' : 'dark'} translucent={true} />
         {/* Last sibling so it paints over the navigator; a full-screen view, not
             a <Modal>, so it can never collide with a native or RN modal. */}
+        {/* Layer 2: the level badge (tabs only; hidden during onboarding). */}
+        <LevelBadgeLayer />
         <OnboardingFlow />
+      </XpDisplayProvider>
     </TutorialProvider>
   );
 }

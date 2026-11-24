@@ -364,7 +364,7 @@ const checked = habit ? isHabitCheckedOn(completions, habit.id, today) : hasNewC
 - **Náhradní cesta**: když návyk neznáme (smazaný, ztracený stav), obecné texty a
   **základní hodnota** (`countChecksOn` při zobrazení → čeká se, až počet
   **naroste**), jako dřív.
-- **Pauza 1,2 s** před závěrem: odškrtnutí a XP v liště se stihnou ukázat dřív, než
+- **Pauza 1,2 s** před závěrem: odškrtnutí se stihne ukázat dřív, než
   je závěr zakryje. Odškrtnutí zpět během pauzy závěr zruší. Ťuknutí na „later"
   během pauzy (už odškrtnuto) vede na závěr „done" — odškrtnutí se počítá.
 - **Dlouhý název** se do vět vkládá zkrácený na 40 znaků (`quotedHabitName`) — ne
@@ -594,7 +594,8 @@ PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH" npm test
   „I'll do it later"
 - Nikdy dva modály přes sebe (nativní × RN × oslava trofeje)
 - Filtr trofejí: během onboardingu projde jen `first-habit` a `first-goal`
-- Potlačení level-up **modálu**, ale ne XP animace v liště
+- Potlačení level-up **modálu**. XP během úvodu: odznak úrovně je při úvodu schovaný, jeho jiskry počkají a rozletí se
+  po zavření úvodu (E7, `LevelBadgeLayer`) – souhrnná lišta už není
 - Skrytí reklam po dobu onboardingu
 - Obnovení po zabití aplikace — pokračuje na rozdělané obrazovce
 - Restart ze Settings neslaví trofeje podruhé a nečeká na okno, které nepřijde

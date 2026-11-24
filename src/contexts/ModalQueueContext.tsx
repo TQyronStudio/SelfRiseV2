@@ -78,6 +78,11 @@ export interface ModalQueueContextValue {
   currentModal: QueuedModal | null;
   /** Number of modals waiting in queue (including current). */
   queueLength: number;
+  /**
+   * The types in the queue, current first (E7: the XP badge holds a moment's XP
+   * while its window is queued or showing — xpLedger.expireHeld).
+   */
+  queuedTypes: ModalType[];
 }
 
 // ========================================
@@ -167,6 +172,7 @@ export const ModalQueueProvider: React.FC<ModalQueueProviderProps> = ({ children
     closeCurrentModal,
     currentModal: queue.length > 0 ? queue[0]! : null,
     queueLength: queue.length,
+    queuedTypes: queue.map(m => m.type),
   }), [queue, enqueue, closeCurrentModal]);
 
   return (

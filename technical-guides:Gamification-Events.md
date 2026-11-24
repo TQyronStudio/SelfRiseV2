@@ -198,6 +198,12 @@ i `monthlyProgressIntegration`).
 - Zaporne XP v knize nejdriv rusi pridrzene XP tehoz (`source` + `sourceId`) – zruseny cil pred oknem.
 - `multiplierDisplay.ts` – znacka nasobice na odznaku (`badgeMark`, `formatFactor`).
 
+**Kdo `xpGained` poslouchá (od E7, 2026-11-24):** `XpDisplayProvider` (`src/components/xp/XpDisplay.tsx`) –
+zobrazené XP v odznaku (bod původu z `xpOriginRegistry`, přidržení podle `heldMoments`); `monthlyProgressIntegration`
+(výzvy); štítek „+N XP“ seznamu Návyků. `XpAnimationContext` už `xpGained` / `xpSmartNotification` /
+`xpBatchCommitted` neposlouchá (souhrnná lišta a bubliny odpojeny) – jen `levelUp` pro okno nové úrovně.
+**Obsah události se nesmí zmenšit a nové emise nepřidávat** – odznak se v klidu srovná se `getTotalXP()`.
+
 ### xpSmartNotification
 Emituje: `gamificationService.triggerXPAnimation()` (vzdy spolu s xpGained)
 ```typescript

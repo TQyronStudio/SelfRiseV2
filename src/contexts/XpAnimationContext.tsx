@@ -247,15 +247,14 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
     };
 
     // Add event listeners for React Native using DeviceEventEmitter
-    const xpGainedSubscription = DeviceEventEmitter.addListener('xpGained', handleXPGained);
-    const smartNotificationSubscription = DeviceEventEmitter.addListener('xpSmartNotification', handleSmartNotification);
-    const batchCommittedSubscription = DeviceEventEmitter.addListener('xpBatchCommitted', handleBatchCommitted);
+    // E7 (R-10): the popups and the summary bar are disconnected — the level badge
+    // and its sparks (XpDisplay) show XP now. Only the level-up window stays here.
+    void handleXPGained;
+    void handleSmartNotification;
+    void handleBatchCommitted;
     const levelUpSubscription = DeviceEventEmitter.addListener('levelUp', handleLevelUp);
 
     return () => {
-      xpGainedSubscription?.remove();
-      smartNotificationSubscription?.remove();
-      batchCommittedSubscription?.remove();
       levelUpSubscription?.remove();
     };
   }, [showSmartNotification]);

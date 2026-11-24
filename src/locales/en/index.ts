@@ -3015,11 +3015,20 @@ const en: TranslationKeys = {
 
   // Gamification System
   gamification: {
+    // The level badge (migration E7)
+    badge: {
+      levelWithMark: 'Level {{level}}. {{mark}}',
+      markRunning: '{{factor}} XP is on',
+      markReady: '{{factor}} XP is ready to switch on',
+      levelUpTag: 'LEVEL UP · {{level}}',
+      levelUpLabel: 'Level up. Level {{level}}',
+    },
     // Level label (used in level up modals)
     level: 'Level',
 
     // XP System
     xp: {
+      amountLost: '−{{xp}} XP',
       label: 'Experience Points',
       short: 'XP',
       gained: 'XP Gained',

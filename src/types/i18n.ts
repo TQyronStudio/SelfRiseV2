@@ -2044,10 +2044,18 @@ export interface TranslationKeys {
 
   // Gamification System
   gamification: {
+    badge: {
+      levelWithMark: string;
+      markRunning: string;
+      markReady: string;
+      levelUpTag: string;
+      levelUpLabel: string;
+    };
     // Level label (used in level up modals)
     level: string;
 
     xp: {
+      amountLost: string;
       label: string;
       short: string;
       gained: string;

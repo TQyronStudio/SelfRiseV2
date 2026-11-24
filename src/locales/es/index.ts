@@ -3026,10 +3026,19 @@ const es: Partial<TranslationKeys> = {
 
   // Gamification System
   gamification: {
+    // The level badge (migration E7)
+    badge: {
+      levelWithMark: 'Nivel {{level}}. {{mark}}',
+      markRunning: '{{factor}} XP activado',
+      markReady: '{{factor}} XP listo para activar',
+      levelUpTag: 'NUEVO NIVEL · {{level}}',
+      levelUpLabel: 'Subiste de nivel. Nivel {{level}}',
+    },
     // Level label (used in level up modals)
     level: 'Nivel',
 
     xp: {
+      amountLost: '−{{xp}} XP',
       label: 'Puntos de Experiencia',
       short: 'EXP',
       gained: 'EXP Ganados',
