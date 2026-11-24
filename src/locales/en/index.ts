@@ -1057,6 +1057,8 @@ const en: TranslationKeys = {
           valueRequired: 'Value must be greater than 0',
           valueTooLarge: 'This number is too large',
           noteTooLong: 'Note must be less than 200 characters',
+          invalidDate: 'Enter the date as YYYY-MM-DD',
+          futureDate: 'The date can’t be in the future',
           submitFailed: 'Failed to add progress. Please try again.',
         },
       },

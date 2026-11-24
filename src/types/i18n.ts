@@ -789,6 +789,8 @@ export interface TranslationKeys {
           valueRequired: string;
           valueTooLarge: string;
           noteTooLong: string;
+          invalidDate: string;
+          futureDate: string;
           submitFailed: string;
         };
       };

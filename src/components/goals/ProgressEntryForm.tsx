@@ -16,6 +16,7 @@ import { useI18n } from '../../hooks/useI18n';
 import { MAX_GOAL_VALUE } from '../../constants/goals';
 import { ErrorModal } from '@/src/components/common';
 import { today } from '../../utils/date';
+import { progressDateError } from './progressEntryRules';
 import { contentColumn } from '@/src/utils/layout';
 
 export type ProgressEntryFormData = {
@@ -72,6 +73,14 @@ export function ProgressEntryForm({
       newErrors.note = t('goals.progress.form.errors.noteTooLong');
     }
 
+    // A real date, today or earlier — storage sorts and replays entries by it
+    const dateError = progressDateError(formData.date, today());
+    if (dateError === 'format') {
+      newErrors.date = t('goals.progress.form.errors.invalidDate');
+    } else if (dateError === 'future') {
+      newErrors.date = t('goals.progress.form.errors.futureDate');
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -86,7 +95,7 @@ export function ProgressEntryForm({
         goalId,
         value: formData.value,
         note: formData.note.trim(),
-        date: formData.date,
+        date: formData.date.trim() as DateString,
         progressType: formData.progressType,
       };
       await onSubmit(submitData);
@@ -357,6 +366,7 @@ export function ProgressEntryForm({
             onFocus={() => scrollToInput(450)}
             editable={!isLoading}
           />
+          {errors.date && <Text style={styles.errorText}>{errors.date}</Text>}
         </View>
 
         {/* Buttons */}

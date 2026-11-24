@@ -1055,6 +1055,8 @@ const es: Partial<TranslationKeys> = {
           valueRequired: 'El valor debe ser mayor que 0',
           valueTooLarge: 'Este número es demasiado grande',
           noteTooLong: 'La nota debe tener menos de 200 caracteres',
+          invalidDate: 'Escribe la fecha como AAAA-MM-DD',
+          futureDate: 'La fecha no puede estar en el futuro',
           submitFailed: 'No se pudo añadir el progreso. Por favor, inténtalo de nuevo.',
         },
       },

@@ -898,6 +898,12 @@ a jen u ACTIVE/COMPLETED:
   `GoalsScreen` pak ukáže okno dokončení (stejný `celebrateCompletion` jako u progressu).
 - Stav se nemění → žádné XP. Hlídá `src/services/storage/__tests__/sqliteGoalStorage.targetEdit.test.ts`.
 
+#### Datum zápisu pokroku (2026-11-24)
+Pole data v `ProgressEntryForm` je volný text. `progressDateError` (`src/components/goals/progressEntryRules.ts`)
+pustí jen skutečné datum `YYYY-MM-DD`, dnes nebo dřív (texty `goals.progress.form.errors.invalidDate` /
+`futureDate`). Dřív se uložilo cokoliv – a úložiště zápisy podle data řadí i přehrává. Hlídá
+`src/components/goals/__tests__/progressEntryRules.test.ts`.
+
 #### Pořadí záznamů jednoho dne (2026-11-24)
 `getProgressByGoalId` řadí `date DESC, created_at DESC, rowid DESC`. Přepočet (`recalculateGoalValue`)
 přehrává záznamy od nejstaršího — řazení jen podle data vracelo záznamy jednoho dne v libovolném

@@ -1055,6 +1055,8 @@ const de: Partial<TranslationKeys> = {
           valueRequired: 'Wert muss größer als 0 sein',
           valueTooLarge: 'Diese Zahl ist zu groß',
           noteTooLong: 'Notiz muss weniger als 200 Zeichen lang sein',
+          invalidDate: 'Gib das Datum als JJJJ-MM-TT ein',
+          futureDate: 'Das Datum darf nicht in der Zukunft liegen',
           submitFailed: 'Fortschritt konnte nicht hinzugefügt werden. Bitte versuche es erneut.',
         },
       },
