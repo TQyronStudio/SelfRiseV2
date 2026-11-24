@@ -20,7 +20,10 @@ export default function JournalStatsScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { state, actions } = useGratitude();
-  const [stats, setStats] = useState<GratitudeStats | null>(null);
+  // Read live from the context: a local copy taken while loading kept the
+  // numbers from before the refresh and never followed later changes (until
+  // 2026-11-24).
+  const stats: GratitudeStats | null = state.stats;
   const [isLoading, setIsLoading] = useState(true);
   const [typeBreakdown, setTypeBreakdown] = useState<{ gratitude: number; selfPraise: number }>({ gratitude: 0, selfPraise: 0 });
 
@@ -43,7 +46,6 @@ export default function JournalStatsScreen() {
     try {
       setIsLoading(true);
       await actions.refreshStats();
-      setStats(state.stats);
       
       // Ensure we have the latest data
       await actions.loadGratitudes();

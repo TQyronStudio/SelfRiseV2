@@ -570,6 +570,10 @@ const currentStreak = state.streakInfo?.currentStreak || 0;
 **Proč**: se starým čtením se okno 7. dne ukázalo až 8. den (se „7"). Hlídá
 `src/contexts/__tests__/gratitudeRefreshStats.test.tsx`.
 
+Stejná třída chyby: **statistiky deníku** (`app/journal-stats.tsx`) čtou `state.stats` přímo
+z kontextu — žádnou lokální kopii (ta držela čísla z doby před obnovením a už se neměnila).
+Hlídá `__tests__/screens/journalStatsLive.test.tsx`.
+
 ### 🏆 Milníky série deníku — JEDNO místo pro dny i texty (říjen 2026)
 
 `src/utils/journalStreakMilestones.ts`: `JOURNAL_STREAK_MILESTONES` (kdy se slaví —
