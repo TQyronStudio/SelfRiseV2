@@ -21,6 +21,9 @@ import { Router } from 'expo-router';
 // Get storage implementation based on feature flag
 const gratitudeStorage = getGratitudeStorageImpl();
 
+/** Shortest entry the journal takes (the error text shows this number). */
+const MIN_ENTRY_LENGTH = 3;
+
 interface GratitudeInputProps {
   onSubmitSuccess?: () => void;
   onCancel?: () => void; // funkce pro zavření formuláře
@@ -73,8 +76,8 @@ export default function GratitudeInput({ onSubmitSuccess, onCancel, isBonus = fa
       return;
     }
 
-    if (trimmedText.length < 3) {
-      setErrorMessage(t('journal.input.minLengthError'));
+    if (trimmedText.length < MIN_ENTRY_LENGTH) {
+      setErrorMessage(t('journal.input.minLengthError', { min: MIN_ENTRY_LENGTH }));
       setShowError(true);
       return;
     }

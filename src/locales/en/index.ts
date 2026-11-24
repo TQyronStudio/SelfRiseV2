@@ -259,7 +259,8 @@ const en: TranslationKeys = {
         },
         timelineCheck: {
           title: 'Timeline Check',
-          description: '{{goalTitle}} may need timeline adjustment. {{daysRemaining}} days remaining.',
+          description_one: '{{goalTitle}} may need timeline adjustment. {{count}} day remaining.',
+          description_other: '{{goalTitle}} may need timeline adjustment. {{count}} days remaining.',
           action: 'Adjust Timeline',
         },
         setNewGoal: {
@@ -438,6 +439,7 @@ const en: TranslationKeys = {
         failedToDelete: 'Failed to delete goal',
         failedToReorder: 'Failed to reorder goals',
         failedToAddProgress: 'Failed to add progress',
+        failedToDeleteProgress: 'Failed to delete progress',
         noProgressData: 'No progress data yet. Add some progress to see statistics.',
       },
       habits: {
@@ -749,10 +751,12 @@ const en: TranslationKeys = {
       dailyAverage: 'Daily Average',
       entriesPerDay: 'entries per active day',
       milestoneBadges: 'Milestone Badges',
-      bestStreak: 'Best streak: {{days}} days',
+      bestStreak_one: 'Best streak: {{count}} day',
+      bestStreak_other: 'Best streak: {{count}} days',
       startToday: 'Start your streak today!',
       personalBest: 'Personal best! 🎉',
-      best: 'Best: {{days}} days',
+      best_one: 'Best: {{count}} day',
+      best_other: 'Best: {{count}} days',
       motivationTitle: 'Keep Going!',
       motivationNoStreak: "Every journey begins with a single step. Start your journaling streak today!",
       motivationDay1: "Great start! One day down, many more to go. Keep up the momentum!",
@@ -771,8 +775,8 @@ const en: TranslationKeys = {
       typeSelfPraise: 'Self-Praise',
 
       // Error messages
-      emptyError: 'Please enter your gratitude',
-      minLengthError: 'Gratitude must be at least 3 characters long',
+      emptyError: 'Write a few words first.',
+      minLengthError: 'Write at least {{min}} characters.',
       frozenStreakError_one: 'Your streak is frozen for {{count}} day. Warm it up on the Home screen first, then continue journaling! 🔥',
       frozenStreakError_other: 'Your streak is frozen for {{count}} days. Warm it up on the Home screen first, then continue journaling! 🔥',
 
@@ -814,8 +818,11 @@ const en: TranslationKeys = {
     warmUp: {
       title: 'Warm Up Your Streak',
       frozenDays: 'Frozen Days',
-      frozenMessage_one: 'Your streak has been frozen for {{count}} day. Watch {{adsNeeded}} ad to warm it up, then continue journaling freely! ❄️➡️🔥',
-      frozenMessage_other: 'Your streak has been frozen for {{count}} days. Watch {{adsNeeded}} ads to warm it up, then continue journaling freely! ❄️➡️🔥',
+      frozenMessage_one: 'Your streak has been frozen for {{count}} day. Watch $t(journal.warmUp.adsCount, {"count": {{adsNeeded}} }) to warm it up, then continue journaling freely! ❄️➡️🔥',
+      frozenMessage_other: 'Your streak has been frozen for {{count}} days. Watch $t(journal.warmUp.adsCount, {"count": {{adsNeeded}} }) to warm it up, then continue journaling freely! ❄️➡️🔥',
+      // The ads of the sentence above, with their own plural ("Watch 1 ads" until 2026-11-24)
+      adsCount_one: '{{count}} ad',
+      adsCount_other: '{{count}} ads',
       streakWarmedUp: 'Streak warmed up! Go to Journal and continue your journey! ✨',
       warmingUp: 'Warming up: {{current}}/{{total}} 🔥',
       warmingProgress: 'Warming Progress',
@@ -914,7 +921,7 @@ const en: TranslationKeys = {
       },
       resetFailed: {
         title: 'Reset Failed',
-        message: 'Failed to reset debt. Please contact support.',
+        message: 'Your streak wasn’t reset. Nothing has changed.',
       },
       adDismissed: {
         title: 'Ad Not Completed',

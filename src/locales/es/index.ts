@@ -156,7 +156,8 @@ const es: Partial<TranslationKeys> = {
         },
         timelineCheck: {
           title: 'Revisión de Plazos',
-          description: '{{goalTitle}} puede necesitar ajuste de plazos. {{daysRemaining}} días restantes.',
+          description_one: '{{goalTitle}} puede necesitar ajuste de plazos. {{count}} día restante.',
+          description_other: '{{goalTitle}} puede necesitar ajuste de plazos. {{count}} días restantes.',
           action: 'Ajustar Plazos',
         },
         setNewGoal: {
@@ -449,6 +450,7 @@ const es: Partial<TranslationKeys> = {
         failedToDelete: 'No se pudo eliminar el objetivo',
         failedToReorder: 'No se pudieron reordenar los objetivos',
         failedToAddProgress: 'No se pudo agregar el progreso',
+        failedToDeleteProgress: 'No se pudo eliminar el progreso',
         noProgressData: 'Sin datos de progreso aún. Agregue algo de progreso para ver estadísticas.',
       },
       habits: {
@@ -751,10 +753,12 @@ const es: Partial<TranslationKeys> = {
       dailyAverage: 'Promedio diario',
       entriesPerDay: 'entradas por día activo',
       milestoneBadges: 'Insignias de hitos',
-      bestStreak: 'Mejor racha: {{days}} días',
+      bestStreak_one: 'Mejor racha: {{count}} día',
+      bestStreak_other: 'Mejor racha: {{count}} días',
       startToday: '¡Comienza tu racha hoy!',
       personalBest: '¡Mejor marca personal! 🎉',
-      best: 'Mejor: {{days}} días',
+      best_one: 'Mejor: {{count}} día',
+      best_other: 'Mejor: {{count}} días',
       motivationTitle: '¡Sigue así!',
       motivationNoStreak: "Todo viaje comienza con un solo paso. ¡Comienza tu racha de diario hoy!",
       motivationDay1: "¡Buen comienzo! Un día completado, muchos más por venir. ¡Mantén el impulso!",
@@ -773,8 +777,8 @@ const es: Partial<TranslationKeys> = {
       typeSelfPraise: 'Autoelogio',
 
       // Error messages
-      emptyError: 'Por favor, escribe tu gratitud',
-      minLengthError: 'La gratitud debe tener al menos 3 caracteres',
+      emptyError: 'Escribe unas palabras primero.',
+      minLengthError: 'Escribe al menos {{min}} caracteres.',
       frozenStreakError_one: 'Tu racha está congelada desde hace {{count}} día. ¡Caliéntala en la pantalla de Inicio y luego continúa escribiendo! 🔥',
       frozenStreakError_other: 'Tu racha está congelada desde hace {{count}} días. ¡Caliéntala en la pantalla de Inicio y luego continúa escribiendo! 🔥',
 
@@ -816,8 +820,11 @@ const es: Partial<TranslationKeys> = {
     warmUp: {
       title: 'Calienta tu racha',
       frozenDays: 'Días congelados',
-      frozenMessage_one: 'Tu racha ha estado congelada durante {{count}} día. Mira {{adsNeeded}} anuncio para calentarla y continúa escribiendo libremente! ❄️➡️🔥',
-      frozenMessage_other: 'Tu racha ha estado congelada durante {{count}} días. Mira {{adsNeeded}} anuncios para calentarla y continúa escribiendo libremente! ❄️➡️🔥',
+      frozenMessage_one: 'Tu racha ha estado congelada durante {{count}} día. Mira $t(journal.warmUp.adsCount, {"count": {{adsNeeded}} }) para calentarla y continúa escribiendo libremente! ❄️➡️🔥',
+      frozenMessage_other: 'Tu racha ha estado congelada durante {{count}} días. Mira $t(journal.warmUp.adsCount, {"count": {{adsNeeded}} }) para calentarla y continúa escribiendo libremente! ❄️➡️🔥',
+      // The ads of the sentence above, with their own plural ("Watch 1 ads" until 2026-11-24)
+      adsCount_one: '{{count}} anuncio',
+      adsCount_other: '{{count}} anuncios',
       streakWarmedUp: '¡Racha calentada! ¡Ve al Diario y continúa tu viaje! ✨',
       warmingUp: 'Calentando: {{current}}/{{total}} 🔥',
       warmingProgress: 'Progreso de calentamiento',
@@ -916,7 +923,7 @@ const es: Partial<TranslationKeys> = {
       },
       resetFailed: {
         title: 'Reinicio fallido',
-        message: 'No se pudo reiniciar la deuda. Por favor contacta con el soporte.',
+        message: 'Tu racha no se reinició. No ha cambiado nada.',
       },
       adDismissed: {
         title: 'Anuncio no completado',

@@ -132,7 +132,7 @@ export function JournalStatsConcept({
           <LabText variant="caption" tone={personalBest ? 'reward' : 'muted'}>
             {personalBest
               ? t('journal.stats.personalBest')
-              : t('journal.stats.best', { days: stats.longestStreak })}
+              : t('journal.stats.best', { count: stats.longestStreak })}
           </LabText>
         </View>
       </Surface>

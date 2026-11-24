@@ -60,14 +60,14 @@ export default function JournalStatsScreen() {
     const { currentStreak, longestStreak } = state.streakInfo;
 
     if (currentStreak === 0) {
-      return longestStreak > 0 ? t('journal.stats.bestStreak', { days: longestStreak }) : t('journal.stats.startToday');
+      return longestStreak > 0 ? t('journal.stats.bestStreak', { count: longestStreak }) : t('journal.stats.startToday');
     }
 
     if (currentStreak === longestStreak) {
       return t('journal.stats.personalBest');
     }
 
-    return t('journal.stats.best', { days: longestStreak });
+    return t('journal.stats.best', { count: longestStreak });
   };
 
   const getBadgeTotal = () => {

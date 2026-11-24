@@ -224,7 +224,7 @@ export interface TranslationKeys {
       goals: {
         startProgress: { title: string; description: string; action: string; };
         almostThere: { title: string; description: string; action: string; };
-        timelineCheck: { title: string; description: string; action: string; };
+        timelineCheck: { title: string; description_one: string; description_other: string; action: string; };
         setNewGoal: { title: string; description: string; action: string; };
       };
     };
@@ -544,10 +544,12 @@ export interface TranslationKeys {
       dailyAverage: string;
       entriesPerDay: string;
       milestoneBadges: string;
-      bestStreak: string;
+      bestStreak_one: string;
+      bestStreak_other: string;
       startToday: string;
       personalBest: string;
-      best: string;
+      best_one: string;
+      best_other: string;
       motivationTitle: string;
       motivationNoStreak: string;
       motivationDay1: string;
@@ -573,6 +575,8 @@ export interface TranslationKeys {
       frozenDays: string;
       frozenMessage_one: string;
       frozenMessage_other: string;
+      adsCount_one: string;
+      adsCount_other: string;
       streakWarmedUp: string;
       warmingUp: string;
       warmingProgress: string;
@@ -1791,6 +1795,7 @@ export interface TranslationKeys {
         failedToDelete: string;
         failedToReorder: string;
         failedToAddProgress: string;
+        failedToDeleteProgress: string;
         noProgressData: string;
       };
       habits: {

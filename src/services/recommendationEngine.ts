@@ -358,7 +358,7 @@ export class RecommendationEngine {
                 type: 'goal_adjustment',
                 titleKey: 'home.recommendationCards.goals.timelineCheck.title',
                 descriptionKey: 'home.recommendationCards.goals.timelineCheck.description',
-                descriptionParams: { goalTitle: goal.title, daysRemaining },
+                descriptionParams: { goalTitle: goal.title, count: daysRemaining }, // count → day/days
                 priority: 'medium',
                 goalId: goal.id,
                 actionKey: 'home.recommendationCards.goals.timelineCheck.action',
@@ -371,7 +371,7 @@ export class RecommendationEngine {
               type: 'goal_adjustment',
               titleKey: 'home.recommendationCards.goals.timelineCheck.title',
               descriptionKey: 'home.recommendationCards.goals.timelineCheck.description',
-              descriptionParams: { goalTitle: goal.title, daysRemaining },
+              descriptionParams: { goalTitle: goal.title, count: daysRemaining }, // count → day/days
               priority: 'medium',
               goalId: goal.id,
               actionKey: 'home.recommendationCards.goals.timelineCheck.action',

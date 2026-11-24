@@ -943,7 +943,7 @@ export function EntryComposer({
           const message = !trimmed
             ? t('journal.input.emptyError')
             : trimmed.length < 3
-              ? t('journal.input.minLengthError')
+              ? t('journal.input.minLengthError', { min: 3 })
               : null;
           if (message) {
             setError(message);

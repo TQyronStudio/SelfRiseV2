@@ -156,7 +156,8 @@ const de: Partial<TranslationKeys> = {
         },
         timelineCheck: {
           title: 'Zeitplan-Check',
-          description: '{{goalTitle}} benötigt möglicherweise eine Zeitplananpassung. Noch {{daysRemaining}} Tage.',
+          description_one: '{{goalTitle}} benötigt möglicherweise eine Zeitplananpassung. Noch {{count}} Tag.',
+          description_other: '{{goalTitle}} benötigt möglicherweise eine Zeitplananpassung. Noch {{count}} Tage.',
           action: 'Zeitplan anpassen',
         },
         setNewGoal: {
@@ -449,6 +450,7 @@ const de: Partial<TranslationKeys> = {
         failedToDelete: 'Löschen fehlgeschlagen',
         failedToReorder: 'Sortieren fehlgeschlagen',
         failedToAddProgress: 'Fortschritt fehlgeschlagen',
+        failedToDeleteProgress: 'Fortschritt konnte nicht gelöscht werden',
         noProgressData: 'Keine Daten. Füge Fortschritt hinzu.',
       },
       habits: {
@@ -751,10 +753,12 @@ const de: Partial<TranslationKeys> = {
       dailyAverage: 'Täglicher Durchschnitt',
       entriesPerDay: 'Einträge pro aktivem Tag',
       milestoneBadges: 'Meilenstein-Abzeichen',
-      bestStreak: 'Beste Serie: {{days}} Tage',
+      bestStreak_one: 'Beste Serie: {{count}} Tag',
+      bestStreak_other: 'Beste Serie: {{count}} Tage',
       startToday: 'Starte heute deine Serie!',
       personalBest: 'Persönliche Bestleistung! 🎉',
-      best: 'Beste: {{days}} Tage',
+      best_one: 'Beste: {{count}} Tag',
+      best_other: 'Beste: {{count}} Tage',
       motivationTitle: 'Weiter so!',
       motivationNoStreak: "Jede Reise beginnt mit einem einzigen Schritt. Starte heute deine Tagebuch-Serie!",
       motivationDay1: "Toller Start! Ein Tag geschafft, viele weitere folgen. Bleib dran!",
@@ -773,8 +777,8 @@ const de: Partial<TranslationKeys> = {
       typeSelfPraise: 'Selbstlob',
 
       // Error messages
-      emptyError: 'Bitte gib deine Dankbarkeit ein',
-      minLengthError: 'Dankbarkeit muss mindestens 3 Zeichen lang sein',
+      emptyError: 'Schreib zuerst ein paar Worte.',
+      minLengthError: 'Schreib mindestens {{min}} Zeichen.',
       frozenStreakError_one: 'Deine Serie ist seit {{count}} Tag eingefroren. Wärme sie auf dem Startbildschirm auf und schreibe dann weiter! 🔥',
       frozenStreakError_other: 'Deine Serie ist seit {{count}} Tagen eingefroren. Wärme sie auf dem Startbildschirm auf und schreibe dann weiter! 🔥',
 
@@ -816,8 +820,11 @@ const de: Partial<TranslationKeys> = {
     warmUp: {
       title: 'Wärme deine Serie auf',
       frozenDays: 'Eingefrorene Tage',
-      frozenMessage_one: 'Deine Serie ist seit {{count}} Tag eingefroren. Schau dir {{adsNeeded}} Werbung an, um sie aufzuwärmen und schreibe dann frei weiter! ❄️➡️🔥',
-      frozenMessage_other: 'Deine Serie ist seit {{count}} Tagen eingefroren. Schau dir {{adsNeeded}} Werbungen an, um sie aufzuwärmen und schreibe dann frei weiter! ❄️➡️🔥',
+      frozenMessage_one: 'Deine Serie ist seit {{count}} Tag eingefroren. Schau dir $t(journal.warmUp.adsCount, {"count": {{adsNeeded}} }) an, um sie aufzuwärmen und schreibe dann frei weiter! ❄️➡️🔥',
+      frozenMessage_other: 'Deine Serie ist seit {{count}} Tagen eingefroren. Schau dir $t(journal.warmUp.adsCount, {"count": {{adsNeeded}} }) an, um sie aufzuwärmen und schreibe dann frei weiter! ❄️➡️🔥',
+      // The ads of the sentence above, with their own plural ("Watch 1 ads" until 2026-11-24)
+      adsCount_one: '{{count}} Werbung',
+      adsCount_other: '{{count}} Werbungen',
       streakWarmedUp: 'Serie aufgewärmt! Gehe zum Tagebuch und setze deine Reise fort! ✨',
       warmingUp: 'Aufwärmen: {{current}}/{{total}} 🔥',
       warmingProgress: 'Aufwärm-Fortschritt',
@@ -916,7 +923,7 @@ const de: Partial<TranslationKeys> = {
       },
       resetFailed: {
         title: 'Zurücksetzen fehlgeschlagen',
-        message: 'Schuld konnte nicht zurückgesetzt werden. Bitte kontaktiere den Support.',
+        message: 'Deine Serie wurde nicht zurückgesetzt. Es hat sich nichts geändert.',
       },
       adDismissed: {
         title: 'Werbung nicht abgeschlossen',
