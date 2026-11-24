@@ -371,7 +371,7 @@ Vše, co je postavené v laboratoři, je rozhodnuté (4.2). Zbývá jen tohle:
 12. **Mapa dat E11–E16:** `design-migration-datamaps.md`. **Zastavení:** E14 ikona a barva cíle podle kategorie
     (jako E10), rychlé částky na kartě cíle (navrženo převést `suggestQuick(target)` jako čistou funkci), „+35 XP /
     milník / dnes už bez XP“ po zápisu (D-4 – `addProgress` výsledek XP nevrací); E15 XP u zápisu v historii.
-13. **Chyby ostré appky z mapy dat (2026-11-24, s důkazem – opravit jen se souhlasem):**
+13. ✅ **Chyby ostré appky z mapy dat (2026-11-24, s důkazem – opraveno 2026-11-24 se souhlasem, commity afd309a…5796e58; každá s testem a negativní zkouškou; navíc opraveno: týdenní průměr na Home, množná čísla „1 days“, chybové texty deníku a resetu):**
     - přepočet cíle přehraje zápisy **téhož dne obráceně** (`SQLiteGoalStorage.ts` ~387 a ~754; „+5, pak =10“ dá 15
       místo 10 po smazání/úpravě zápisu) – **data**, nejzávažnější;
     - trend „4 týdny“ na Home počítá obráceně (`HabitTrendAnalysis.tsx` ~153–164) – zlepšení při zhoršení;
