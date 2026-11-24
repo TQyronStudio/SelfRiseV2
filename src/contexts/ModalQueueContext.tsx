@@ -345,6 +345,8 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
           onClose={onClose}
           achievement={props.achievement}
           xpAwarded={props.xpAwarded}
+          also={props.also}
+          boost={props.boost}
         />
       );
 

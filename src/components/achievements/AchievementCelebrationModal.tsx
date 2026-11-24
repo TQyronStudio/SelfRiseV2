@@ -22,6 +22,10 @@ interface AchievementCelebrationModalProps {
   onClose: () => void;
   achievement: Achievement | null;
   xpAwarded: number;
+  /** The other trophies of the same action (E8: one action, one moment). */
+  also?: Achievement[];
+  /** A combo the action switched on, told inside the moment (E8, L-11). */
+  boost?: { factor: string; hours: number };
 }
 
 // Get rarity color for theming
@@ -64,6 +68,8 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
   onClose,
   achievement,
   xpAwarded,
+  also = [],
+  boost,
 }) => {
   const { width: screenWidth } = useWindowDimensions();
   // Early return BEFORE any hooks - safe now because parent only renders with valid achievement
@@ -325,6 +331,18 @@ export const AchievementCelebrationModal: React.FC<AchievementCelebrationModalPr
           <Text style={styles.description}>
             {t(achievement.descriptionKey)}
           </Text>
+
+          {/* E8: the rest of this action's trophies, and a combo it switched on */}
+          {also.length > 0 && (
+            <Text style={styles.description}>
+              {`${t('achievements.celebration.alsoUnlocked')}: ${also.map(x => t(x.nameKey)).join(' · ')}`}
+            </Text>
+          )}
+          {boost && (
+            <Text style={styles.description}>
+              {t('gamification.multiplier.boostLine', { factor: boost.factor, count: boost.hours })}
+            </Text>
+          )}
 
           {/* Rarity badge */}
           <View style={[

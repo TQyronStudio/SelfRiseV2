@@ -848,6 +848,23 @@ When adding new achievement, MUST complete ALL steps:
 
 ## Celebration System
 
+### 🚨 Jedna akce = jedna oslava (migrace E8, R-29 – od 2026-11-24)
+Služba hlásí trofeje po jedné (`achievementUnlocked` za každou, k tomu `multipleAchievementsUnlocked`) a XP za
+celou dávku platí jedním `addXP`. **`AchievementContext` sbírá události jednoho okamžiku (400 ms) do dávky** a
+`routeTrophyBatch` (`src/services/moments/trophyBatch.ts`, test) z ní udělá **jeden moment**:
+- epic / legendary v dávce → **jedno okno** (fronta, typ `achievement`) pro nejvzácnější, ostatní uvnitř
+  („Also unlocked“), jedno číslo XP;
+- jen common / rare → **tiché oznámení** vedle odznaku úrovně (`XpDisplay` → `NoteHost`; z kontextu tam jde přes
+  `noteBus.ts`, kontexty nesdílí větev stromu). Ukáže se jen bez otevřeného okna, drží 2,6 s (rare 3,4 s),
+  ťuknutí otevře Síň trofejí; čekající oznámení se slučují. Při odchodu vyletí XP z jeho čísla do odznaku a
+  zazní `achievementCelebrationClosed`.
+- **Úvod:** jen `first-habit` a `first-goal`, a **vždy jako okno** (úvod čeká na jeho zavření a odznak je při úvodu skrytý).
+- **Číslo XP = skutečně připsané** (událost `xpGained` zdroje `ACHIEVEMENT_UNLOCK` přichází těsně PŘED trofejemi –
+  sběrač ji drží 1,5 s), jinak součet katalogu.
+- **Kombo trofejí** (`xpMultiplierActivated`, zdroj `achievement`) jede uvnitř momentu (`boost`: štítek v oznámení,
+  řádek v okně); **vlastní okno `multiplier_activation` se pro kombo neřadí** (`XpMultiplierSection`).
+- `multipleAchievementsUnlocked` už nic neřadí – dřív každou trofej ukázal podruhé.
+
 ### Achievement Celebration Requirements
 
 **ALL achievement celebrations MUST include:**

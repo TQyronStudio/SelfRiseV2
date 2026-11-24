@@ -151,6 +151,8 @@ export const XpMultiplierSection: React.FC<XpMultiplierSectionProps> = ({
       // Harmony streak is handled via direct UI flow (handleActivateMultiplier), so skip it
       const multiplierSub = DeviceEventEmitter.addListener('xpMultiplierActivated', async (eventData) => {
         if (eventData?.source === 'harmony_streak') return; // Already handled by direct UI
+        // A trophy combo rides inside its trophy moment (E8, L-11) — no window of its own.
+        if (eventData?.source === 'achievement') return;
 
         await loadData(); // Refresh to get new ActiveMultiplierInfo
 

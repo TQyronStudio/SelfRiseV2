@@ -13,6 +13,15 @@ import { AchievementService, AchievementUnlockResult } from '../services/achieve
 import { AchievementStorage } from '../services/achievementStorage';
 import { CORE_ACHIEVEMENTS } from '../constants/achievementCatalog';
 import { useModalQueue, ModalPriority } from './ModalQueueContext';
+import { postTrophyNote } from '../services/moments/noteBus';
+import { XPSourceType } from '../types/gamification';
+import { routeTrophyBatch } from '../services/moments/trophyBatch';
+import i18n from '../config/i18n';
+
+/** The trophies of one action arrive within this window (one loop in the service). */
+const BATCH_WINDOW_MS = 400;
+/** The batch's XP (one addXP) may come this long before its first unlock event. */
+const CREDIT_JOIN_MS = 1500;
 
 // Achievement context state interface
 interface AchievementContextState {
@@ -330,31 +339,99 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
   // CELEBRATION QUEUE SYSTEM
   // ========================================
 
-  /**
-   * Add achievement to celebration queue via centralized ModalQueue
-   * Skip during tutorial EXCEPT for first-habit and first-goal achievements
-   */
-  const addToCelebrationQueue = useCallback(async (achievement: Achievement, xpAwarded: number) => {
-    // Check if tutorial is active
+  // ========================================
+  // ONE ACTION, ONE MOMENT (migration E8, R-29)
+  // ========================================
+  // The service reports unlocks one by one (`achievementUnlocked` per trophy) and
+  // pays their XP in ONE addXP. The events of one instant are collected into a
+  // batch and become ONE moment (routeTrophyBatch): epic / legendary → one window
+  // for the rarest with the others inside; otherwise one quiet note at the badge.
+  // A trophy combo the batch switched on rides inside the same moment (boost).
+  const batch = useRef<Achievement[]>([]);
+  const batchCredited = useRef(0);
+  const lastCreditAt = useRef(0);
+  const batchBoost = useRef<{ factor: string; hours: number } | undefined>(undefined);
+  const batchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const flushBatch = useCallback(async () => {
+    batchTimer.current = null;
+    const items = batch.current;
+    const credited =
+      Date.now() - lastCreditAt.current <= CREDIT_JOIN_MS + BATCH_WINDOW_MS ? batchCredited.current : 0;
+    const boost = batchBoost.current;
+    batch.current = [];
+    batchCredited.current = 0;
+    batchBoost.current = undefined;
     const { isTutorialActive } = await import('./TutorialContext');
-    const tutorialActive = await isTutorialActive();
-
-    // Allow first-habit and first-goal achievements to show during tutorial
-    const isFirstStepAchievement = achievement.id === 'first-habit' || achievement.id === 'first-goal';
-
-    if (tutorialActive && !isFirstStepAchievement) {
-      console.log(`🎓 [TUTORIAL] Skipping achievement modal for "${achievement.id}" - tutorial is active`);
-      return;
+    const onboarding = await isTutorialActive();
+    const moment = routeTrophyBatch(
+      items.map(a => ({ id: a.id, rarity: a.rarity, xp: a.xpReward, achievement: a })),
+      onboarding
+    );
+    if (!moment) return;
+    const shown = moment.kind === 'big' ? [moment.headliner, ...moment.also] : moment.items;
+    // The number shown is what was really CREDITED (caps, a running multiplier),
+    // not the catalogue — the same XP that flies into the badge.
+    const xp = credited > 0 ? credited : shown.reduce((sum, item) => sum + item.xp, 0);
+    if (moment.kind === 'big') {
+      enqueueModalRef.current({
+        type: 'achievement',
+        priority: ModalPriority.ACHIEVEMENT,
+        props: {
+          achievement: moment.headliner.achievement,
+          xpAwarded: xp,
+          also: moment.also.map(item => item.achievement),
+          ...(boost ? { boost } : {}),
+        },
+      });
+    } else {
+      postTrophyNote({
+        items: moment.items.map(item => ({
+          id: item.id,
+          rarity: item.rarity,
+          icon: item.achievement.icon,
+          nameKey: item.achievement.nameKey,
+        })),
+        xp,
+        ...(boost ? { boost } : {}),
+      });
     }
+  }, []);
 
-    console.log(`🏆 Achievement → ModalQueue: ${achievement.id} (+${xpAwarded} XP)`);
+  /** One trophy of the current instant. */
+  const addToCelebrationQueue = useCallback(async (achievement: Achievement, _xpAwarded?: number) => {
+    batch.current.push(achievement);
+    if (batchTimer.current) clearTimeout(batchTimer.current);
+    batchTimer.current = setTimeout(() => {
+      flushBatch().catch(err => console.error('Error showing the trophy moment:', err));
+    }, BATCH_WINDOW_MS);
+  }, [flushBatch]);
 
-    // Enqueue to centralized modal queue
-    enqueueModalRef.current({
-      type: 'achievement',
-      priority: ModalPriority.ACHIEVEMENT,
-      props: { achievement, xpAwarded },
-    });
+  useEffect(() => {
+    const subs = [
+      // What the batch really paid (one addXP for all of it).
+      DeviceEventEmitter.addListener('xpGained', (e: { amount?: number; source?: string }) => {
+        // It arrives just BEFORE the unlock events (the service pays first), so
+        // it is kept for a moment and joins the batch that follows.
+        if (e?.source === XPSourceType.ACHIEVEMENT_UNLOCK && (e.amount ?? 0) > 0) {
+          const now = Date.now();
+          const recent = now - lastCreditAt.current <= CREDIT_JOIN_MS;
+          batchCredited.current = (recent ? batchCredited.current : 0) + (e.amount ?? 0);
+          lastCreditAt.current = now;
+        }
+      }),
+      // A combo the batch switched on is told inside the moment (L-11).
+      DeviceEventEmitter.addListener('xpMultiplierActivated', (e: { source?: string; multiplier?: number; duration?: number }) => {
+        if (e?.source === 'achievement' && batch.current.length > 0 && e.multiplier && e.duration) {
+          const factor = new Intl.NumberFormat(i18n.language).format(e.multiplier);
+          batchBoost.current = { factor, hours: e.duration };
+        }
+      }),
+    ];
+    return () => {
+      subs.forEach(sub => sub.remove());
+      if (batchTimer.current) clearTimeout(batchTimer.current);
+    };
   }, []);
 
   // showNextCelebration and closeCelebrationModal are no-ops now - queue handles everything
@@ -387,10 +464,8 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
         
         setRecentUnlocks(prev => [unlockEvent, ...prev.slice(0, 9)]); // Keep last 10
 
-        // Add to celebration queue
-        addToCelebrationQueue(eventData.achievement, eventData.xpAwarded).catch(err =>
-          console.error('Error adding achievement to celebration queue:', err)
-        );
+        // Into the batch of this instant (one action → one moment)
+        addToCelebrationQueue(eventData.achievement);
 
         // Refresh achievements data
         refreshAchievements();
@@ -403,20 +478,8 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
       (eventData: { count: number; totalXP: number; achievements: Achievement[] }) => {
         console.log(`🎉 Multiple achievements unlocked: ${eventData.count} achievements`);
         
-        // 🎯 CRESCENDO EFFECT: Sort achievements from lowest to highest rarity
-        // This creates escalating joy - starting with common, building to legendary finale
-        const sortedAchievements = sortAchievementsForDisplay(eventData.achievements);
-        
-        console.log('🎭 Achievement display order (crescendo effect):',
-          sortedAchievements.map(a => `${a.id} (${a.rarity.toUpperCase()}, ${a.xpReward} XP)`));
-        
-        // Add all achievements to celebration queue in crescendo order
-        sortedAchievements.forEach(achievement => {
-          addToCelebrationQueue(achievement, achievement.xpReward).catch(err =>
-            console.error('Error adding achievement to celebration queue:', err)
-          );
-        });
-        
+        // Every trophy of it also came as its own `achievementUnlocked` — the batch
+        // collector has them already (enqueueing here showed each one twice).
         refreshAchievements();
       }
     );

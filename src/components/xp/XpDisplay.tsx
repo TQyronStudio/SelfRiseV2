@@ -35,7 +35,9 @@ import React, {
 } from 'react';
 import {
   Animated as RNAnimated,
+  AccessibilityInfo,
   AppState,
+  DeviceEventEmitter,
   Pressable,
   StyleSheet,
   Text,
@@ -69,12 +71,12 @@ import {
 } from '@shopify/react-native-skia';
 import { scheduleOnRN } from 'react-native-worklets';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSegments } from 'expo-router';
+import { useRouter, useSegments } from 'expo-router';
 import { useDesign } from '@/src/contexts/ThemeContext';
 import { useModalQueue } from '@/src/contexts/ModalQueueContext';
 import { useTutorial } from '@/src/contexts/TutorialContext';
 import { useI18n } from '@/src/hooks/useI18n';
-import { fixed, fonts, radius, space, withAlpha } from '@/src/design/tokens';
+import { fixed, fonts, radius, rarity, space, withAlpha } from '@/src/design/tokens';
 import { feel } from '@/src/services/feelService';
 import { GamificationService } from '@/src/services/gamificationService';
 import { getXPProgress } from '@/src/services/levelCalculation';
@@ -94,6 +96,7 @@ import {
 } from '@/src/services/xpDisplay/xpLedger';
 import { takeXpOrigin, XpOriginPoint } from '@/src/services/xpDisplay/xpOriginRegistry';
 import { pendingHoldKinds, releasedKind } from '@/src/services/xpDisplay/heldMoments';
+import { listenTrophyNotes } from '@/src/services/moments/noteBus';
 import { PressableScale, typeStyle, useOverlayCovered, RollingNumber } from '@/src/components/ui';
 import { TOP_ROW_HEIGHT } from '@/src/components/ui/TopRow';
 import { useBadgeMark } from './useBadgeMark';
@@ -174,6 +177,30 @@ interface XpDisplay {
 
 const XpDisplayContext = createContext<XpDisplay | null>(null);
 
+/** A quiet trophy note (E8): what one action unlocked, common / rare only. */
+export interface TrophyNoteData {
+  id: number;
+  items: { id: string; rarity: string; icon: string; nameKey: string }[];
+  /** XP the note stands for (what was credited). */
+  xp: number;
+  boost?: { factor: string; hours: number } | undefined;
+}
+interface MomentNotes {
+  showTrophyNote: (note: Omit<TrophyNoteData, 'id'>) => void;
+  noteDone: (point: XpOriginPoint | null) => void;
+  current: TrophyNoteData | null;
+  /** A window of the queue is up: notes wait. */
+  windowUp: boolean;
+}
+const MomentNotesContext = createContext<MomentNotes | null>(null);
+
+/** Queue a quiet trophy note (AchievementContext's batch collector). */
+export function useMomentNotes(): MomentNotes {
+  const ctx = useContext(MomentNotesContext);
+  if (!ctx) throw new Error('useMomentNotes must be used inside XpDisplayProvider');
+  return ctx;
+}
+
 export function useXpDisplay(): XpDisplay {
   const ctx = useContext(XpDisplayContext);
   if (!ctx) throw new Error('useXpDisplay must be used inside XpDisplayProvider');
@@ -191,6 +218,8 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
   const launched = useRef(new Set<number>());
   /** Where each flight starts (window coordinates); absent = the centre. */
   const origins = useRef(new Map<number, XpOriginPoint>());
+  /** Origins that need no "+N XP" pop (a moment already shows its number). */
+  const quietOrigins = useRef(new Set<number>());
   /** XP the ring will show once every launched spark has landed. */
   const ringXp = useRef(0);
   const [level, setLevel] = useState(1);
@@ -350,8 +379,9 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
         for (const f of waiting) {
           const origin = origins.current.get(f.id);
           origins.current.delete(f.id);
+          const quiet = quietOrigins.current.delete(f.id);
           const from = origin ? toLayer(origin) : { x: width / 2, y: height / 2 };
-          if (origin) {
+          if (origin && !quiet) {
             const popId = nextId.current++;
             setPops(prev => [...prev, { id: popId, at: from, amount: f.amount }]);
             later(() => setPops(prev => prev.filter(p => p.id !== popId)), POP_MS + 400);
@@ -372,7 +402,11 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
     if (reconcileTimer.current) clearTimeout(reconcileTimer.current);
     reconcileTimer.current = setTimeout(async () => {
       const l = ledger.current;
-      if (!ready.current || l.flights.length > 0 || l.held.length > 0) return reconcile();
+      // Not while sparks fly, XP is held, or a moment is waiting / on screen (its XP
+      // flies when it ends — sync XP without an event then flies from there too).
+      if (!ready.current || l.flights.length > 0 || l.held.length > 0 || pendingRef.current.size > 0) {
+        return reconcile();
+      }
       const real = await GamificationService.getTotalXP();
       const diff = real - ledgerTotal(ledger.current);
       if (diff === 0) return;
@@ -384,6 +418,8 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
   useEffect(() => () => {
     if (reconcileTimer.current) clearTimeout(reconcileTimer.current);
   }, []);
+  const reconcileRef = useRef(reconcile);
+  reconcileRef.current = reconcile;
 
   // --- Gains --------------------------------------------------------------------------
   useEffect(() => {
@@ -433,8 +469,46 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
       pump();
     }
   }, [head, queuedTypes.length, pump]);
+  // --- Quiet notes (E8): one at a time next to the badge, only while no window is up ---
+  const [notes, setNotes] = useState<TrophyNoteData[]>([]);
+  const showTrophyNote = useCallback((note: Omit<TrophyNoteData, 'id'>) => {
+    setNotes(prev => {
+      const next = { ...note, id: nextId.current++ };
+      // Waiting notes (not the one on screen) fold into one (enqueueMoment rule).
+      const last = prev[prev.length - 1];
+      if (prev.length >= 2 && last) {
+        return [
+          ...prev.slice(0, -1),
+          { ...last, items: [...last.items, ...next.items], xp: last.xp + next.xp, boost: last.boost ?? next.boost },
+        ];
+      }
+      return [...prev, next];
+    });
+  }, []);
+  /** A note left: its XP flies from its number (no second pop), the trophy gate hears it. */
+  const noteDone = useCallback(
+    (point: XpOriginPoint | null) => {
+      setNotes(prev => prev.slice(1));
+      const before = ledger.current.nextId;
+      ledger.current = releaseHeld(ledger.current, 'trophy');
+      if (point) {
+        for (const f of ledger.current.flights) {
+          if (f.id >= before) {
+            origins.current.set(f.id, point);
+            quietOrigins.current.add(f.id);
+          }
+        }
+      }
+      DeviceEventEmitter.emit('achievementCelebrationClosed');
+      pumpRef.current();
+      reconcileRef.current();
+    },
+    []
+  );
+  useEffect(() => listenTrophyNotes(note => showTrophyNote(note)), [showTrophyNote]);
   const pendingRef = useRef(pendingHoldKinds(queuedTypes));
   pendingRef.current = pendingHoldKinds(queuedTypes);
+  if (notes.length > 0) pendingRef.current.add('trophy');
   useEffect(() => {
     const tick = setInterval(() => {
       if (ledger.current.held.length === 0) return;
@@ -465,6 +539,11 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
     if (visible) pumpRef.current();
   }, []);
 
+  const notesApi = useMemo(
+    () => ({ showTrophyNote, noteDone, current: notes[0] ?? null, windowUp: queuedTypes.length > 0 }),
+    [showTrophyNote, noteDone, notes, queuedTypes.length]
+  );
+
   const value = useMemo(
     () => ({
       level,
@@ -484,6 +563,7 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
 
   return (
     <XpDisplayContext.Provider value={value}>
+      <MomentNotesContext.Provider value={notesApi}>
       {children}
       <View ref={frameRef} collapsable={false} style={StyleSheet.absoluteFill} pointerEvents="none" />
       {pops.map(p => (
@@ -499,6 +579,7 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
           ))}
         </Canvas>
       )}
+      </MomentNotesContext.Provider>
     </XpDisplayContext.Provider>
   );
 }
@@ -672,6 +753,7 @@ export function LevelBadgeLayer() {
     >
       <View style={[contentColumn, styles.layerRow]} pointerEvents="box-none">
         <LevelBadge mark={mark} />
+        {visible && <NoteHost />}
       </View>
     </Animated.View>
   );
@@ -938,6 +1020,139 @@ function XpPop({ amount }: { amount: number }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// The quiet trophy note (E8) — slides out of the badge, holds, slides back
+// ---------------------------------------------------------------------------
+
+const NOTE_HOLD_MS = { common: 2600, rare: 3400 } as const;
+
+/** Shows the head note while no window is up. */
+function NoteHost() {
+  const { current, windowUp, noteDone } = useMomentNotes();
+  if (!current || windowUp) return null;
+  return <TrophyNoteView key={current.id} note={current} onDone={noteDone} />;
+}
+
+function TrophyNoteView({
+  note,
+  onDone,
+}: {
+  note: TrophyNoteData;
+  onDone: (point: XpOriginPoint | null) => void;
+}) {
+  const { c, mode } = useDesign();
+  const { t } = useI18n();
+  const router = useRouter();
+  const reducedMotion = useReducedMotion();
+  const top = note.items[0]!;
+  const tier = rarity[(top.rarity as keyof typeof rarity) ?? 'common'] ?? rarity.common;
+  const rare = top.rarity === 'rare';
+  const names = note.items.map(i => t(i.nameKey)).join(' · ');
+  const overline =
+    note.items.length > 1
+      ? t('achievements.celebration.trophiesUnlocked', { count: note.items.length })
+      : t(`achievements.celebration.rarity_${top.rarity}`);
+  const xpText = t('achievements.card.xpReward', { xp: note.xp });
+  const boostLine = note.boost
+    ? t('gamification.multiplier.boostLine', { factor: note.boost.factor, count: note.boost.hours })
+    : null;
+  const p = useSharedValue(0);
+  const xpRef = useRef<View>(null);
+  const left = useRef(false);
+  const leave = useCallback(
+    (open: boolean) => {
+      if (left.current) return;
+      left.current = true;
+      const finish = (point: XpOriginPoint | null) => {
+        p.value = withTiming(0, { duration: 240 }, finished => {
+          if (finished) scheduleOnRN(onDone, point);
+        });
+      };
+      if (xpRef.current) {
+        xpRef.current.measureInWindow((x, y, w, h) => finish({ x: x + w / 2, y: y + h / 2 }));
+      } else finish(null);
+      if (open) router.push('/achievements');
+    },
+    [p, onDone, router]
+  );
+  const leaveRef = useRef(leave);
+  leaveRef.current = leave;
+  useEffect(() => {
+    feel(rare ? 'confirm' : 'note');
+    AccessibilityInfo.announceForAccessibility(
+      note.items
+        .map(item =>
+          t('achievements.celebration.announcement', {
+            rarity: (rarity[item.rarity as keyof typeof rarity] ?? rarity.common).label,
+            name: t(item.nameKey),
+            xp: String(note.xp),
+          })
+        )
+        .join(' ')
+    );
+    p.value = withSpring(1, { damping: 14, stiffness: 200 });
+    const id = setTimeout(() => leaveRef.current(false), NOTE_HOLD_MS[rare ? 'rare' : 'common']);
+    return () => clearTimeout(id);
+    // One note = one entrance.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() =>
+    reducedMotion
+      ? { opacity: p.value }
+      : { opacity: p.value, transform: [{ translateX: (1 - p.value) * -16 }, { scale: 0.92 + 0.08 * p.value }] }
+  );
+  return (
+    <Animated.View style={[styles.noteWrap, style]} pointerEvents="box-none">
+      <PressableScale
+        onPress={() => leave(true)}
+        feel={null}
+        pressScale={0.97}
+        accessibilityLabel={`${overline}. ${names}. ${xpText}.${boostLine ? ` ${boostLine}.` : ''} ${t(
+          'achievements.celebration.opensTrophyRoom'
+        )}`}
+        style={[styles.note, { backgroundColor: c.surface, borderColor: rare ? tier.glow : c.border }]}
+      >
+        <View style={styles.medals}>
+          {note.items.slice(0, 3).map((item, i) => (
+            <View
+              key={item.id}
+              style={[
+                styles.medal,
+                { borderColor: (rarity[item.rarity as keyof typeof rarity] ?? rarity.common).ring[1], backgroundColor: c.surface },
+                i > 0 && styles.medalOverlap,
+              ]}
+            >
+              <Text maxFontSizeMultiplier={1} style={styles.medalIcon}>
+                {item.icon}
+              </Text>
+            </View>
+          ))}
+        </View>
+        <View style={styles.noteText}>
+          <Text maxFontSizeMultiplier={1.2} numberOfLines={1} style={typeStyle('overline', tier.chipText[mode])}>
+            {overline}
+          </Text>
+          <Text maxFontSizeMultiplier={1.2} numberOfLines={1} style={typeStyle('label', c.text)}>
+            {names}
+          </Text>
+        </View>
+        <View ref={xpRef} collapsable={false} style={styles.noteXp}>
+          {note.boost && (
+            <View style={[styles.boostTag, { backgroundColor: GOLD }]}>
+              <Text maxFontSizeMultiplier={1} style={styles.boostText}>
+                {t('gamification.multiplier.factorTag', { factor: note.boost.factor })}
+              </Text>
+            </View>
+          )}
+          <Text maxFontSizeMultiplier={1.2} style={[typeStyle('caption', c.rewardText), { fontFamily: fonts.bold }]}>
+            {xpText}
+          </Text>
+        </View>
+      </PressableScale>
+    </Animated.View>
+  );
+}
+
 const styles = StyleSheet.create({
   layer: { position: 'absolute', top: 0, left: 0, right: 0 },
   layerRow: { height: TOP_ROW_HEIGHT, flexDirection: 'row', alignItems: 'center', paddingHorizontal: space.lg },
@@ -977,7 +1192,35 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     backgroundColor: GOLD_DEEP,
   },
-  tag: { marginLeft: space.sm, borderRadius: radius.pill },
+  // Out of the layout: hidden, it must not push the quiet note away from the badge.
+  tag: { position: 'absolute', left: BADGE + space.sm, borderRadius: radius.pill },
+  noteWrap: { flex: 1, marginLeft: space.sm, marginRight: space.sm },
+  note: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
+    paddingVertical: 6,
+    paddingLeft: 6,
+    paddingRight: space.md,
+    borderRadius: radius.pill,
+    borderWidth: 1.5,
+  },
+  medals: { flexDirection: 'row' },
+  medal: {
+    width: 30,
+    height: 30,
+    borderRadius: radius.pill,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  medalOverlap: { marginLeft: -10 },
+  medalIcon: { ...typeStyle('label', fixed.ink) },
+  noteText: { flexShrink: 1, marginLeft: space.sm },
+  noteXp: { marginLeft: space.sm, alignItems: 'flex-end' },
+  boostTag: { borderRadius: radius.pill, paddingHorizontal: 6, marginBottom: 2 },
+  boostText: { ...typeStyle('micro', fixed.goldInk), fontFamily: fonts.bold },
   tagHit: { paddingHorizontal: space.md, paddingVertical: 5 },
   tagText: { letterSpacing: 1.4 },
   popPin: { position: 'absolute', width: 0, height: 0, alignItems: 'center', justifyContent: 'center', overflow: 'visible' },
