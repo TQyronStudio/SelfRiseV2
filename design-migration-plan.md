@@ -364,6 +364,22 @@ Vše, co je postavené v laboratoři, je rozhodnuté (4.2). Zbývá jen tohle:
     ✅ **Opraveno 2026-11-23 (Petr: „ano oprav“):** jedno pravidlo `goalCompletionXP()` v
     `src/constants/gamification.ts` čte ukládání i okno, s testem (`goalCompletionXP.test.ts`).
 
+**Podklady pro E11–E16 (připraveno 2026-11-24, čeká na Petra)**
+11. **Texty E11–E16:** `design-migration-texts.md` – dohromady E5–E16 266 nových textů, 167 převzatých, 92 existujících
+    klíčů s opravenou hodnotou (tabulka C: Title Case, emoji, „Gewohnheit“, „1 days“) a 34 otázek s doporučením.
+    Schvaluje se po etapách.
+12. **Mapa dat E11–E16:** `design-migration-datamaps.md`. **Zastavení:** E14 ikona a barva cíle podle kategorie
+    (jako E10), rychlé částky na kartě cíle (navrženo převést `suggestQuick(target)` jako čistou funkci), „+35 XP /
+    milník / dnes už bez XP“ po zápisu (D-4 – `addProgress` výsledek XP nevrací); E15 XP u zápisu v historii.
+13. **Chyby ostré appky z mapy dat (2026-11-24, s důkazem – opravit jen se souhlasem):**
+    - přepočet cíle přehraje zápisy **téhož dne obráceně** (`SQLiteGoalStorage.ts` ~387 a ~754; „+5, pak =10“ dá 15
+      místo 10 po smazání/úpravě zápisu) – **data**, nejzávažnější;
+    - trend „4 týdny“ na Home počítá obráceně (`HabitTrendAnalysis.tsx` ~153–164) – zlepšení při zhoršení;
+    - okno série deníku přijde o den později (`journal.tsx` ~109–124, čte stav před uložením);
+    - „Rok“ na Home je celá historie (`YearlyHabitOverview.tsx` ~73–75); úprava cílové hodnoty nepřepočítá dokončení
+      (`SQLiteGoalStorage.update`); drobnosti: text chyby mazání zápisu cíle, zastaralá čísla `journal-stats`,
+      nekontrolované datum v `ProgressEntryForm`, „Watch 1 ads“.
+
 ### 4.4 Brány (bez nich se dál nejde)
 
 | Brána | Co musí platit | Před etapou |

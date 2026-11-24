@@ -1,6 +1,6 @@
-# Soupis textů převodu – etapy E5 až E10
+# Soupis textů převodu – etapy E5 až E16
 
-Tenhle dokument je krok 2 postupu etapy (`design-migration-plan.md`, kap. 0.2 a 7.1): ke každé etapě E5–E10 vypisuje texty, které převedená obrazovka ukáže, ve třech jazycích EN / DE / ES.
+Tenhle dokument je krok 2 postupu etapy (`design-migration-plan.md`, kap. 0.2 a 7.1): ke každé etapě E5–E16 vypisuje texty, které převedená obrazovka ukáže, ve třech jazycích EN / DE / ES.
 **Petr schvaluje po etapách** – teprve schválené texty jdou do `src/locales/{en,de,es}/index.ts` a `src/types/i18n.ts`. Tabulka A = nové klíče, tabulka B = laboratoř použije klíč, který appka už má (ověřeno ve všech třech jazycích); kulisy laboratoře (její lišta, scénáře „Lab ·“, přepínače situací, `MOCK_STATS`, ukázková jména) se nepřevádějí a nejsou tu.
 EN a DE jsou opsané doslova z `src/screens/design-lab/mockCopy.ts` (nebo z textu natvrdo v souboru laboratoře); ES chybí v laboratoři všude, takže je celé můj návrh (tykání, slovník appky: Hábitos, Mi Diario, Metas, racha, hito, desafío, logro/trofeo, Nivel, En pausa, Recuperado).
 Legenda: ***návrh*** = text navrhuji já, laboratoř ho v tom jazyce nemá · ***odvozeno*** = tvar jednotného čísla dopočítaný k textu laboratoře kvůli pravidlu `_one`/`_other` · ⚠ DE = německý text výrazně delší než EN (hlídat zalomení).
@@ -324,18 +324,557 @@ Zbylá okna v novém jazyce: „Nová kapitola“ (jen při vstupu do nového st
 
 ---
 
+## Doplněk pro E11–E16: co platí navíc
+
+- **Rozhodnutí Petra, která tu jsou už použitá:** DE slovo pro návyk je „Routine(n)“, ne „Gewohnheit“; EN v převedených obrazovkách větným stylem („Add habit“, ne „Add Habit“); ES neutrální, tykání, slovník appky (racha, hito, meta, fecha límite, ritmo, bonificación).
+- **Tabulka C – Existující klíč, nová hodnota.** Nový vzhled ukáže text, který appka už má, ale v Title Case, s emoji na konci (ikonu má vložit komponenta – PREVOD, `SignatureIcon`), s „Gewohnheit“, se špatným množným číslem nebo s větou, která do nového vzhledu nepatří (chybová okna → pruh `ProblemNote`). Klíč zůstává, mění se hodnota. `=` = beze změny. Po schválení se přepíše ve všech třech jazycích ve stejném commitu jako obrazovka.
+- **ES Title Case:** kde už klíč měním kvůli EN, srovnávám i ES na běžný španělský pravopis (velké jen první písmeno) – „Metas Activas“ → „Metas activas“.
+- Chybové pruhy `ProblemNote` (mapa 7.9 a 7.11) mají texty v té etapě, která pruh zavádí: E11 (Home), E12 (Deník), E13 (Historie). Chyby Cílů (`ErrorModal` v `GoalsScreen`, `GoalForm`, `ProgressEntryForm` …) jsou podle plánu až v E22, proto tu nejsou.
+
+---
+
+## E11 – Home
+
+Hrdina dne (oblouk se sluncem, pozdrav, „+XP dnes“, povzbuzení), rychlé akce, dnešní návyky, karta série deníku se záchranou zamrzlé série přímo na Home, nová karta statistik návyků, Přehledy, Pro tebe a nový sheet přizpůsobení.
+*Karta měsíční výzvy na Home zůstává v E11 ve stávající podobě a se stávajícími texty (karta etapy E11: „karta výzvy přijde v plné podobě v E17“) – její texty (`challengeOverline`, `challengeDay`, `challenge.count`, stavy karty) patří do soupisu E17. Kulisa laboratoře „Tap the flame to preview a frozen streak“ (`flameHint`) se nepřevádí – plamen v appce stav neukazuje na ťuknutí.*
+
+### A. Nové texty
+
+| Návrh klíče | EN | DE | ES | Kde se ukáže | Pozn. |
+|---|---|---|---|---|---|
+| `home.greeting.night` | Good night | Gute Nacht | Buenas noches | velký pozdrav nahoře a kompaktní hlavička, 0–5 h | lab: `greeting(hour)`; **viz otázka 1** |
+| `home.greeting.morning` | Good morning | Guten Morgen | Buenos días | pozdrav 5–12 h | |
+| `home.greeting.afternoon` | Good afternoon | Guten Tag | Buenas tardes | pozdrav 12–18 h | |
+| `home.greeting.evening` | Good evening | Guten Abend | Buenas noches | pozdrav 18–24 h | ES nemá zvláštní „večer“; „Buenas noches“ se po setmění říká i jako pozdrav |
+| `home.subline` | One small step a day. | Ein kleiner Schritt pro Tag. | Un pequeño paso al día. | věta pod pozdravem (kurzíva) | |
+| `home.hero.habitsDone_one` | {{done}} of {{count}} habit done | {{done}} von {{count}} Routine erledigt | {{done}} de {{count}} hábito completado | hrdina pod číslem „3/5“ | *odvozeno*; `count` = naplánováno dnes (podstatné jméno se řídí celkem), `done` = splněno |
+| `home.hero.habitsDone_other` | {{done}} of {{count}} habits done | {{done}} von {{count}} Routinen erledigt | {{done}} de {{count}} hábitos completados | hrdina pod číslem | lab: `habitsDone(done, total)` |
+| `home.hero.arcHint` | Tap or slide along the arc | Tippe oder streiche über den Bogen | Toca o desliza a lo largo del arco | drobný řádek pod počtem (oblouk jde ťuknout) | |
+| `home.hero.markerDone` | Done today | Heute erledigt | Hecho hoy | čtečka: značka návyku na oblouku | v laboratoři za jménem návyku |
+| `home.hero.markerOpen` | Still to do | Noch offen | Pendiente | čtečka: značka nesplněného návyku | |
+| `home.hero.xpToday` | +{{xp}} XP today | +{{xp}} XP heute | +{{xp}} XP hoy | zlatý čip v hrdinovi | číslo z `getTodayXP()` (O-9); lab: `xpChip` / `xpChipWord` |
+| `home.hero.xpTodayLost` | −{{xp}} XP today | −{{xp}} XP heute | −{{xp}} XP hoy | čip v den, kdy je XP v součtu záporné | *odvozeno* jako `gamification.xp.amountLost` (E7, E9); znak „−“ (minus) |
+| `home.hero.encouragement.allDone` | All done for today. Be proud of yourself. | Für heute alles erledigt. Sei stolz auf dich. | Todo hecho por hoy. ¡Qué orgullo! | povzbuzení pod čarou v hrdinovi (vždy 2 řádky místa, P79) | ES bez rodu („orgulloso/a“ by ho potřebovalo) |
+| `home.hero.encouragement.freshStart` | A fresh start. Pick one small step. | Ein neuer Anfang. Wähle einen kleinen Schritt. | Un nuevo comienzo. Elige un pequeño paso. | povzbuzení, dokud není splněno nic | |
+| `home.hero.encouragement.remaining_one` | One more to go. You’ve got this. | Noch eine. Du schaffst das. | Solo queda uno. Tú puedes. | povzbuzení, zbývá jeden | lab: `encouragement(remaining, done)` → `count` = zbývá |
+| `home.hero.encouragement.remaining_other` | {{count}} more to go. You’ve got this. | Noch {{count}}. Du schaffst das. | Quedan {{count}}. Tú puedes. | povzbuzení, zbývá víc | |
+| `home.hero.nothingPlanned` | *návrh* Nothing planned today. Enjoy the free day. | *návrh* Heute ist nichts geplant. Genieß den freien Tag. | Hoy no hay nada programado. Disfruta del día libre. | hrdina, když dnes žádný návyk není naplánovaný | laboratoř tenhle stav nemá – **viz otázka 2** |
+| `home.journalCard.frozen` | Streak frozen | Serie eingefroren | Racha congelada | čip na kartě série (led) | `home.streakFrozen` má dlouhou větu s emoji – proto nový |
+| `home.journalCard.warming` | Warming up… | Wird aufgewärmt… | Calentándose… | čip na kartě série při zahřívání | |
+| `home.journalCard.entriesToday` | {{count}} of {{goal}} entries today | {{count}} von {{goal}} Einträgen heute | {{count}} de {{goal}} entradas hoy | řádek s tečkami na kartě série | lab má „3“ natvrdo → `{{goal}}` = denní cíl deníku; podstatné jméno se řídí cílem (3), proto bez tvarů |
+| `home.journalCard.writeEntry` | Write an entry | Eintrag schreiben | Escribir una entrada | tlačítko na kartě série (i čtečka) | |
+| `journal.streakDaysUnit_one` | day | Tag | día | malé slovo za velkým číslem série (Home; statistiky deníku v E13) | lab: `days` („days“ / „Tage“) bez jednotného čísla; „1 days“ by bylo špatně |
+| `journal.streakDaysUnit_other` | days | Tage | días | jako výše | číslo se tiskne zvlášť (velké), klíč nese jen slovo |
+| `home.stats.title` | Your habits | Deine Routinen | Tus hábitos | nadpis karty statistik (i název sekce v sheetu – viz otázka 4) | nahrazuje `home.habitStatistics` |
+| `home.stats.periodDays_one` | {{count}} day | {{count}} Tag | {{count}} día | přepínač období | *odvozeno*; období jsou vždy 7 a 30 dní (`LENGTH`) |
+| `home.stats.periodDays_other` | {{count}} days | {{count}} Tage | {{count}} días | přepínač „7 days / 30 days“ | lab: `periods.week` / `.month` napevno – číslo z konstanty |
+| `home.stats.periodYear` | Year | Jahr | Año | přepínač „Year“ | |
+| `home.stats.sameAsWeek` | Same as the week before | Wie die Woche davor | Igual que la semana anterior | věta vedle velkého „%“ (7 dní) | lab: `vsPrevious('same', …, 'week')` |
+| `home.stats.betterThanWeek_one` | {{count}} point better than the week before | {{count}} Punkt besser als die Woche davor | {{count}} punto más que la semana anterior | věta vedle „%“ (7 dní, lepší) | `count` = procentní body |
+| `home.stats.betterThanWeek_other` | {{count}} points better than the week before | {{count}} Punkte besser als die Woche davor | {{count}} puntos más que la semana anterior | jako výše | |
+| `home.stats.lowerThanWeek_one` | {{count}} point lower than the week before | {{count}} Punkt schlechter als die Woche davor | {{count}} punto menos que la semana anterior | věta vedle „%“ (7 dní, horší) | |
+| `home.stats.lowerThanWeek_other` | {{count}} points lower than the week before | {{count}} Punkte schlechter als die Woche davor | {{count}} puntos menos que la semana anterior | jako výše | |
+| `home.stats.sameAsDays` | Same as the {{days}} days before | Wie die {{days}} Tage davor | Igual que los {{days}} días anteriores | věta vedle „%“ (30 dní) | lab má „30“ natvrdo → `{{days}}` z konstanty |
+| `home.stats.betterThanDays_one` | {{count}} point better than the {{days}} days before | {{count}} Punkt besser als die {{days}} Tage davor | {{count}} punto más que los {{days}} días anteriores | věta vedle „%“ (30 dní, lepší) | |
+| `home.stats.betterThanDays_other` | {{count}} points better than the {{days}} days before | {{count}} Punkte besser als die {{days}} Tage davor | {{count}} puntos más que los {{days}} días anteriores | jako výše | |
+| `home.stats.lowerThanDays_one` | {{count}} point lower than the {{days}} days before | {{count}} Punkt schlechter als die {{days}} Tage davor | {{count}} punto menos que los {{days}} días anteriores | věta vedle „%“ (30 dní, horší) | |
+| `home.stats.lowerThanDays_other` | {{count}} points lower than the {{days}} days before | {{count}} Punkte schlechter als die {{days}} Tage davor | {{count}} puntos menos que los {{days}} días anteriores | jako výše | |
+| `home.stats.completed` | Completed | Erledigt | Completados | legenda grafu a fakt pod ním | `home.completed` má DE „Abgeschlossen“ a jiný význam (stará karta série) |
+| `home.stats.ofPlanned` | {{done}} of {{planned}} | {{done}} von {{planned}} | {{done}} de {{planned}} | fakt „Completed 18 of 24“, panel dne, čtečka sloupce | |
+| `home.stats.bonusCount_one` | {{count}} bonus | {{count}} Bonus | {{count}} extra | panel ťuknutého dne („3 of 5 · 1 bonus“), souhrn pro čtečku | *odvozeno* |
+| `home.stats.bonusCount_other` | {{count}} bonus | {{count}} Bonus | {{count}} extras | jako výše | ES „3 bonificación“ nejde – navrhuji „extra(s)“ |
+| `home.stats.restDay` | Nothing planned | Nichts geplant | Nada programado | panel dne bez plánu | `habits.dayStatus.none` (E6) říká „Not planned“ – jiná věta, jiné místo |
+| `home.stats.activeDays_one` | {{active}} of {{count}} day active | {{active}} von {{count}} Tag aktiv | {{active}} de {{count}} día activo | věta vedle „%“ (rok) | *odvozeno*; nový uživatel může mít rok kratší než 365 dní |
+| `home.stats.activeDays_other` | {{active}} of {{count}} days active | {{active}} von {{count}} Tagen aktiv | {{active}} de {{count}} días activos | jako výše | lab: `activeDays(active, total)` → `count` = dní v období |
+| `home.stats.less` | Less | Weniger | Menos | legenda roku (stupnice) | |
+| `home.stats.more` | More | Mehr | Más | legenda roku | |
+| `home.insights.title` | Insights | Einblicke | Lo que destaca | nadpis karty Přehledy (i název sekce v sheetu) | ES *návrh* slova („Perspectivas“ je strojové) |
+| `home.insights.period_one` | Last week | Letzte Woche | La última semana | vpravo v nadpisu karty | *odvozeno*; okno jsou 4 týdny |
+| `home.insights.period_other` | Last {{count}} weeks | Letzte {{count}} Wochen | Últimas {{count}} semanas | vpravo v nadpisu karty | lab má „4“ natvrdo – číslo z výpočtu trendu; viz otázka 5 |
+| `home.insights.trendUp_one` | Up {{count}} point | {{count}} Punkt besser | {{count}} punto más | řádek trendu (tučně) | *odvozeno* |
+| `home.insights.trendUp_other` | Up {{count}} points | {{count}} Punkte besser | {{count}} puntos más | řádek trendu | lab: `trendUp(points)` |
+| `home.insights.trendUpText` | You complete more of what you plan than a month ago. | Du schaffst mehr von dem, was du planst, als vor einem Monat. | Cumples más de lo que planeas que hace un mes. | řádek trendu (věta) | |
+| `home.insights.strongest` | Strongest habit | Stärkste Routine | Tu hábito más sólido | řádek nejsilnějšího návyku | |
+| `home.insights.strongestText` | {{name}} — {{rate}} % this month. | {{name}} – {{rate}} % in diesem Monat. | {{name}} — {{rate}} % este mes. | věta řádku | viz otázka 5 („this month“ × „Last 4 weeks“) |
+| `home.insights.focus` | Worth a look | Einen Blick wert | Vale la pena revisarlo | řádek slabšího návyku (teplá barva) | |
+| `home.insights.focusText` | {{name}} is at {{rate}} % this month. A lighter schedule might help. | {{name}} liegt bei {{rate}} % in diesem Monat. Ein leichterer Plan könnte helfen. | {{name}} va al {{rate}} % este mes. Un horario más ligero podría ayudar. | věta řádku | |
+| `home.forYou.title` | For you | Für dich | Para ti | horní řádek karty Pro tebe (i název sekce v sheetu) | |
+| `home.forYou.write` | Write it down | Aufschreiben | Escríbelo | tlačítko u doporučení deníku (nemají vlastní „action“) | doporučení návyků a cílů mají tlačítko z `home.recommendationCards.*.action` |
+| `home.forYou.another` | Another suggestion | Anderer Vorschlag | Otra sugerencia | čtečka: kulaté tlačítko „další“ | |
+| `home.forYou.position` | {{index}} of {{count}} | {{index}} von {{count}} | {{index}} de {{count}} | vpravo nahoře „1 of 3“ | `count` tu není množné číslo (jen počet), tvary netřeba |
+| `home.customization.hint` | Drag to change the order. Your day always stays on top. | Ziehen, um die Reihenfolge zu ändern. Dein Tag bleibt immer oben. | Arrastra para cambiar el orden. Tu día siempre queda arriba. | věta pod nadpisem sheetu přizpůsobení | |
+| `ui.dismiss` | Dismiss | Schließen | Cerrar | čtečka: křížek pruhu `ProblemNote` | lab: `system.dismiss`; Home je první obrazovka s pruhem |
+| `ui.retrying` | Trying again… | Neuer Versuch… | Reintentando… | tlačítko pruhu během nového pokusu | lab: `system.retrying` |
+| `journal.warmUp.frozenMessage_zero` | *návrh* All ads watched — your streak is warming up. | *návrh* Alle Werbungen angesehen – deine Serie wärmt sich auf. | Anuncios vistos: tu racha se está calentando. | věta karty, když je dluh zaplacený a plamen se zahřívá | nový tvar k přepsanému klíči (C níže) |
+
+### B. Použije existující klíč
+
+| Text laboratoře | Existující klíč | EN / DE / ES dnes | Pozn. |
+|---|---|---|---|
+| řádek data nad pozdravem, měsíce a dny v grafech | `common.locale` | en-US / de-DE / es-ES | `toLocaleDateString` |
+| „Today“ v hrdinovi a v panelu ťuknutého dne | `common.dates.today` | Today / Heute / Hoy | |
+| bublina „+25 XP“ / „−25 XP“ u zaškrtávátka | `achievements.card.xpReward`, `gamification.xp.amountLost` | +{{xp}} XP / (nový z E7) | |
+| zaškrtávátko pro čtečku | `habits.accessibility.markComplete` / `markIncomplete` | Mark habit as complete … | jméno návyku zůstává popiskem; DE dnes „Gewohnheit als erledigt markieren“ – v E5 zůstalo, srovnat v E26 nebo hned (DE „Routine als erledigt markieren“) |
+| řádek rozvrhu pod jménem návyku | `habits.schedule.everyDay` (E5), `habits.schedule.weekdays` / `weekends` (E6) | Every day / Jeden Tag / Todos los días | ostatní rozvrhy = krátké dny z `toLocaleDateString` |
+| kulaté tlačítko Síně trofejí (čtečka; laboratoř natvrdo „Trophies“) | `screens.trophyRoom.title` | Trophy Room / Trophäenzimmer / Sala de Trofeos | DE jméno – E8 otázka 1 |
+| kulaté tlačítko přizpůsobení (laboratoř natvrdo „Customize“) a nadpis sheetu | `home.customization.title` | Customize Home / Startseite anpassen / Personalizar Inicio | „Home“ je jméno záložky, velké H zůstává |
+| rychlé akce | `home.quickActions.addHabit`, `gratitude`, `selfPraise`, `addGoal` | Add Habit… / + Routine… / Añadir Hábito… | **hodnoty mění tabulka C** |
+| nadpis sekce „Today’s habits“ (i název v sheetu) | `home.todayHabits` | Today's Habits / Heutige Gewohnheiten / Hábitos de Hoy | **C** |
+| nadpis a čtečka karty série „Journal streak“ | `home.customization.componentNames.journalStreak` | Journal Streak / Serie / Racha del Diario | jeden klíč pro kartu i řádek sheetu; **C** |
+| čip „Streak active“ | `home.streakActive` | Streak active! / Serie aktiv! / ¡Racha activa! | **C** (bez vykřičníku) |
+| zpráva zamrzlé série | `journal.warmUp.frozenMessage_one` / `_other` | (s emoji ❄️➡️🔥) | **C** + tvar `_zero` v A |
+| „1/2 ads“ u dnů dluhu | `journal.warmUp.adsProgress` | {{watched}}/{{total}} ads (všude) | |
+| tlačítko „Warm up (1/2)“, po zaplacení „Warm-up complete“ | `journal.warmUp.warmUpButton`, `journal.warmUp.warmUpComplete` | Warm Up ({{current}}/{{total}}) / Warm Up Complete! ✓ | **C** |
+| tiché „Start fresh“ a jeho potvrzení | `common.startFresh`, `journal.warmUp.startFresh.title` / `.message`, `common.cancel` | Start Fresh / Neu beginnen / Empezar de nuevo … | **C** (Title Case, „⚠️“ ve zprávě) |
+| statistiky: „Bonus“ (legenda, fakt) | `habits.bonus` | Bonus / Bonus / Bonificación | |
+| statistiky: „Planned“ (legenda) | `habits.dayStatus.planned` | (nový z E6) | |
+| statistiky: „Best day“ + krátký den | `home.habitStats.bestDay` | Best Day / Bester Tag / Mejor Día | **C** |
+| Pro tebe: nadpis, věta, otázka k zápisu, tlačítko | `home.recommendationCards.<oblast>.<typ>.title` / `.description` / `.prompt` / `.action` | (10 karet) | laboratoř je bere přes `getFixedT`; **titulky a tlačítka mění C** |
+| sheet přizpůsobení: názvy sekcí | `home.customization.componentNames.quickActions`, `journalStreak`, `monthlyChallenges` + nadpisy karet (`home.todayHabits`, `home.stats.title`, `home.insights.title`, `home.forYou.title`) | Quick Actions / Aktionen / Acciones Rápidas … | **viz otázka 4**; `componentNames.habitStats` a `.recommendations` se pak nečtou (smazat v E26) |
+| „Reset to defaults“ v sheetu | `home.customization.resetToDefaults` | Reset to Defaults / Auf Standard zurücksetzen / Restaurar Valores Predeterminados | **C**; bez potvrzení (7.9) – `resetTitle` / `resetMessage` se přestanou číst |
+| ťuknutí vedle sheetu (čtečka) | `common.close` | Close / Schließen / Cerrar | |
+| pruh `ProblemNote`: „Try again“ | `common.tryAgain` | Try Again / Nochmal / Reintentar | dnes ho nic nečte; **C** podle laboratoře |
+| pruh: změna Home se neuložila (7.9) | `home.customization.errors.visibilityFailed` | Failed to update component visibility… | **C** |
+| pruh: chyba záchrany série (D-11) | `journal.rescue.adDismissed.message`, `journal.rescue.adLoadFailed.message`, `journal.rescue.adError.message`, `journal.rescue.resetFailed.message` | „…Please try again.“ / „Please contact support.“ | **C**; nadpisy `*.title` pruh nepotřebuje – viz otázka 6 |
+
+### C. Existující klíč, nová hodnota
+
+| Klíč | EN (nově) | DE (nově) | ES (nově) | Dnes / proč |
+|---|---|---|---|---|
+| `home.quickActions.addHabit` | Add habit | Neue Routine | Añadir hábito | dnes Add Habit / + Routine / Añadir Hábito; DE podle laboratoře – **viz otázka 3** |
+| `home.quickActions.gratitude` | = | Dankbarkeit | = | dnes DE „Dank“ |
+| `home.quickActions.selfPraise` | Self-praise | Selbstlob | = | dnes Self-Praise / Lob |
+| `home.quickActions.addGoal` | Add goal | Neues Ziel | Añadir meta | dnes Add Goal / + Ziel / Añadir Meta |
+| `home.todayHabits` | Today’s habits | Heutige Routinen | Hábitos de hoy | Title Case; „Gewohnheiten“ → „Routinen“ (laboratoř) |
+| `home.customization.componentNames.quickActions` | Quick actions | Schnellaktionen | Acciones rápidas | dnes DE „Aktionen“ (zkratka ze staré úzké mřížky); viz otázka 4 |
+| `home.customization.componentNames.journalStreak` | Journal streak | Tagebuch-Serie | Racha del diario | = laboratoř `journalStreak`; dnes DE jen „Serie“ |
+| `home.customization.componentNames.monthlyChallenges` | Monthly challenge | Monatliche Herausforderung | Desafío mensual | dnes DE „Monatsziel“ (= měsíční cíl, jiná věc); výzva je jedna za měsíc; ⚠ DE +53 % – řádek sheetu je jednořádkový, vejde se |
+| `home.customization.resetToDefaults` | Reset to defaults | = | Restaurar valores predeterminados | Title Case; ⚠ DE +47 % (tiché tlačítko pod seznamem, místa dost) |
+| `home.customization.errors.visibilityFailed` | Your change to Home wasn’t saved. | Deine Änderung an der Startseite wurde nicht gespeichert. | Tu cambio en Inicio no se guardó. | pruh místo `Alert` (7.9); přepínač se vrátí; platí i pro přeřazení a obnovení; ⚠ DE +73 % (pruh má dva řádky) |
+| `home.streakActive` | Streak active | Serie aktiv | Racha activa | = laboratoř; vykřičník v čipu křičí |
+| `home.habitStats.bestDay` | Best day | = | Mejor día | Title Case |
+| `journal.warmUp.frozenMessage_one` | Your streak is frozen. One short ad warms it up again. | Deine Serie ist eingefroren. Eine kurze Werbung wärmt sie wieder auf. | Tu racha está congelada. Un anuncio corto la vuelve a calentar. | **chyba dneška:** tvar se řídí dny (`count`), ale věta mluví o reklamách (`adsNeeded`) → „frozen for 2 days. Watch 1 ads“. Nově `count` = zbývající reklamy, dny ukazuje řada vloček; emoji ❄️➡️🔥 pryč |
+| `journal.warmUp.frozenMessage_other` | Your streak is frozen. {{count}} short ads — one for each missed day — warm it up again. | Deine Serie ist eingefroren. {{count}} kurze Werbungen – eine pro verpasstem Tag – wärmen sie wieder auf. | Tu racha está congelada. {{count}} anuncios cortos —uno por cada día perdido— la vuelven a calentar. | jako výše; parametr `adsNeeded` zaniká |
+| `journal.warmUp.warmUpButton` | Warm up ({{current}}/{{total}}) | = | = | Title Case |
+| `journal.warmUp.warmUpComplete` | Warm-up complete | Aufwärmen abgeschlossen | Calentamiento completado | bez „! ✓“ – tlačítko má ikonu fajfky; ⚠ DE +44 % |
+| `common.startFresh` | Start fresh | = | = | Title Case |
+| `journal.warmUp.startFresh.title` | Start fresh? | = | = | Title Case |
+| `journal.warmUp.startFresh.message` | This will permanently reset your current streak to 0. You can start fresh without warming up your frozen streak. This action cannot be undone. | Dies setzt deine aktuelle Serie dauerhaft auf 0 zurück. Du kannst neu beginnen, ohne deine eingefrorene Serie aufzuwärmen. Diese Aktion kann nicht rückgängig gemacht werden. | Esto restablecerá permanentemente tu racha actual a 0. Puedes empezar de nuevo sin calentar tu racha congelada. Esta acción no se puede deshacer. | jen bez „⚠️ “ na začátku – `ConfirmSheet` má vlastní ikonu |
+| `common.tryAgain` | Try again | Erneut versuchen | Reintentar | = laboratoř `system.retry`; dnes Try Again / Nochmal |
+| `journal.rescue.adDismissed.message` | The ad didn’t finish, so this day is still frozen. | Die Werbung lief nicht bis zum Ende – der Tag bleibt eingefroren. | El anuncio no terminó, así que este día sigue congelado. | *návrh*; pruh + „Try again“; bez „Please“ |
+| `journal.rescue.adLoadFailed.message` | No ad is available right now. Your streak stays frozen and safe. | Gerade ist keine Werbung verfügbar. Deine Serie bleibt eingefroren und sicher. | Ahora mismo no hay anuncios. Tu racha sigue congelada y a salvo. | *návrh* |
+| `journal.rescue.adError.message` | Something stopped the ad. Your streak stays frozen and safe. | Etwas hat die Werbung unterbrochen. Deine Serie bleibt eingefroren und sicher. | Algo interrumpió el anuncio. Tu racha sigue congelada y a salvo. | *návrh* |
+| `journal.rescue.resetFailed.message` | Your streak wasn’t reset. Nothing has changed. | Deine Serie wurde nicht zurückgesetzt. Es hat sich nichts geändert. | Tu racha no se reinició. No ha cambiado nada. | *návrh*; dnes „Please contact support.“ (žádná podpora v appce není); ⚠ DE +46 % |
+| `home.recommendationCards.habits.adjustSchedule.title` | Adjust schedule | = | Ajustar horario | Title Case |
+| `home.recommendationCards.habits.adjustSchedule.action` | Adjust schedule | = | Ajustar horario | Title Case |
+| `home.recommendationCards.habits.levelUp.title` | Level up | Eine Stufe höher | = | DE dnes anglicky „Level Up“ |
+| `home.recommendationCards.habits.levelUp.action` | Add a challenge | = | Añadir desafío | Title Case; ⚠ DE +73 % („Herausforderung hinzufügen“ – tlačítko na celou šířku karty) |
+| `home.recommendationCards.habits.addNewHabit.title` | Add a new habit | Neue Routine hinzufügen | Añadir un nuevo hábito | DE „Gewohnheit“ → „Routine“; ⚠ DE +53 % |
+| `home.recommendationCards.habits.addNewHabit.description` | = | Du machst das großartig mit deinen Routinen! {{successfulDays}} sind deine stärksten Tage. | = | DE „Gewohnheiten“ → „Routinen“ |
+| `home.recommendationCards.habits.addNewHabit.action` | Create habit | Routine erstellen | Crear hábito | DE „Gewohnheit“; = `habits.composer.create` (E6) |
+| `home.recommendationCards.journal.buildStreak.title` | Build your streak | Bau deine Serie auf | Construye tu racha | DE dnes „Baue deinen Streak auf“ (anglicismus) |
+| `home.recommendationCards.journal.onFire.title` | You’re on fire! | Du bist richtig in Fahrt! | = | DE dnes „Du bist on Fire!“; ⚠ DE +67 % |
+| `home.recommendationCards.journal.trySelfPraise.title` | Try self-praise | Versuch es mit Selbstlob | Prueba el autoelogio | Title Case; DE „Versuche Selbstlob“ zní strojově; ⚠ DE +60 % |
+| `home.recommendationCards.goals.startProgress.title` | Start making progress | Mach den ersten Schritt | Empieza a avanzar | DE dnes „Beginne mit Fortschritt“ |
+| `home.recommendationCards.goals.startProgress.action` | Log progress | Fortschritt eintragen | Registrar progreso | DE „protokollieren“ → „eintragen“ jako v novém zápisu (E14) |
+| `home.recommendationCards.goals.almostThere.title` | Almost there! | = | ¡Casi lo logras! | Title Case |
+| `home.recommendationCards.goals.almostThere.action` | Final push | = | Empujón final | Title Case |
+| `home.recommendationCards.goals.timelineCheck.title` | Timeline check | Termin prüfen | Revisión de plazos | DE dnes „Zeitplan-Check“ |
+| `home.recommendationCards.goals.timelineCheck.action` | Adjust timeline | Termin anpassen | Ajustar plazos | Title Case; DE „Termin“ jako v Cílech |
+| `home.recommendationCards.goals.timelineCheck.description_one` | {{goalTitle}} may need timeline adjustment. {{count}} day remaining. | {{goalTitle}} benötigt möglicherweise eine Zeitplananpassung. Noch {{count}} Tag. | {{goalTitle}} puede necesitar ajuste de plazos. Queda {{count}} día. | **chyba dneška:** „1 days remaining“ – nahrazuje `.description` s `{{daysRemaining}}`; parametr se přejmenuje na `count` (`RecommendationEngine`) |
+| `home.recommendationCards.goals.timelineCheck.description_other` | {{goalTitle}} may need timeline adjustment. {{count}} days remaining. | {{goalTitle}} benötigt möglicherweise eine Zeitplananpassung. Noch {{count}} Tage. | {{goalTitle}} puede necesitar ajuste de plazos. Quedan {{count}} días. | jako výše |
+| `home.recommendationCards.goals.setNewGoal.title` | Set a new goal | = | Establecer nueva meta | Title Case |
+| `home.recommendationCards.goals.setNewGoal.action` | Create goal | = | Crear meta | Title Case |
+
+### Otázky pro Petra
+
+1. **Pozdrav v noci.** Laboratoř říká 0–5 h „Good night / Gute Nacht“ – v EN i DE je to ale rozloučení („dobrou noc“), ne pozdrav. Hranice hodin pozdravu (5 / 12 / 18) se navíc liší od `getDaypart` (barvy nebe: 5 / 11 / 17 / 22).
+   **Doporučuji:** pozdrav má vlastní hranice podle řeči (odpoledne začíná v poledne), nebe zůstane na `getDaypart`. Mezi 18 a 5 h jeden večerní pozdrav („Good evening / Guten Abend / Buenas noches“) a klíč `home.greeting.night` vypustit – zbudou tři.
+2. **Prázdné stavy Home – laboratoř je nemá.** (a) Den bez naplánovaného návyku: hrdina ukáže „0 / 0“ a „All done for today. Be proud of yourself.“ – pochvala za nic. (b) Série deníku 0: čip „Streak active“ lže. (c) Nový uživatel bez dat: karta statistik ukáže „0 %“.
+   **Doporučuji:** (a) místo řádku počtu a povzbuzení věta `home.hero.nothingPlanned` (A); (b) čip existující `home.startToday` („Start today / Heute beginnen / Comenzar hoy“); (c) kartu statistik skrýt, dokud není první naplánovaný den – stejně jako se skryjí Přehledy a Pro tebe bez faktů.
+3. **Rychlé akce v němčině.** Appka má „+ Routine / Dank / Lob / + Ziel“, laboratoř „Neue Routine / Dankbarkeit / Selbstlob / Neues Ziel“.
+   **Doporučuji laboratoř** (tabulka C): dlaždice má dva řádky místa, celá slova se čtou líp než „+“ a „Lob“.
+4. **Názvy sekcí v sheetu přizpůsobení.** Dnes se sekce v sheetu jmenují jinak než karty na Home („Habit Statistics / Statistik“ × karta „Your habits“, „Recommendations / Tipps“ × „For you“, DE „Monatsziel“ u výzvy).
+   **Doporučuji:** sekce se v sheetu jmenuje přesně jako nadpis své karty – u karet s nadpisem se přečte ten (`home.stats.title`, `home.insights.title`, `home.forYou.title`, `home.todayHabits`), zbylé tři opraví tabulka C.
+5. **Přehledy: klesající trend a „this month“.** Laboratoř má jen „Up 12 points“; dnešní `HabitTrendAnalysis` umí i pokles a stagnaci. A karta nahoře říká „Last 4 weeks“, řádky pod ní „this month“.
+   **Doporučuji:** řádek trendu ukázat jen při růstu (pokles pokryje laskavý řádek „Worth a look“ – žádná druhá špatná zpráva). Období v nadpisu i ve větách vzít z výpočtu, který fakta skutečně počítá: když je to 30 dní, nadpis „Last 30 days“ (stejná věta jako `journal.stats.lastDays_*` v E13 – klíč by pak vznikl už tady) a z vět vypustit „this month“.
+6. **Okna úspěchu záchrany série.** Dnes po zahřátí vyskočí okno („🎉 Streak Rescued!“, „Issue Resolved“, „No Debt“ …). V laboratoři je potvrzením sám plamen (led → zahřátí → oheň + jeden hmatový signál), chyby jdou do pruhu.
+   **Doporučuji:** okna úspěchu zrušit (plamen je potvrzení), chyby reklamy a „Start fresh“ jako pruh se čtyřmi větami z C, technické větve (`technicalIssue*`, `criticalError`, `autoFixed`, `issueResolved`, `noDebt`) bez okna – logika v hooku zůstane, jen nic nevyskakuje; kdyby zahřátí opravdu selhalo, ukáže se pruh `adError`. Klíče oken se smažou v E26.
+
+---
+
+## E12 – Deník
+
+Karta „Dnes“ (počet, tři dílky, plamen, bonusová cesta ⭐🔥👑), dvě dlaždice zápisu, zámek zamrzlé série se zahřátím přímo v Deníku, citát dne, dnešní záznamy s „⋯“ a jeden sheet pro psaní i úpravu nad klávesnicí.
+*Kulisy se nepřevádějí: „An ad would play here“ (`adPlaying`, simulace reklamy) a „Tap the flame…“ za nejdelší sérií (`flameHint`). Okno ⭐🔥👑 je v E10.*
+
+### A. Nové texty
+
+| Návrh klíče | EN | DE | ES | Kde se ukáže | Pozn. |
+|---|---|---|---|---|---|
+| `journal.subline` | Three good things a day. | Drei gute Dinge am Tag. | Tres cosas buenas al día. | věta pod nadpisem obrazovky | |
+| `journal.write.gratitudeHint` | Something good today | Etwas Gutes heute | Algo bueno de hoy | dlaždice Vděčnost, pod názvem | |
+| `journal.write.selfPraiseHint` | Something you did well | Etwas, das du gut gemacht hast | Algo que hiciste bien | dlaždice Sebechvála, pod názvem | ⚠ DE +36 % (dva řádky místa, vejde se) |
+| `journal.bonusRoad.title` | Bonus road | Bonusweg | Camino de bonificación | horní řádek bonusové cesty (po třetím záznamu) | |
+| `journal.bonusRoad.toNext_one` | {{count}} more to | Noch {{count}} bis | Falta {{count}} para | vpravo v řádku cesty, **za textem ikona** ⭐/🔥/👑 (`InlineIcon`) | lab: `toNextMilestone(left)`; tvary kvůli ES |
+| `journal.bonusRoad.toNext_other` | {{count}} more to | Noch {{count}} bis | Faltan {{count}} para | jako výše | čtečka: text + jméno ikony (`journal.iconNames.*`) |
+| `journal.bonusRoad.allCollected` | Every milestone of the day collected. | Alle Meilensteine des Tages gesammelt. | Todos los hitos del día conseguidos. | místo „N more to“ po 13. záznamu | |
+| `journal.entryCount_one` | {{count}} entry | {{count}} Eintrag | {{count}} entrada | vpravo u nadpisu „Today“; v E13 kalendář, čip dne, graf | lab: `entries(count)` má „1 entry“ natvrdo |
+| `journal.entryCount_other` | {{count}} entries | {{count}} Einträge | {{count}} entradas | jako výše | |
+| `journal.writingLocked` | Writing opens again once your streak is warm. | Schreiben geht wieder, sobald deine Serie aufgewärmt ist. | Podrás volver a escribir en cuanto tu racha esté caliente. | věta pod tlačítky zahřátí (zamčené dlaždice, R-14) | |
+| `journal.composer.anotherPrompt` | Another prompt | Andere Frage | Otra pregunta | čtečka: tlačítko „zamíchat“ u otázky v sheetu | |
+| `journal.quote.another` | Another quote | Anderes Zitat | Otra cita | čtečka: tlačítko „obnovit“ na citátu dne | |
+| `journal.iconNames.star` | star | Stern | estrella | čtečka: ikona ⭐ uvnitř textu („+25 XP star“, „1 more to star“) | `InlineIcon` nemá hlas; lab: `iconNames` |
+| `journal.iconNames.flame` | flame | Flamme | llama | jako výše (🔥) | |
+| `journal.iconNames.crown` | crown | Krone | corona | jako výše (👑) | |
+| `help.topics.journalDay` | How the journal day works | So funktioniert der Tagebuch-Tag | Cómo funciona el día del diario | čtečka: tiché „i“ u „Today“ na kartě | nahrazuje bublinu `help.journal.selfRiseStreak` (7.10) |
+| `help.topics.frozen` | How a frozen streak works | So funktioniert eine eingefrorene Serie | Cómo funciona una racha congelada | čtečka: tiché „i“ na kartě zamrzlé série | nahrazuje bublinu `help.journal.debtRecovery` (7.10); ⚠ DE +56 % (jen čtečka) |
+| `help.rules.three.title` | Three entries keep your streak | Drei Einträge halten deine Serie | Tres entradas mantienen tu racha | okno nápovědy `journalDay` (a v E22 stránka pravidel) | jeden zdroj pro okno i stránku (P76) |
+| `help.rules.three.text` | Write three a day and the streak grows by one. Each of the three earns {{perEntry}} XP. | Schreib drei am Tag und die Serie wächst um eins. Jeder der drei bringt {{perEntry}} XP. | Escribe tres al día y la racha crece en uno. Cada una de las tres da {{perEntry}} XP. | okno nápovědy `journalDay` | `perEntry` = `XP_REWARDS.JOURNAL.FIRST_ENTRY` |
+| `help.rules.bonus.title` | Writing more pays a bonus | Mehr schreiben bringt einen Bonus | Escribir más tiene premio | okno nápovědy `journalDay` (s obrázkem cesty) | |
+| `help.rules.bonus.text` | Entries 4, 8 and 13 of a day add +{{star}}, +{{flame}} and +{{crown}} XP. Entries 4 to 13 earn {{each}} XP each; after the 13th, nothing more. | Die Einträge 4, 8 und 13 eines Tages bringen +{{star}}, +{{flame}} und +{{crown}} XP. Die Einträge 4 bis 13 bringen je {{each}} XP, nach dem 13. nichts mehr. | Las entradas 4, 8 y 13 del día suman +{{star}}, +{{flame}} y +{{crown}} XP. De la 4 a la 13 dan {{each}} XP cada una; a partir de la 14, nada más. | okno nápovědy `journalDay` | čísla XP z `XP_REWARDS.JOURNAL` (`*_BONUS_MILESTONE`, `BONUS_ENTRY`); pozice 4 / 8 / 13 jsou součást pravidla a stojí v textu jako v laboratoři |
+| `help.rules.frozen.title` | A missed day freezes the streak | Ein verpasster Tag friert die Serie ein | Un día perdido congela la racha | okno nápovědy `frozen` | |
+| `help.rules.frozen.text` | It doesn’t break. Watch one short ad for each missed day, up to {{maxDays}} days, and it carries on. Or start fresh. New entries wait until you decide. | Sie bricht nicht ab. Sieh dir für jeden verpassten Tag eine kurze Werbung an, bis zu {{maxDays}} Tage, und sie geht weiter. Oder fang neu an. Neue Einträge warten, bis du dich entscheidest. | No se rompe. Mira un anuncio corto por cada día perdido, hasta {{maxDays}} días, y la racha sigue. O empieza de nuevo. Las entradas nuevas esperan hasta que decidas. | okno nápovědy `frozen` | `maxDays` = `MAX_DEBT_DAYS` – laboratoř ho má jako vlastní konstantu 3, při převodu dát do `src/constants` a ověřit proti úložišti (zastavit, liší-li se) |
+
+### B. Použije existující klíč
+
+| Text laboratoře | Existující klíč | EN / DE / ES dnes | Pozn. |
+|---|---|---|---|
+| nadpis obrazovky | `journal.title` | My Journal / Tagebuch / Mi Diario | |
+| řádek data nad nadpisem | `common.locale` | en-US / de-DE / es-ES | |
+| tlačítka vpravo nahoře (čtečka) | `journal.history`, `journal.statistics` | History / Historie / Historial · Statistics / Statistiken / Estadísticas | stejná tlačítka dole na stránce zmizí (P35) |
+| „Today“ (karta i nadpis seznamu) | `journal.today` | Today / Heute / Hoy | |
+| stav pod počtem: „2 more entries needed“ | `journal.progress.entriesNeeded_one` / `_other` | (všechny tři) | |
+| stav po třetím / po bonusovém záznamu | `journal.progress.dailyComplete`, `journal.progress.bonusAmazing` | …alive! 🔥 / …entries! 🌟 | **C** (emoji pryč) – viz otázka 1 |
+| pod číslem série; čtečka plamene | `journal.currentStreak`, `journal.frozenStreak` | Current Streak / Frozen Streak … | **C** |
+| „Longest streak · 31“ | `journal.longestStreak` | Longest Streak / Längste Serie / Racha Más Larga | **C**; za číslem v appce nic (věta laboratoře o plameni je kulisa) |
+| řádek ⭐🔥👑 dole na kartě (otevře statistiky) | `journal.stats.milestoneBadges` | Milestone Badges / Meilenstein-Abzeichen / Insignias de hitos | **C** |
+| dlaždice zápisu (čtečka) a jejich název | `journal.input.addGratitudeTitle` / `addSelfPraiseTitle`, `journal.input.typeGratitude` / `typeSelfPraise` | Add Gratitude… / Gratitude, Self-Praise … | **C** |
+| „+25“ na dlaždici, „+25 XP“ v sheetu | `achievements.card.xpReward` | +{{xp}} XP | na dlaždici jen číslo; čtečka „+25 XP star“ = klíč + `journal.iconNames.*` |
+| karta zamrzlé série: nadpis, zpráva, dny dluhu, tlačítka, potvrzení | `journal.warmUp.title`, `journal.warmUp.frozenMessage_*`, `adsProgress`, `warmUpButton`, `warmUpComplete`, `common.startFresh`, `journal.warmUp.startFresh.*` | (E11 C) | stejná komponenta jako na Home (`WarmUpControls`); `journal.warmUp.title` mění C |
+| tiché „i“ → „All the rules“ | `help.allRules` | (nový z E6) | |
+| citát dne: nadpis, kategorie | `home.dailyQuote`, `home.quoteCategories.*` | Daily Inspiration / Tägliche Inspiration / Inspiración Diaria … | `home.dailyQuote` mění **C** |
+| prázdný den | `journal.empty.title` / `.body` | What went well today? … | |
+| štítek bonusového záznamu | `gratitude.bonus.label` | BONUS ⭐ / BONUS ⭐ / BONIFICACIÓN ⭐ | **C**; u 4. / 8. / 13. záznamu stojí před slovem ikona milníku |
+| „⋯“ na záznamu (čtečka; laboratoř „Edit / Delete“) | `habits.list.more` | More / Mehr / Más opciones | stejně jako „⋯“ na kartě návyku (E5); řádky nabídky `common.edit` / `common.delete`, zavření `common.cancel` |
+| potvrzení smazání | `journal.deleteConfirm.title` / `.message` / `.gratitude` / `.selfPraise`, `common.delete` | Delete Journal Entry … | `title` mění **C** |
+| sheet: přepínač typu, otázky, bonusový řádek | `journal.input.typeGratitude` / `typeSelfPraise`, `journal.input.gratitudePlaceholders` / `selfPraisePlaceholders` / `defaultPlaceholder`, `journal.bonusGratitude` + `journal.input.optional` | … / Bonus Entry (optional) … | `journal.bonusGratitude` mění **C** |
+| sheet úpravy: nadpis, pole, tlačítka | `gratitude.edit.title`, `journal.editPlaceholder`, `common.add` / `common.save`, `common.cancel` | Edit Journal Entry / Add · Save … | `gratitude.edit.title`, `common.add` mění **C** |
+| třesení pole (prázdné / krátké) | `journal.input.emptyError`, `journal.input.minLengthError` | Please enter your gratitude / Gratitude must be at least 3 characters long | **C** – dnes mluví o vděčnosti i u sebechvály |
+| okno ⭐🔥👑 | `journal.bonusMilestone*_title` / `_text`, `achievements.celebration.continue_button` | (E10) | |
+| pruh: záznam se neuložil (nový i úprava, 7.9) | `common.errors.gratitude.failedToSave` | Failed to save gratitude / Speichern fehlgeschlagen / … | **C**; nahrazuje i chybný `journal.export.error` v `EditGratitudeModal` |
+
+### C. Existující klíč, nová hodnota
+
+| Klíč | EN (nově) | DE (nově) | ES (nově) | Dnes / proč |
+|---|---|---|---|---|
+| `journal.progress.dailyComplete` | Daily journal complete! Keep your streak alive! | Tagebuch heute abgeschlossen! Halte deine Serie am Leben! | ¡Diario completado hoy! ¡Mantén tu racha viva! | jen bez „🔥“ (E12 bod 7) – viz otázka 1 |
+| `journal.progress.bonusAmazing` | Amazing! You've added bonus entries! | Fantastisch! Du hast Bonus-Einträge hinzugefügt! | ¡Increíble! ¡Has agregado entradas bonus! | jen bez „🌟“ – viz otázka 1 |
+| `journal.currentStreak` | Current streak | = | Racha actual | Title Case |
+| `journal.frozenStreak` | Frozen streak | = | Racha congelada | Title Case |
+| `journal.longestStreak` | Longest streak | = | Racha más larga | Title Case |
+| `journal.stats.milestoneBadges` | Milestone badges | = | = | Title Case |
+| `journal.input.addGratitudeTitle` | Add gratitude | = | = | Title Case; ⚠ DE +69 % (jen čtečka dlaždice) |
+| `journal.input.addSelfPraiseTitle` | Add self-praise | = | = | Title Case |
+| `journal.input.typeSelfPraise` | Self-praise | = | = | = laboratoř (rychlá akce na Home) |
+| `journal.warmUp.title` | Warm up your streak | = | = | Title Case |
+| `home.dailyQuote` | Daily inspiration | = | Inspiración diaria | Title Case |
+| `gratitude.bonus.label` | BONUS | BONUS | BONUS | bez „⭐“: dnes hvězdu nese **každý** bonusový záznam, i když ⭐ je jen 4. záznam; ES „BONIFICACIÓN“ se do 10pt štítku nevejde a „bonus“ appka v ES už používá |
+| `journal.bonusGratitude` | Bonus entry | = | Entrada de bonificación | Title Case; ES „Entrada Bonus“ → slovník appky |
+| `gratitude.edit.title` | Edit journal entry | = | Editar entrada del diario | Title Case; ⚠ DE +44 % |
+| `common.add` | = | Hinzufügen | = | DE dnes „+ Neu“ – na hlavním tlačítku sheetu nedává smysl (čte ho jen `GratitudeInput`, který sheet nahradí) |
+| `journal.deleteConfirm.title` | Delete journal entry | = | = | Title Case |
+| `journal.input.emptyError` | Write a few words first. | Schreib zuerst ein paar Worte. | Escribe unas palabras primero. | dnes „Please enter your gratitude“ i u sebechvály |
+| `journal.input.minLengthError` | Write at least {{min}} characters. | Schreib mindestens {{min}} Zeichen. | Escribe al menos {{min}} caracteres. | dnes „Gratitude must be at least 3 characters long“; `{{min}}` = 3 z validace (žádné opsané číslo) |
+| `common.errors.gratitude.failedToSave` | Your entry wasn’t saved. What you wrote is still there. | Dein Eintrag wurde nicht gespeichert. Was du geschrieben hast, ist noch da. | Tu entrada no se guardó. Lo que escribiste sigue ahí. | pruh místo `ErrorModal` (7.9); sheet zůstane otevřený s textem; věta podle laboratoře `system.saveFailed`; ⚠ DE +36 % |
+
+### Otázky pro Petra
+
+1. **Věty pod počtem dne.** „Daily journal complete! Keep your streak alive!“ a „Amazing! You've added bonus entries!“ – dva vykřičníky na řádek, zatímco celý Deník v novém vzhledu mluví klidně a oslavu dne dělá zezelenání dílků (R-13). Tabulka C zatím jen odebírá emoji.
+   **Doporučuji** klidnější věty: „Today’s three are done — your streak grows.“ / „Die drei für heute sind geschafft – deine Serie wächst.“ / „Las tres de hoy, hechas: tu racha crece.“ a pro bonus „Every extra entry is a bonus.“ / „Jeder weitere Eintrag ist ein Bonus.“ / „Cada entrada extra es una bonificación.“
+
+---
+
+## E13 – Historie a statistiky deníku
+
+Historie jako měsíční kalendář (tvar dne, stuha série, ❄ dny zachráněné reklamou), panel vybraného dne s ‹ ›, hledání se zvýrazněním; statistiky se sérií, čtyřmi čísly, grafem posledních 30 dní, poměrem typů a ⭐🔥👑.
+
+### A. Nové texty
+
+| Návrh klíče | EN | DE | ES | Kde se ukáže | Pozn. |
+|---|---|---|---|---|---|
+| `journal.calendar.legendComplete` | {{goal}}+ entries | {{goal}}+ Einträge | {{goal}}+ entradas | legenda kalendáře historie a grafu statistik | lab: „3+ entries“ natvrdo → `{{goal}}` = denní cíl |
+| `journal.calendar.legendBonus` | Bonus day | Bonustag | Día de bonificación | legenda (plný kruh s ★) | |
+| `journal.calendar.legendPartial` | Started | Begonnen | Empezado | legenda (čárkovaný kruh) | |
+| `journal.calendar.legendPaid` | Saved with an ad | Mit Werbung gerettet | Salvado con un anuncio | legenda (❄) | |
+| `journal.calendar.paidDay` | Frozen day — saved with an ad, the streak went on | Eingefrorener Tag – mit Werbung gerettet, die Serie lief weiter | Día congelado: salvado con un anuncio, la racha siguió | věta v panelu dne zaplaceného reklamou | den z `warmUpPayments` |
+| `journal.history.previousDay` | *návrh* Previous day | *návrh* Vorheriger Tag | Día anterior | čtečka: ‹ v panelu dne | laboratoř čte jen znak „‹“ |
+| `journal.history.nextDay` | *návrh* Next day | *návrh* Nächster Tag | Día siguiente | čtečka: › v panelu dne | laboratoř čte jen „›“ |
+| `journal.history.clearSearch` | *návrh* Clear search | *návrh* Suche löschen | Borrar búsqueda | čtečka: křížek v poli hledání | laboratoř tu má `common.close` |
+| `journal.stats.milestoneStar` | 4th entry of a day | 4. Eintrag eines Tages | 4.ª entrada del día | pod medailí ⭐ ve statistikách | lab: `milestoneMeaning.star` |
+| `journal.stats.milestoneFlame` | 8th entry of a day | 8. Eintrag eines Tages | 8.ª entrada del día | pod medailí 🔥 | |
+| `journal.stats.milestoneCrown` | 13th entry of a day | 13. Eintrag eines Tages | 13.ª entrada del día | pod medailí 👑 | |
+| `journal.stats.best_one` | Best: {{count}} day | Beste: {{count}} Tag | Mejor: {{count}} día | pod číslem série, když nejde o rekord | **nahrazuje `journal.stats.best`** („Best: 1 days“) – parametr `days` → `count` |
+| `journal.stats.best_other` | Best: {{count}} days | Beste: {{count}} Tage | Mejor: {{count}} días | jako výše | |
+| `journal.stats.lastDays_one` | Last {{count}} day | Letzter {{count}} Tag | Último {{count}} día | nadpis grafu | *odvozeno*; graf má vždy 30 dní, tvar se nezobrazí |
+| `journal.stats.lastDays_other` | Last {{count}} days | Letzte {{count}} Tage | Últimos {{count}} días | nadpis grafu „Last 30 days“ | lab: `last30` natvrdo; `home.last30Days` je jiná věta starého grafu |
+| `journal.stats.chartAtGoal` | of {{total}} days at the daily goal | von {{total}} Tagen mit Tagesziel | de {{total}} días con el objetivo diario | věta za velkým číslem v grafu („18 of 30 days…“) | ES „objetivo“, ne „meta“ (= Cíle) |
+| `journal.stats.chartAvg` | {{avg}} entries a day on average | Ø {{avg}} Einträge pro Tag | {{avg}} entradas al día en promedio | drobný řádek pod ním | `avg` je desetinné číslo podle jazyka („2,4“) → vždy množné |
+| `journal.stats.chartHint` | Tap or slide across the bars | Tippe oder streiche über die Balken | Toca o desliza sobre las barras | řádek nad grafem, dokud není vybraný sloupec | |
+| `journal.stats.dailyGoal` | Daily goal | Tagesziel | Objetivo diario | legenda grafu „Daily goal (3)“ | číslo v závorce z konstanty |
+
+### B. Použije existující klíč
+
+| Text laboratoře | Existující klíč | EN / DE / ES dnes | Pozn. |
+|---|---|---|---|
+| horní řádek obou stránek | `journal.title` | My Journal / Tagebuch / Mi Diario | |
+| nadpis historie | `journal.historyTitle` | Journal History / Tagebuch-Verlauf / Historial del diario | **C** |
+| křížek stránky (čtečka) | `common.close` | Close / Schließen / Cerrar | |
+| pole hledání, výsledky, nic nenalezeno | `journal.searchPlaceholder`, `journal.searchResults_one` / `_other`, `journal.noSearchResults` | Search journal entries... / Found {{count}} result… | výsledky dál ve `FlatList` |
+| prázdný den v panelu | `journal.emptyHistory` | No journal entries for {{date}}. | |
+| čip „Today“ v hlavičce měsíce, „Today“ pod grafem | `journal.today` | Today / Heute / Hoy | |
+| ‹ › u měsíce (čtečka) | `habits.detail.previousMonth` / `nextMonth` | (nové z E6) | doporučuji je při zápisu E6 dát do `common.*` – čtou je tři obrazovky (detail návyku, historie, kalendář termínu v E15) |
+| měsíc a rok, „Tue 12 Nov“, písmena dnů | `common.locale` | en-US / de-DE / es-ES | `toLocaleDateString`; písmena dnů `weekday: 'narrow'` |
+| počet záznamů dne (čip, čtečka dne, bublina grafu) | `journal.entryCount_one` / `_other` | (nové z E12) | čtečka dne zaplaceného reklamou přidá `journal.calendar.legendPaid` |
+| karta záznamu, „⋯“, potvrzení smazání | klíče z E12 | | |
+| nadpis statistik | `journal.stats.title` | Journal Statistics / Tagebuch-Statistiken / Estadísticas del diario | **C** |
+| série: horní řádek, slovo za číslem, rekord | `journal.stats.currentStreak`, `journal.streakDaysUnit_*` (E11), `journal.stats.personalBest` | Current Streak / Personal best! 🎉 … | `currentStreak` a `personalBest` mění **C**; čtečka plamene `journal.currentStreak` (E12) |
+| čtyři dlaždice: názvy a pod nimi | `journal.stats.totalEntries`, `allTime`, `activeDays`, `daysWithEntries_*`, `dailyAverage`, `entriesPerDay`, `milestoneBadges` | Total Entries / All time / Active Days … | lab má vlastní `activeDaysSub` – použije opravený `daysWithEntries` (P29); názvy mění **C** |
+| ⭐🔥👑 v dlaždici pro čtečku | `journal.iconNames.*` | (nové z E12) | |
+| poměr typů | `journal.stats.entryTypes`, `journal.input.typeGratitude` / `typeSelfPraise` | Entry Types … | **C** |
+| povzbuzení dole | `journal.stats.motivationTitle`, `motivationNoStreak`, `motivationDay1`, `motivationDays` | Keep Going! … | `motivationTitle`, `motivationDays` (DE) mění **C** |
+| pruh: hledání selhalo / záznam se nesmazal (7.9) | `journal.errors.searchFailed`, `journal.errors.deleteFailed`, `common.tryAgain` (E11) | Failed to search journal entries / Failed to delete journal entry | **C**; „Try again“ jen u hledání |
+
+### C. Existující klíč, nová hodnota
+
+| Klíč | EN (nově) | DE (nově) | ES (nově) | Dnes / proč |
+|---|---|---|---|---|
+| `journal.historyTitle` | Journal history | = | = | Title Case |
+| `journal.stats.title` | Journal statistics | = | = | Title Case |
+| `journal.stats.currentStreak` | Current streak | = | = | Title Case |
+| `journal.stats.personalBest` | Personal best! | Persönliche Bestleistung! | ¡Mejor marca personal! | bez „🎉“; ⚠ DE +79 % (jeden řádek pod číslem, vejde se) |
+| `journal.stats.totalEntries` | Total entries | = | = | Title Case |
+| `journal.stats.activeDays` | Active days | = | = | Title Case |
+| `journal.stats.dailyAverage` | Daily average | = | = | Title Case; ⚠ DE +69 % (název dlaždice, dva řádky) |
+| `journal.stats.motivationTitle` | Keep going! | = | = | Title Case |
+| `journal.stats.motivationDays` | = | Fantastische {{days}}-Tage-Serie! Du baust eine starke Routine auf. | = | DE „Gewohnheit“ → „Routine“ |
+| `journal.stats.entryTypes` | Entry types | = | Tipos de entradas | Title Case |
+| `journal.errors.searchFailed` | Search didn’t work this time. | Die Suche hat diesmal nicht geklappt. | La búsqueda no funcionó esta vez. | *návrh*; pruh + „Try again“ (7.9 „Hledání se nepovedlo“) |
+| `journal.errors.deleteFailed` | The entry wasn’t deleted. It’s still in your journal. | Der Eintrag wurde nicht gelöscht. Er ist noch in deinem Tagebuch. | La entrada no se eliminó. Sigue en tu diario. | *návrh*; pruh bez „Try again“ (7.9 „Záznam se nesmazal. Je pořád v deníku.“); použije i Deník (E12), když smazání selže |
+
+### Otázky pro Petra
+
+1. **Statistiky bez jakékoli série.** Laboratoř pod nulou ukáže „Best: 0 days“. Dnešní obrazovka má pro tenhle případ vlastní větu.
+   **Doporučuji** existující `journal.stats.startToday` („Start your streak today! / Starte heute deine Serie! / ¡Comienza tu racha hoy!“), když je nejdelší série 0.
+
+---
+
+## E14 – Cíle: seznam, karta s tempem, rychlý zápis
+
+Přehled (aktivní / v plánu / splněné) s čárou termínů, karta cíle s pruhem, zářezy milníků a čipem tempa, zápis jedním ťuknutím se „Zpět“, panel „Other“ s vlastní klávesnicí, nabídka „⋯“ a sekce Splněné.
+*Texty po zápisu („+35 XP“, milník, „dnes už bez XP“) se ukážou, až bude rozhodnuté D-4 – `addProgress` je dnes nevrací (karta E14, bod 6). Okno dokončení cíle je v E10.*
+
+### A. Nové texty
+
+| Návrh klíče | EN | DE | ES | Kde se ukáže | Pozn. |
+|---|---|---|---|---|---|
+| `goals.subline` | Big things, one step at a time. | Große Dinge, Schritt für Schritt. | Cosas grandes, paso a paso. | věta pod nadpisem obrazovky | |
+| `goals.pace.onPace` | On pace | Im Plan | A buen ritmo | čip tempa na kartě a v detailu | |
+| `goals.pace.ahead_one` | {{count}} day ahead | {{count}} Tag voraus | {{count}} día de adelanto | čip tempa (zelený) | lab: `ahead(days)` má „1 day ahead“ natvrdo |
+| `goals.pace.ahead_other` | {{count}} days ahead | {{count}} Tage voraus | {{count}} días de adelanto | jako výše | |
+| `goals.pace.behind_one` | {{count}} day behind | {{count}} Tag zurück | {{count}} día de retraso | čip tempa (teplá barva, ne červená) | |
+| `goals.pace.behind_other` | {{count}} days behind | {{count}} Tage zurück | {{count}} días de retraso | jako výše | ES „de adelanto / de retraso“ je bez rodu |
+| `goals.pace.overdue` | *návrh* Deadline passed | *návrh* Termin verstrichen | Fecha límite superada | čip tempa po termínu (teplá barva) | laboratoř tenhle stav nemá – **viz otázka 1** |
+| `goals.pace.daysLeft_zero` | *návrh* Due today | *návrh* Heute fällig | Vence hoy | řádek vedle čipu v den termínu | „0 days left“ zní špatně |
+| `goals.pace.daysLeft_one` | {{count}} day left | noch {{count}} Tag | Queda {{count}} día | řádek vedle čipu; fakt v detailu (E15) | lab: `daysLeft(days)` |
+| `goals.pace.daysLeft_other` | {{count}} days left | noch {{count}} Tage | Quedan {{count}} días | jako výše | |
+| `goals.card.by` | by {{date}} | bis {{date}} | para el {{date}} | řádek pod jménem cíle „Health · by 31 Dec“; náhled v okně tvorby (E15) | `date` = krátké datum z `toLocaleDateString` |
+| `goals.card.noDeadline` | No deadline | Ohne Termin | Sin fecha límite | řádek pod jménem; místo čipu u cíle bez termínu; předvolba v E15 | |
+| `goals.card.other` | Other | Andere | Otra | poslední tlačítko rychlého zápisu (otevře panel) | ES = „otra cantidad“ |
+| `goals.log.undo` | Undo | Rückgängig | Deshacer | tlačítko v pruhu po zápisu (i čtečka) | |
+| `goals.log.logged` | {{amount}} logged | {{amount}} eingetragen | Registrado: {{amount}} | pruh po zápisu „+1 book logged“ | `amount` = „+50 $“, „84,6 kg“ (číslo podle jazyka + jednotka); ES bez rodu |
+| `goals.log.milestone` | {{percent}} % — milestone reached | {{percent}} % – Meilenstein erreicht | {{percent}} % — hito alcanzado | připojí se k pruhu „… · 50 % — milestone reached“ | D-4 |
+| `goals.log.noXpLeft` | Saved. XP for this goal returns tomorrow. | Gespeichert. XP für dieses Ziel gibt es morgen wieder. | Guardado. Mañana vuelves a ganar XP con esta meta. | pruh po zápisu nad denním stropem (3 zápisy s XP) | D-4 |
+| `goals.deadlines.next_zero` | *návrh* Next: {{title}} today | *návrh* Als Nächstes: {{title}} heute | Próxima: {{title}}, hoy | řádek pod čárou termínů | „in 0 days“ zní špatně; ⚠ DE +38 % |
+| `goals.deadlines.next_one` | Next: {{title}} tomorrow | Als Nächstes: {{title}} morgen | Próxima: {{title}}, mañana | jako výše | *odvozeno* (laboratoř: „in 1 days“) |
+| `goals.deadlines.next_other` | Next: {{title}} in {{count}} days | Als Nächstes: {{title}} in {{count}} Tagen | Próxima: {{title}}, en {{count}} días | jako výše | lab: `nextDeadline(title, days)` |
+
+### B. Použije existující klíč
+
+| Text laboratoře | Existující klíč | EN / DE / ES dnes | Pozn. |
+|---|---|---|---|
+| nadpis obrazovky | `goals.title` | My Goals / Meine Ziele / Mis Metas | **C** |
+| „+“ nahoře (čtečka) | `goals.addGoal` | Add Goal / Neues Ziel / Añadir Meta | **C** |
+| přehled: tři čísla | `goals.dashboard.activeGoals`, `onTrack`, `completedGoals` | Active Goals / On Track / Completed Goals … | **C** |
+| čára termínů: nadpis | `goals.dashboard.deadlines` | Deadlines / Fristen / Fechas Límite | **C** (ES) |
+| nadpisy sekcí | `goals.sections.activeGoals`, `goals.sections.completedGoals` | Active Goals / Aktiv … · Completed Goals / Erledigt … | **C** |
+| kategorie v řádku pod jménem | `goals.category.*` | Health … | |
+| čip u splněného cíle | `goals.completion.statusCompleted` | Completed / Abgeschlossen / Completada | |
+| „⋯“ na kartě (čtečka; laboratoř „Edit / Delete“) | `habits.list.more` | More / Mehr / Más opciones | jako u návyku a záznamu deníku |
+| nabídka „⋯“: detail, úprava, smazání, zavření | `goals.stats.overview`, `goals.editGoal`, `goals.deleteGoal`, `common.cancel` | Overview / Edit Goal / Delete Goal … | `editGoal`, `deleteGoal` mění **C** |
+| potvrzení smazání | `goals.deleteGoal`, `goals.deleteMessage`, `common.delete` | Delete Goal / Löschen / … | **C** – DE nadpis „Löschen“ |
+| panel zápisu: Add / Subtract / Set to | `goals.progress.form.types.add`, `subtract`, `set` | Add / Subtract / Set To … | `set` mění **C** |
+| panel zápisu: chyby, poznámka, tlačítko | `goals.progress.form.errors.valueRequired`, `goals.progress.form.errors.valueTooLarge`, `goals.progress.form.placeholders.note`, `goals.progress.form.submit` | Value must be greater than 0 / This number is too large / … / Add Progress | lab „That number is too large.“ = stávající text; `submit` mění **C** |
+| klávesa ⌫ (čtečka; laboratoř natvrdo „Delete“) | `common.delete` | Delete / Löschen / Eliminar | |
+| „+25 XP“ z tlačítka, „−25 XP“ po Zpět | `achievements.card.xpReward`, `gamification.xp.amountLost` | | |
+| bez cílů (laboratoř prázdný stav nemá) | `goals.noGoals`, `goals.noGoalsHint` | No goals yet… / Tap + to pick a ready-made goal… | „Tap +“ sedí na nové „+“ nahoře |
+| řádek data nad nadpisem, měsíce na čáře termínů | `common.locale` | | |
+
+### C. Existující klíč, nová hodnota
+
+| Klíč | EN (nově) | DE (nově) | ES (nově) | Dnes / proč |
+|---|---|---|---|---|
+| `goals.title` | My goals | = | Mis metas | Title Case |
+| `goals.addGoal` | Add goal | = | Añadir meta | Title Case |
+| `goals.dashboard.activeGoals` | Active goals | = | Metas activas | Title Case |
+| `goals.dashboard.onTrack` | On pace | = | A buen ritmo | dnes On Track / En Camino – číslo v přehledu počítá cíle s čipem „On pace“, ať je to jedno slovo |
+| `goals.dashboard.completedGoals` | Completed goals | = | Metas completadas | Title Case |
+| `goals.dashboard.deadlines` | = | = | Fechas límite | Title Case |
+| `goals.sections.activeGoals` | Active goals | = | Metas activas | Title Case |
+| `goals.sections.completedGoals` | Completed goals | = | Metas completadas | Title Case |
+| `goals.editGoal` | Edit goal | Ziel bearbeiten | Editar meta | dnes DE jen „Bearbeiten“; je to i nadpis okna úpravy (E15) |
+| `goals.deleteGoal` | Delete goal | Ziel löschen | Eliminar meta | dnes DE jen „Löschen“ – i jako nadpis potvrzení |
+| `goals.progress.form.types.set` | Set to | = | Establecer en | Title Case |
+| `goals.progress.form.submit` | Add progress | = | Añadir progreso | Title Case |
+
+### Otázky pro Petra
+
+1. **Cíl po termínu – laboratoř ho nemá.** Termín uplynul a cíl není splněný: laboratoř ukáže „0 days left“ a čip „x days behind“, který každým dnem roste. Test funkce tempa „po termínu“ přitom plán chce.
+   **Doporučuji:** čip „Deadline passed“ v teplé barvě (A, `goals.pace.overdue`), řádek „days left“ zmizí, nic se nepočítá dál. Nové datum si uživatel dá přes „⋯ → Edit goal“ – žádné další tlačítko na kartě.
+
+---
+
+## E15 – Cíle: tvorba a úprava, detail
+
+Jedno okno tvorby i úpravy s živým náhledem, nápady ze šablon uvnitř, termín předvolbami nebo kalendářem v okně; detail cíle s kruhem, fakty tempa, grafem „Ty a plán“, milníky a historií zápisů.
+
+### A. Nové texty
+
+| Návrh klíče | EN | DE | ES | Kde se ukáže | Pozn. |
+|---|---|---|---|---|---|
+| `goals.composer.title` | *návrh* New goal | Neues Ziel | Nueva meta | nadpis okna tvorby | laboratoř čte `goals.addGoal` – **viz otázka 1**; DE = laboratoř |
+| `goals.composer.create` | *návrh* Create goal | *návrh* Ziel erstellen | Crear meta | hlavní tlačítko okna tvorby (i čtečka) | laboratoř čte `common.create` (DE „Neu“) – **viz otázka 1** |
+| `goals.composer.previewTitle` | Your new goal | Dein neues Ziel | Tu nueva meta | živý náhled karty, dokud je jméno prázdné | |
+| `goals.composer.paceHint` | That’s about {{amount}} {{unit}} a week | Das sind etwa {{amount}} {{unit}} pro Woche | Son unos {{amount}} {{unit}} por semana | věta pod náhledem, když je zadaný cíl i termín | `amount` = číslo podle jazyka |
+| `goals.composer.ideas` | Start from an idea | Mit einer Idee starten | Empieza con una idea | nadpis řady nápadů (šablony) | stejný text jako `habits.composer.ideas` (E6), vlastní klíč kvůli oblasti |
+| `goals.composer.deadline` | Deadline | Termin | Fecha límite | nadpis části s termínem | |
+| `goals.composer.presetMonths_one` | {{count}} month | {{count}} Monat | {{count}} mes | předvolba „1 month“ | lab: `presets.m1` / `m3` / `m6` napevno |
+| `goals.composer.presetMonths_other` | {{count}} months | {{count}} Monate | {{count}} meses | předvolby „3 months“, „6 months“ | |
+| `goals.composer.presetYear` | End of year | Jahresende | Fin de año | předvolba | |
+| `goals.composer.presetPick` | Pick a date | Datum wählen | Elegir fecha | předvolba s ikonou kalendáře (otevře kalendář v okně) | předvolba „No deadline“ = `goals.card.noDeadline` (E14) |
+| `goals.composer.inDays_zero` | *návrh* today | *návrh* heute | hoy | řádek s vybraným termínem „Fri, 22 May 2026 · today“ | v kalendáři jde vybrat i dnešek |
+| `goals.composer.inDays_one` | tomorrow | morgen | mañana | jako výše | lab: `inDays(days)` |
+| `goals.composer.inDays_other` | in {{count}} days | in {{count}} Tagen | en {{count}} días | jako výše | |
+| `goals.detail.neededPerWeek` | {{amount}} a week needed | {{amount}} pro Woche nötig | Hacen falta {{amount}} por semana | fakt tempa v detailu | `amount` = „0,5 books“ (číslo + jednotka) |
+| `goals.detail.yourPerWeek` | {{amount}} a week so far | bisher {{amount}} pro Woche | {{amount}} por semana hasta ahora | fakt tempa | |
+| `goals.detail.finish` | At this pace: {{date}} | In diesem Tempo: {{date}} | A este ritmo: {{date}} | fakt tempa; legenda tečkované čáry v grafu | |
+| `goals.detail.paceTitle` | You vs. the plan | Du und der Plan | Tú frente al plan | nadpis grafu; čtečka grafu | |
+| `goals.detail.plan` | Plan | Plan | Plan | legenda (čárkovaná čára) | |
+| `goals.detail.you` | You | Du | Tú | legenda (čára v barvě cíle) | |
+| `goals.detail.chartHint` | *návrh* Tap or slide along the line | *návrh* Tippe oder streiche über die Linie | Toca o desliza a lo largo de la línea | řádek nad grafem, dokud není vybraný bod | laboratoř tu čte nápovědu grafu deníku „…across the bars“ – graf cíle je ale čára |
+| `goals.detail.milestones` | Milestones | Meilensteine | Hitos | nadpis milníků | |
+| `goals.detail.reached` | reached {{date}} | erreicht {{date}} | alcanzado el {{date}} | řádek dosaženého milníku „50 % · reached 3 Nov“ | DE správně spíš „erreicht am {{date}}“ – navrhuji „am“ doplnit |
+| `help.topics.pace` | How the pace is worked out | So wird das Tempo berechnet | Cómo se calcula el ritmo | čtečka: tiché „i“ u čipu tempa v detailu | nové téma místo `help.goals.predictions` (7.10) |
+| `help.rules.pace.title` | Your pace, in plain words | Dein Tempo, in klaren Worten | Tu ritmo, en pocas palabras | okno nápovědy `pace` (a v E22 stránka pravidel) | |
+| `help.rules.pace.text` | A goal with a deadline compares your pace with the straight line to it and tells you whether you’ll make it. | Ein Ziel mit Termin vergleicht dein Tempo mit der geraden Linie bis dahin und sagt dir, ob du es schaffst. | Una meta con fecha límite compara tu ritmo con la línea recta hasta ella y te dice si llegarás a tiempo. | okno nápovědy `pace` | |
+
+### B. Použije existující klíč
+
+| Text laboratoře | Existující klíč | EN / DE / ES dnes | Pozn. |
+|---|---|---|---|
+| nadpis okna při úpravě | `goals.editGoal` | (E14 C: Edit goal / Ziel bearbeiten / Editar meta) | |
+| tlačítko při úpravě | `common.save` | Save / Speichern / Guardar | |
+| křížek a ťuknutí vedle okna (čtečka) | `common.close` | Close / Schließen / Cerrar | |
+| náhled: kategorie · termín | `goals.category.*`, `goals.card.by`, `goals.card.noDeadline` | (E14) | |
+| pole jména | `goals.form.placeholders.title` | Enter your goal title... | |
+| nápady | `goals.templates.<id>`, `goals.units.<id>` | Lose weight … / kg … | přes `useGoalTemplates()` |
+| cílová hodnota, jednotka, kategorie, popis | `goals.form.targetValue`, `goals.form.placeholders.targetValue`, `goals.form.unit`, `goals.units.*`, `goals.form.category`, `goals.form.description`, `goals.form.placeholders.description` | Target Value / 100 / Unit / … / Description (Optional) | `targetValue`, `description` mění **C** |
+| třesení pole | `goals.form.errors.titleRequired`, `titleTooShort`, `titleTooLong`, `unitRequired`, `unitTooLong`, `targetValueRequired`, `targetValueTooLarge`, `descriptionTooLong` | (všechny tři) | sdílet s `GoalForm`; lab „That number is too large.“ = `targetValueTooLarge` |
+| ‹ › v kalendáři termínu (laboratoř čte „‹“ / „›“) | `habits.detail.previousMonth` / `nextMonth` | (nové z E6) | viz pozn. v E13 (`common.*`) |
+| písmena dnů, den v kalendáři pro čtečku, datum termínu | `common.locale` | | `toLocaleDateString` |
+| detail: kategorie, „Target: 100 km“ | `goals.category.*`, `goals.detailsCard.target` | Target / Ziel / Objetivo | |
+| detail: čip tempa a „days left“ | `goals.pace.*` | (nové z E14) | |
+| detail: tlačítko zápisu | `goals.progress.addProgress` | Add Progress / Fortschritt hinzufügen / Añadir Progreso | **C** |
+| detail: historie, prázdná historie, smazání zápisu | `goals.progress.progressHistory`, `goals.progress.noProgress`, `common.delete`, `goals.progress.confirmDelete`, `goals.progress.deleteMessage` | Progress History … | `progressHistory`, `confirmDelete` mění **C** |
+| detail: tlačítko úpravy | `goals.editGoal` | (E14 C) | |
+| graf: „Today“ na ose | `common.dates.today` | Today / Heute / Hoy | laboratoř čte `journal.today` (stejný text, cizí oblast) |
+| milník: „+50 XP“, u 100 % „+250 XP“ | `achievements.card.xpReward` | +{{xp}} XP | čísla z `XP_REWARDS.GOALS`; u 100 % podle O-8 (E16) |
+| tiché „i“ → „All the rules“ | `help.allRules` | (nový z E6) | |
+
+### C. Existující klíč, nová hodnota
+
+| Klíč | EN (nově) | DE (nově) | ES (nově) | Dnes / proč |
+|---|---|---|---|---|
+| `goals.form.targetValue` | Target value | = | Valor objetivo | Title Case |
+| `goals.form.description` | Description (optional) | Beschreibung (optional) | Descripción (opcional) | Title Case |
+| `goals.progress.addProgress` | Add progress | = | Añadir progreso | Title Case |
+| `goals.progress.progressHistory` | Progress history | = | Historial de progreso | Title Case |
+| `goals.progress.confirmDelete` | Delete progress entry | = | Eliminar entrada de progreso | Title Case |
+
+### Otázky pro Petra
+
+1. **Okno tvorby cíle jako okno tvorby návyku.** Laboratoř má nadpis z `goals.addGoal` („Add Goal“) a tlačítko z `common.create`, které je v DE jen „Neu“. Okno návyku (E6) má „New habit / Create habit“.
+   **Doporučuji** stejný vzor: nadpis „New goal / Neues Ziel / Nueva meta“ a tlačítko „Create goal / Ziel erstellen / Crear meta“ (dva klíče v A). „Add goal“ zůstane jen čtečce u „+“.
+
+---
+
+## E16 – Cíle: druh „Messen“ (změna dat)
+
+Volba druhu cíle v okně tvorby („Hochzählen“ = přičítá se, „Messen“ = zapisuje se naměřená hodnota) s počáteční hodnotou a rychlý zápis „dnešní hodnoty“ u měřeného cíle.
+*Texty jsou jen pro obrazovky; plán migrace dat se píše Petrovi zvlášť (karta E16).*
+
+### A. Nové texty
+
+| Návrh klíče | EN | DE | ES | Kde se ukáže | Pozn. |
+|---|---|---|---|---|---|
+| `goals.kind.count` | Count up | Hochzählen | Sumar | volba druhu v okně tvorby (i čtečka) | |
+| `goals.kind.countHint` | Add as you go — books, money, hours | Nach und nach addieren – Bücher, Geld, Stunden | Suma poco a poco: libros, dinero, horas | věta pod volbou druhu | |
+| `goals.kind.measure` | Measure | Messen | Medir | volba druhu | |
+| `goals.kind.measureHint` | Log a reading — weight, balance, time | Messwert eintragen – Gewicht, Kontostand, Zeit | Anota una medición: peso, saldo, tiempo | věta pod volbou druhu | |
+| `goals.composer.now` | Now | Jetzt | Ahora | popisek pole počáteční hodnoty (jen u „Messen“) | placeholder „85“ zůstává číslem bez klíče |
+| `goals.form.errors.startRequired` | Enter where you are now — it has to differ from the target. | Gib deinen aktuellen Wert ein – er muss sich vom Ziel unterscheiden. | Indica dónde estás ahora: tiene que ser distinto del objetivo. | třesení pole „Now“ | |
+| `goals.form.errors.targetRequiredMeasure` | Enter the value you want to reach (0 is fine). | Gib den Zielwert ein (0 ist erlaubt). | Indica el valor que quieres alcanzar (0 también vale). | třesení cílové hodnoty u „Messen“ | `targetValueRequired` („must be greater than 0“) u „Messen“ neplatí – smí být 0 |
+| `goals.log.logReading` | Log a reading | Messwert eintragen | Anotar medición | jediné tlačítko zápisu na kartě měřeného cíle; tlačítko v detailu | ⚠ DE +38 % (tlačítko je široké) |
+| `goals.log.reading` | Today’s reading | Heutiger Messwert | Medición de hoy | nadpis nad číslem v panelu zápisu | |
+| `goals.log.readingRequired` | *návrh* Enter today’s reading. | *návrh* Gib den heutigen Messwert ein. | Indica la medición de hoy. | třesení prázdného čísla v panelu u „Messen“ | laboratoř tu čte `valueRequired` („Value must be greater than 0“) – u „Messen“ ale 0 platí (dluh splacen); ⚠ DE +36 % |
+
+### B. Použije existující klíč
+
+| Text laboratoře | Existující klíč | EN / DE / ES dnes | Pozn. |
+|---|---|---|---|
+| cílová hodnota u „Messen“ | `goals.form.targetValue` | (E15 C) | |
+| hodnota karty „84,6 kg → 78 kg“, „85 → 78 kg“ v detailu | – | | skládá se v kódu z čísel podle jazyka a jednotky, bez klíče |
+| pruh po zápisu „84,6 kg logged“ | `goals.log.logged` | (nový z E14) | `amount` bez znaménka (je to hodnota, ne přírůstek) |
+| uložit zápis, příliš velké číslo | `goals.progress.form.submit`, `goals.progress.form.errors.valueTooLarge` | (E14 C) / This number is too large | |
+| čip tempa, „days left“, fakta detailu | `goals.pace.*`, `goals.detail.*` | (nové z E14, E15) | fungují oběma směry beze změny textu |
+| okno dokončení „84,6 → 78 kg · reached in 42 days“ | `goals.completion.doneIn_*` | (nový z E10) | |
+
+### Otázky pro Petra
+
+Žádné – texty jsou z laboratoře, rozhoduje se o datech (plán migrace zvlášť).
+
+---
+
 ## Souhrn
 
-| Etapa | Nové klíče (řádky tabulky A) | z toho tvary `_one`/`_other` | Použité existující (řádky tabulky B) | Otázky |
-|---|---|---|---|---|
-| E5 – Návyky: seznam | 14 | 4 (2 páry) | 14 | 6 |
-| E6 – Detail, tvorba, řazení | 28 | 0 | 16 | 6 |
-| E7 – Odznak a jiskry | 6 | 0 | 2 | 1 |
-| E8 – Momenty trofejí | 7 | 4 (2 páry) | 7 | 2 |
-| E9 – Panel a přehled úrovní | 42 | 14 (7 párů) | 8 | 5 |
-| E10 – Ostatní okna | 8 | 4 (2 páry) | 15 | 4 |
-| **Celkem** | **105** | **26** | **62** | **24** |
+| Etapa | Nové klíče (řádky tabulky A) | z toho tvary `_zero`/`_one`/`_other` | Použité existující (řádky tabulky B) | Nová hodnota existujícího klíče (řádky tabulky C) | Otázky |
+|---|---|---|---|---|---|
+| E5 – Návyky: seznam | 14 | 4 (2 páry) | 14 | – | 6 |
+| E6 – Detail, tvorba, řazení | 28 | 0 | 16 | – | 6 |
+| E7 – Odznak a jiskry | 6 | 0 | 2 | – | 1 |
+| E8 – Momenty trofejí | 7 | 4 (2 páry) | 7 | – | 2 |
+| E9 – Panel a přehled úrovní | 42 | 14 (7 párů) | 8 | – | 5 |
+| E10 – Ostatní okna | 8 | 4 (2 páry) | 15 | – | 4 |
+| E11 – Home | 64 | 25 (12 párů + 1 `_zero`) | 25 | 44 | 6 |
+| E12 – Deník | 23 | 4 (2 páry) | 23 | 19 | 1 |
+| E13 – Historie a statistiky deníku | 19 | 4 (2 páry) | 17 | 12 | 1 |
+| E14 – Cíle: seznam a zápis | 20 | 10 (2 páry + 2 trojice) | 16 | 12 | 1 |
+| E15 – Cíle: tvorba a detail | 25 | 5 (1 pár + 1 trojice) | 18 | 5 | 1 |
+| E16 – Cíle: druh „Messen“ | 10 | 0 | 6 | 0 | 0 |
+| **Celkem** | **266** | **74** | **167** | **92** | **34** |
 
 *Každý tvar `_one` / `_other` se počítá jako jeden klíč. Řádek tabulky B může shrnovat víc příbuzných klíčů (např. šest klíčů legendy). Řádky B, které odkazují na klíč založený dřív v tomto soupisu (např. `help.allRules` z E6 v E9), se počítají v B té pozdější etapy.*
 
 *Ověřeno skriptem nad locales: žádný navržený klíč z tabulek A v appce ještě neexistuje; každý klíč z tabulek B existuje v EN, DE i ES; zástupné parametry `{{…}}` sedí v EN, DE i ES u každého řádku tabulek A.*
+
+*E11–E16 ověřeno stejně (skript nad locales, 2026-11-24): žádný klíč z tabulek A v appce ještě není; každý klíč z tabulek B je v EN, DE i ES, nebo ho zakládá dřívější etapa tohoto soupisu (označeno „nový z E…“); každý klíč z tabulek C v appce je (kromě dvou nových tvarů `timelineCheck.description_one`/`_other`, které nahrazují `.description`); parametry `{{…}}` sedí ve všech třech jazycích u řádků A i C. Značka ⚠ DE od +35 %.*

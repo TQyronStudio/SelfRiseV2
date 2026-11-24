@@ -1,6 +1,7 @@
-# Mapy dat pro etapy E5–E10 (krok 0.2/3 plánu převodu)
+# Mapy dat pro etapy E5–E16 (krok 0.2/3 plánu převodu)
 
 *Sepsáno 2026-11-23 nad větví `design-v2` (po E4). Podklad: karty E5–E10 v `design-migration-plan.md`, hlavičky `GOING LIVE` souborů laboratoře, řádky v `src/screens/design-lab/PREVOD.md` a ostrý kód. Každý odkaz `soubor:řádek` je ověřený čtením kódu.*
+*E11–E16 doplněny 2026-11-24 (po E5) stejným postupem; mají i vlastní tabulku událostí.*
 
 Ke každé hodnotě a akci, kterou obrazovka laboratoře bere z kulis (`habitsMock`, `mockCopy`, `MOCK_STATS`, `multiplierMock`, `useLabXp`, `useLabToday` …), je tu napsané, odkud ji vezme ostrá appka.
 **Legenda:** ✅ zdroj existuje beze změny · ⚠️ zdroj existuje, ale liší se číslo, pravidlo nebo formát (popsáno; **platí appka**) · ❌ zdroj chybí → **zastavit a zeptat se Petra** (plán 0.3).
@@ -261,6 +262,291 @@ Zdroj: `goalParts.tsx` (`GoalDoneMoment`), `journalParts.tsx` (`MilestoneMoment`
 
 ---
 
+## E11 – Home
+
+*Doplněno 2026-11-24.* Zdroj: `HomeConcept.tsx`, `HabitStatsConcept.tsx` + `homeChartsLogic.ts`, `HomeSectionsConcept.tsx` + `homeLayoutLogic.ts`, `WarmUpControls` v `journalParts.tsx`; kulisy `MOCK_HABITS`/`MOCK_STATS` (`mockCopy.ts`), `useLabToday` (`habitsMock.tsx`), `useLabJournal` (`journalMock.tsx`), `useLabChallenge` (`challengeMock.tsx`), `mockYear` (`homeChartsMock.ts`). Cíl: `app/(tabs)/index.tsx`, `src/components/home/*`, `HomeCustomizationContext`, `src/types/homeCustomization.ts`.
+
+| Hodnota / akce v laboratoři | Zdroj v ostré appce | Stav | Pozn. |
+|---|---|---|---|
+| Dnešní návyky v hrdinovi, na oblouku a v sekci `MOCK_HABITS` + `useLabToday().done` (`HomeConcept.tsx:163`, `:197-198`, `:366-373`, `:663-673`) | `useHabitsData().getHabitsByDate(today())` (`src/hooks/useHabitsData.ts:67-101`: bez dnů v pauze, `isCompleted` z převedených záznamů) + plán dne `wasScheduledOnDate()` – stejně jako dnešní `QuickActionButtons.tsx:45-54` | ⚠️ | **jiné pravidlo:** laboratoř bere do „x/y“ všech 5 návyků bez ohledu na rozvrh (Po·St·Pá je „v plánu“ i ve čtvrtek); appka = jen naplánované dnes. Nenaplánované (bonusové) návyky dnešní Home neukazuje – rozhodnout, jestli je nová sekce ukáže. Dnešní Home ukazuje jen nesplněné a nejvýš 3 (`:51-54`), nová sekce všechny |
+| Počet „x/y“ `copy.habitsDone(doneCount, total)` (`:579`) | spočítat z řádku nahoře | ✅ | P60: jen v hrdinovi a kompaktní hlavičce |
+| Den bez naplánovaných návyků | – (laboratoř má vždy 5; `dayProgress = initialDone / total` `:228` by dělilo nulou) | ⚠️ | prázdný stav hrdiny v laboratoři chybí – nový uživatel nebo volný den ho uvidí |
+| **Akce odškrtnout** `toggle(habit.id)` (`:670`; `HabitRow` `:1205-1228`) | `HomeScreen.handleHabitToggle` `app/(tabs)/index.tsx:189-198` → `actions.toggleCompletion(habitId, today(), false)` `src/contexts/HabitsContext.tsx:263` | ⚠️ | `isBonus` je natvrdo `false` – dnes nevadí (Home ukazuje jen naplánované). Ukáže-li nová sekce i nenaplánované, počítat `isBonus` jako `HabitItemWithCompletion.tsx:144-160` |
+| Bublina „+25“ `XP_PER_HABIT = 25` (`:141`, `:1208`) | událost `xpGained` (`amount`) – posílá `gamificationService.ts:897`, při odečtu záporně `:1262` | ⚠️ | konstanta laboratoře platí i pro bonus (appka 15) a nezná násobič ani strop – číslo z události (E7) |
+| **Čip „+N XP dnes“** `MOCK_STATS.xpToday + …` (`:200`, `:597-606`) | `GamificationService.getTodayXP()` `src/services/gamificationService.ts:2220-2228` (O-9); znovu načíst po `xpGained` jako `src/components/habits/list/HabitsListView.tsx:189-205` | ✅ | `xpGained` chodí i při odebrání XP (`:1262`), čip tedy klesne i po zrušení odškrtnutí |
+| Pozdrav podle denní doby `getDaypart` + `copy.greeting` (`:202-203`) | `getDaypart()` `src/design/tokens.ts:309` (s testem); texty → locales (R-6) | ✅ | |
+| Horní řádek: Trofeje (`:470-477`) | `router.push('/achievements')` `index.tsx:296-301` | ✅ | |
+| Horní řádek: Přizpůsobit (`:478-484`) | `DeviceEventEmitter.emit('openHomeCustomization')` `index.tsx:302-306`, posluchač `:61-72` | ✅ | událost musí zůstat (karta „nesmí se rozbít“) |
+| **Rychlé akce** `QuickTile` bez `onPress` (`:620-647`, komponenta `:1273-1300`) | `QuickActionButtons.tsx:56-70` → `/(tabs)/habits?quickAction=addHabit`, `/(tabs)/journal?quickAction=addGratitude` / `addSelfPraise`, `/(tabs)/goals?quickAction=addGoal` | ✅ | nápověda `home.quickActions` (`:163`) zaniká (7.10) |
+| Karta série: číslo `journal.streak` (`:168`, `:727-745`) | `useGratitude().state.streakInfo.currentStreak` (`src/contexts/GratitudeContext.tsx:12`, plní `refreshStats` `:204-215`) | ✅ | |
+| Plamen oheň / led / zahřátí `flame` (`:168`, `:723`) | led = `streakInfo.isFrozen` (`src/types/gratitude.ts:22`); zahřátí = `justUnfrozeToday` (`:24`, nastaví `SQLiteGratitudeStorage.ts:1459` po posledním zaplaceném dni) | ⚠️ | laboratoř zahřívá v okamžiku poslední platby; `justUnfrozeToday` platí **celý den** → obrazovka si musí pamatovat, že zahřátí už přehrála (jinak každé otevření = nové zahřátí). Start Fresh: `currentStreak 0`, `isFrozen false` |
+| Dny dluhu (vločka → slunce) a „x/y“ `frozen.days`, `frozen.paid` (`:778-789`; `WarmUpControls` `journalParts.tsx:412-500`) | `actions.getWarmUpPaymentProgress()` `GratitudeContext.tsx:276-295` → `SQLiteGratitudeStorage.ts:1508-1541` (`totalMissedDays`, `paidDays`, `paidDates`, `unpaidDates`) | ⚠️ | **formát:** `streakInfo.frozenDays` je jen **nezaplacený zbytek** (klesá s každou reklamou, `:855-897`) – na „x/y“ nestačí. Dnešní `StreakWarmUpModal.tsx:372-377` dává do `frozenMessage` `count: frozenDays` (zbytek), laboratoř `count: frozen.days` (celkem). Text: plurál se řídí `count`, ale „Watch {{adsNeeded}} ad“ má jiné číslo → „frozen for 2 days. Watch 1 ads“ (`locales/en/index.ts:817-818`) – do soupisu textů |
+| **Akce Zahřát (reklama)** `setAd(true)` → `journal.payWarmUpDay` (`:787`, `:1062-1068`) | `JournalStreakCard.handleWatchAd` `src/components/home/GratitudeStreakCard.tsx:409-472`: `adService.showRewardedAd()` `:421` → `actions.applySingleWarmUpPayment()` `:450` (`GratitudeContext.tsx:254-265` → `SQLiteGratitudeStorage.ts:1380-1404`); po poslední platbě `handleDebtComplete` `:474-536` (`refreshStats`, kontrola zbytku, `executeForceResetDebt` `:543-576`) | ⚠️ | přestěhovat do hooku (5b). **Sdílený stav Home ↔ Deník:** `applySingleWarmUpPayment` v kontextu **schválně nevolá `refreshStats`** (`GratitudeContext.tsx:256-257`) a karta drží postup jen v místním `adsWatched` (`GratitudeStreakCard.tsx:454`) → zaplacený den se v `state.streakInfo` objeví až po `handleDebtComplete`. Má-li být „zaplacený den na Home hned vidět v Deníku“ (5c), hook musí po každé platbě obnovit sdílený stav |
+| Chyby reklamy (`adDismissed`, `adLoadFailed`, `adError`) | `GratitudeStreakCard.tsx:428-444`, `:464-467` (okno `WarmUpErrorModal` `:710-718`) | ✅ | → `ProblemNote` (D-11, karta bod 8); texty `journal.rescue.*` existují |
+| **Akce Začít znovu** `ConfirmSheet` → `journal.startFresh` (`:1050-1059`) | `actions.resetStreak()` `GratitudeContext.tsx:297-305` → `SQLiteGratitudeStorage.resetStreak` `:1543-1590` | ✅ | maže **všechny** platby ohřátí (`:1581`) – viz E13 |
+| `?openDebtModal=true` | `index.tsx:101-112` → `triggerDebtModal` `GratitudeStreakCard.tsx:51-58` | ✅ | do E12, pak zrušit na obou koncích |
+| Dnešní záznamy (3 tečky, „N dnes“) `journal.todayCount` (`:803-823`) | `actions.getGratitudesByDate(today()).length` `GratitudeContext.tsx:193-202` | ✅ | |
+| ⭐🔥👑 na kartě `journal.stats.stars/flames/crowns` (`:826-837`) | `streakInfo.starCount/flameCount/crownCount` = počet dnů s ≥ 4 / 8 / 13 záznamy (`SQLiteGratitudeStorage.calculateMilestoneCounters` `:779-806`) | ✅ | stejné pravidlo jako `journalMock.tsx:360-362` |
+| Akce „Napsat“ (bez `onPress`, `:841-856`) | `router.push('/(tabs)/journal?quickAction=addGratitude')` (`QuickActionButtons.tsx:60-62`, posluchač `journal.tsx:75-93`) | ✅ | při zmrzlé sérii skryté (5c) |
+| Ťuk na kartu série `openJournal` (`:697`; detail `JournalDetailConcept`) | `handleStreakPress` `index.tsx:168-171` (`router.push('/(tabs)/journal')`) | ✅ | „karta roste do detailu“ je změna navigace (R-4, PREVOD) – v E11 zůstává přechod do záložky |
+| Karta výzvy `useLabChallenge()` (`:183-196`, `:870-962`) | `MonthlyChallengeSection` (`loadMonthlyChallenge` `src/components/challenges/MonthlyChallengeSection.tsx:275-330`: `MonthlyChallengeService.getCurrentChallenge` `:281`, `MonthlyProgressTracker.getChallengeProgress` `:305`); detail `handleChallengePress` `index.tsx:173-176` + posluchač `monthly_progress_updated` `:137-155` | ✅ | plná podoba v E17; do té doby stávající data a stavy |
+| **Statistiky: denní počty** `mockYear(todayDone, todayScheduled)` (`HabitStatsConcept.tsx:92-95`; `homeChartsMock.ts:22-53`) | `WeeklyHabitChart.tsx:24-97` a `Monthly30DayChart.tsx:15-97` (`getHabitsByDate` + `wasScheduledOnDate` + `getRelevantDatesForHabit`, Smart Bonus Conversion, `isCovered`) | ⚠️ | (1) **rok** `YearlyHabitOverview.tsx:113-145` třídí plán/bonus **jinak** (náhrada v nenaplánovaný den = bonus; týden ji počítá do plánu, `WeeklyHabitChart.tsx:55-57`) – součet dne i míra vyjdou stejně, pro barvu roku nevadí; vzít jeden třídič (týdenní). (2) týden a měsíc jsou dnes „kratší z dostupných dat a 7/30 dní“ (`WeeklyHabitChart.tsx:17-19`, `Monthly30DayChart.tsx:17-19`) – nový uživatel s 3 dny dat má 3 sloupce, laboratoř kreslí vždy 7/30 |
+| Míra období `totalsOf().rate` (`homeChartsLogic.ts:32-42`) | vzorec `WeeklyHabitChart.tsx:100-118` (vše vč. bonusů / plán, `Math.round`) | ✅ | smí být nad 100 % |
+| Srovnání s minulým obdobím `compareRates` (`HabitStatsConcept.tsx:100-105`) | v appce není – spočítat ze stejných denních počtů za předchozích 7 / 30 dní (rozsah `getDataDateRange()` `useHabitsData.ts:244-248`) | ✅ | nová čistá funkce; období bez plánu = `null` (laboratoř už) |
+| **Rok:** aktivní dny, odstíny `activeDays`, `heatLevel` (`:170`, `:179`) | `YearlyHabitOverview.tsx:73-75` bere `getDataDateRange()` = **celou historii** | ⚠️ | **chyba appky:** „rok“ není useknutý na 365 dní (`getDateRangeFromToday` `src/utils/date.ts:445-448`); uživatel s delší historií dostane „365 dní“ za víc než rok (nadpis `title365` `:340`). Nový rok vzít jen z posledních 365 dní |
+| Nejlepší den v týdnu `bestWeekday` (`:107`, `:228-231`) | v appce není (Yearly má jen „nejlepší datum“ `:139-142`) | ✅ | nový fakt ze stejných počtů |
+| **Přehledy: trend 4 týdnů** `text.trendUp(12)` (`HomeSectionsConcept.tsx:73-78`) | `HabitTrendAnalysis.tsx:93-168` | ⚠️ | **chyba appky – obrácený směr:** smyčka `i = 0` (poslední týden) → `weeks.unshift()` (`:153`) dá pole od nejstaršího; `recentAvg` pak bere `weeks[0..1]` = **nejstarší** dva týdny a `earlierAvg` nejnovější (`:162-164`). „Zlepšení o X %“ se ukáže, když se uživatel zhoršuje. (`currentWeek = weeks[3]` `:348` je správně – v jednom souboru dvě opačná čtení.) Fakt pro Přehledy převzít až opravený |
+| Přehledy: nejsilnější návyk (`:65`, `:79-86`, „96 %“) | `HabitTrendAnalysis.tsx:301-316` (`bestPerformer`: jen návyky ≥ 14 dní a trend „improving“) **nebo** `HabitPerformanceIndicators.tsx:206-236` (`weeklyTopPerformer` / `monthlyTopPerformer`) | ⚠️ | dnes dvě různé definice „nejlepšího“; vybrat jednu. Řádek jen když fakt existuje |
+| Přehledy: „stojí za pohled“ (`:66`, `:87-97`, „54 %“) | `HabitTrendAnalysis.tsx:318-331` (`strugglingHabit`: ≥ 14 dní a 28denní míra < 50 %) / `HabitPerformanceIndicators.tsx:238` (poslední z měsíčního žebříčku **bez prahu**) | ⚠️ | Indicators by „stojí za pohled“ ukázal i u návyku na 100 % (je jen poslední) → brát definici s prahem < 50 % |
+| **Pro tebe: doporučení** (`HomeSectionsConcept.tsx:143-174`) | `RecommendationEngine.generateRecommendations(habits, completions, goals, gratitudes)` `src/services/recommendationEngine.ts:64-99` (nejvýš 4, podle priority); volání `PersonalizedRecommendations.tsx:28-51`; texty z `titleKey/descriptionKey/descriptionParams/promptKey` (`:14-43`) | ✅ | prázdné pole = karta se neukáže |
+| **Pro tebe: tlačítko akce** (bez `onPress`, `:208-215`) | `handleRecommendationPress` `PersonalizedRecommendations.tsx:90-108` = jen `router.push` na záložku | ⚠️ | „tlačítko dělá akci doporučení“ appka neumí – jen otevře záložku. Existuje `?quickAction=addSelfPraise` (`journal.tsx:84-91`) pro „zkus pochvalu“; doporučení nese `habitId`/`goalId` (`recommendationEngine.ts:20`, `:40`), ale otevřít konkrétní návyk/cíl je nová cesta. Rozhodnout s Petrem |
+| Pro tebe: „další“ `setIndex(i + 1)` (`:217`) | místní index nad polem z enginu | ✅ | |
+| Přizpůsobení: seznam sekcí `DEFAULT_HOME_SECTIONS` ve `useState` (`HomeConcept.tsx:219-223`; `homeLayoutLogic.ts:37-45`) | `useHomeCustomization().state.preferences.components` (`index.tsx:200-214`), výchozí `defaultHomeComponents` `src/types/homeCustomization.ts:24-95` | ✅ | převod podle bodu 3b |
+| Akce Skrýt / ukázat `toggleSection` (`HomeSectionsConcept.tsx:316`) | `actions.toggleComponentVisibility` `HomeCustomizationContext.tsx:76-86` → `homePreferencesStorage.ts:53-68` | ✅ | |
+| **Akce Přetáhnout** `reorderSections` (`:276-290`) | `actions.reorderComponents(ids)` `HomeCustomizationContext.tsx:88-98` → `homePreferencesStorage.ts:70-85` (`hasCustomOrder: true`) | ⚠️ | (1) **dnes ji nic nevolá** – dnešní okno přizpůsobení řazení nemá (`HomeCustomizationModal.tsx` jen viditelnost `:32` a reset `:52`) → `hasCustomOrder` dnes nemá žádný uživatel; „uživatelovo pořadí“ tedy ještě neexistuje. (2) `reorderComponents` zahodí sekce, které v poli nejsou (`:72-75`), a `mergeHomeComponents` je vrátí s výchozím `visible: true` (`src/utils/homeComponents.ts:25-28`) → nový sheet musí poslat **všechna** id včetně skrytých, jinak se skrytá sekce znovu ukáže |
+| Akce Obnovit výchozí (`:325`) | `actions.resetToDefaults` `HomeCustomizationContext.tsx:124-134` → `homePreferencesStorage.ts:43-51` | ✅ | bez potvrzení (bod 8) |
+| Převod uloženého rozložení `migrateHomeSections` (`homeLayoutLogic.ts:96-120`) | uvnitř `mergeHomeComponents` `homeComponents.ts:18-42` (volá `homePreferencesStorage.ts:15-19`) | ✅ | jedno pravidlo, žádný druhý filtr (karta) |
+| Pulz úvodu na Home | dnes žádný (nic v `src/components/home` ani `index.tsx` nečte `useTutorial`) | ✅ | není co zachovat |
+
+**Rozdíly laboratoř × appka (platí appka)**
+- „x/y“ = jen návyky naplánované dnes (`wasScheduledOnDate`), ne všechny; bonusové návyky dnešní Home neukazuje.
+- Zmrzlá série: `frozenDays` je zbytek dluhu, celkový počet a zaplacené dny dává `getWarmUpPaymentProgress()`; zahřátí = `justUnfrozeToday` na celý den.
+- Statistiky: týden/měsíc dnes kratší u nových uživatelů; rok třídí plán/bonus jinak (součet stejný).
+- „Akce doporučení“ je dnes jen přechod na záložku.
+- Vlastní pořadí sekcí dnes nemá nikdo – řazení přichází s novým sheetem.
+
+**Chybí zdroj (zastavit)** – nic. (Rozhodnutí bez zastavení: bonusové návyky v dnešní sekci, akce doporučení.)
+
+**Sliby, které ověřit**
+- „+N XP dnes“ = `getTodayXP()` (všechny zdroje, po odečtech, nikdy záporné).
+- Bublina „+25“ – skutečné číslo z `xpGained` (bonus 15, násobič, strop).
+- „Jedna reklama = jeden den“ – `warmUpStreakWithAds(1)` (`SQLiteGratitudeStorage.ts:1406-1478`); nad 3 dny dluhu `adsNeededToWarmUp` vrací 0 a nastupuje automatický reset (`:1357-1374`, `:1123`).
+- Přehledy nesmí slibovat „zlepšení“ z dnešního `HabitTrendAnalysis`, dokud není opravené pořadí týdnů.
+
+**Chyby ostré appky nalezené při mapování**
+- `HabitTrendAnalysis.tsx:153` + `:162-164` – celkový trend obráceně (viz tabulka).
+- `HabitPerformanceIndicators.tsx:151`, `:172-198` – „týdenní průměr“ a „vs. minulý týden“: do možných se počítají **všechny aktivní návyky** (ne naplánované) a **i budoucí dny** kalendářního týdne (`getWeekDates()` Po–Ne, `src/utils/date.ts:154-163`) → v pondělí ráno vyjde letošní týden skoro 0 % proti plnému minulému. Sekce v E11 zaniká – jen nepřevzít.
+- `YearlyHabitOverview.tsx:73-75` – „rok“ = celá historie.
+
+---
+
+## E12 – Deník
+
+Zdroj: `JournalConcept.tsx`, `journalParts.tsx`; kulisy `useLabJournal` (`journalMock.tsx`). Cíl: `app/(tabs)/journal.tsx`, `src/components/gratitude/{GratitudeInput,EditGratitudeModal,GratitudeList,DailyGratitudeProgress,DailyMotivationalQuote,StreakWarmUpModal,WarmUpModals}.tsx`.
+
+| Hodnota / akce v laboratoři | Zdroj v ostré appce | Stav | Pozn. |
+|---|---|---|---|
+| Dnešní záznamy `journal.entriesOn(todayKey)` (`JournalConcept.tsx:129-131`) | `actions.getGratitudesByDate(today())` `GratitudeContext.tsx:193-202` (dnes `journal.tsx:39`, `:61-63`) | ✅ | číslo záznamu = `Gratitude.order` (`types/gratitude.ts:7`), počítá ho úložiště (`SQLiteGratitudeStorage.ts:249-264`) a po smazání přečísluje (`:533`) |
+| Série a nejlepší série v kartě Dnes `streak`, `stats.longestStreak` (`:147`, `:331-334`) | `state.streakInfo.currentStreak / longestStreak` | ✅ | série před třetím záznamem dne = běh do včerejška (`calculateStreakWithWarmUp`, `SQLiteGratitudeStorage.ts:1200-1205`) |
+| Třetí záznam = splnění na místě (`TodayCard` `:520-…`) | dnes okno `celebration_daily_complete` `journal.tsx:100-108` | ✅ | R-13: zrušit řazení i typ – výskyty `ModalQueueContext.tsx:52`, `:205`, `CelebrationModal.tsx:23`, `:75`, `:161`, `:220` a test `src/contexts/__tests__/modalQueueOrdering.test.ts:118`, `:129` |
+| Bonusová cesta 4–13 s ⭐🔥👑 `milestoneAt` (`:697-740`; `journalMock.tsx:211-220`) | pozice 4 / 8 / 13 – `SQLiteGratitudeStorage.getMilestoneXP` `:360-367` | ✅ | |
+| Dlaždice „+N XP“ za další záznam `entryXp + milestoneXp` (`:804-846`) | `getXPForJournalEntry` `:388-400` (20/20/20, 8 do 13., od 14. 0) + `getMilestoneXP` (25/50/100) | ⚠️ | čísla sedí, ale je to **slib předem**: násobič částku zvětší; od 14. záznamu nic nekreslit. Skutečné číslo po zápisu z `xpGained` (`metadata.milestoneXp`, `entryPosition` posílá `:308-318`) |
+| Zamčené dlaždice při zmrzlé sérii `startWriting` (`:211-217`, `:905-930`) | `streakInfo.isFrozen` / `frozenDays` | ⚠️ | **Debt Gate žije v komponentě, ne v úložišti:** `GratitudeInput.handleSubmit` `GratitudeInput.tsx:84-118` (`Math.max` uloženého a spočítaného dluhu `:94-97`); `SQLiteGratitudeStorage.create` (`:229-330`) dluh nekontroluje. `GratitudeInput` je cílový soubor E12 (nahradí ho sheet) → pojistku **přenést** do nového sheetu nebo do `createGratitude`, jinak zmizí. Přesměrování `:106-109` se ruší (bod 4) |
+| Ohřátí přímo v Deníku `WarmUpControls` (`:350-354`, `:913-920`) | sdílený hook z E11 (logika dnes `GratitudeStreakCard.tsx:388-576`) | ✅ | viz E11 – po každé platbě obnovit sdílený stav |
+| **Akce Uložit záznam** `journal.add(type, text)` (`:219-240`) | `actions.createGratitude({ content, date: today(), type })` `GratitudeContext.tsx:128-154` → `SQLiteGratitudeStorage.create` `:229` (XP `:308`) | ✅ | validace prázdný / < 3 znaky (`journalParts.tsx:942-947`) = `GratitudeInput.tsx:70-80`; 200 znaků (`journalParts.tsx:857`) = `GratitudeInput.tsx:240` |
+| **Akce Upravit** `journal.edit` (`:226`, nabídka `:462-468`) | `actions.updateGratitude(id, { content })` `GratitudeContext.tsx:156-172` → `SQLiteGratitudeStorage.update` `:406` | ⚠️ | **na záložce Deník dnes úprava ani mazání není** – `<GratitudeList gratitudes={…} />` bez `onEdit/onDelete` (`journal.tsx:371-373`); umí to jen Historie (`journal-history.tsx:89-128`). `EditGratitudeModal` má 500 znaků (`:205`) a nehlídá 3 znaky (`:44-46`) – jeden sheet = sjednotit na pravidla psaní (rozhodnout). Chyba ukazuje `journal.export.error` (`:52`) – karta bod 8 |
+| **Akce Smazat** `journal.remove` → vrací XP poslední pozice (`:242-246`; `journalMock.tsx:412-420`) | `actions.deleteGratitude` `GratitudeContext.tsx:174-191` → `SQLiteGratitudeStorage.delete` `:485` (horní pozice `:523`, přečíslování `:533`, `subtractXP` `:539`) | ✅ | stejné pravidlo; nová akce na záložce (viz řádek výš) |
+| Okno ⭐🔥👑 `setMoment` (`:235-239`, `MilestoneMoment` `:505`) | `journal.tsx:128-148` (okno `celebration_bonus_milestone`, XP natvrdo `:133`) | ✅ | XP z `xpGained` (E10) |
+| Okno série deníku po třetím záznamu | `journal.tsx:109-124` | ⚠️ | **ověřeno – chyba appky (E10 ji měla „ověřit“):** `handleInputSuccess` (`:95-149`) volá `GratitudeInput` ze stejného běhu `handleSubmit`, který začal před uložením (`GratitudeInput.tsx:133`) → v `setTimeout` čte `state.streakInfo` ze záběru **před** zápisem (`journal.tsx:112`); `await actions.refreshStats()` (`:111`) ten záběr nezmění. Série před třetím záznamem = běh do včerejška → okno 7/30/100… přijde **o den později** (8. den s textem „7 dní“). Nový moment číst ze stavu po obnovení |
+| Citát dne `getDailyQuote` + „jiný“ `getRandomQuoteFromCategory` (`:976-1004`) | stejné funkce `src/data/motivationalQuotes.ts:654`, `:693`; dnes `DailyMotivationalQuote.tsx:14-31` | ✅ | |
+| Historie / Statistiky vpravo nahoře (`:302`, `:307`) | `router.push('/journal-history')`, `router.push('/journal-stats')` `journal.tsx:351-363` | ✅ | spodní dvojici tlačítek odstranit (4c) |
+| `?quickAction=addGratitude` / `addSelfPraise` | `journal.tsx:75-93` | ✅ | musí otevřít nový sheet se správným typem |
+| Reklamní pruh pryč s klávesnicí | `journal.tsx:44-55`, `:378-382` | ✅ | zachovat (P30) |
+| Nápověda `HelpLink topic="journalDay"` (`:585`), `"frozen"` (`:910`) | dnes `HelpTooltip` `journal.debtRecovery` a `journal.selfRiseStreak` (`DailyGratitudeProgress.tsx:276`, `:296`) | ⚠️ | nová témata (7.10); `journal.debtRecovery` „nesmí se rozbít“ → převést na téma `frozen` |
+
+**Rozdíly laboratoř × appka (platí appka)**
+- Pojistka dluhu je dnes v `GratitudeInput`, ne v úložišti – při výměně komponenty ji přenést.
+- Úprava a mazání na záložce Deník jsou nové (funkce existují, dnes jen v Historii); limity psaní a úpravy se liší (200/3 × 500/1).
+- „+N XP“ na dlaždici je slib před zápisem; připsané číslo může být vyšší (násobič).
+
+**Chybí zdroj (zastavit)** – nic.
+
+**Sliby, které ověřit**
+- „+20 / +8 / 0 XP“ a ⭐🔥👑 „+25/+50/+100“ → `SQLiteGratitudeStorage.ts:360-400`, výplata `:308`.
+- „Smazání vrátí XP poslední pozice“ → `:523-545`.
+- „Zmrzlá série zamkne psaní“ → jen dokud pojistka v ukládání zůstane (viz výš).
+
+---
+
+## E13 – Historie a statistiky deníku
+
+Zdroj: `JournalHistoryConcept.tsx`, `JournalStatsConcept.tsx`; kulisy `useLabJournal`. Cíl: `app/journal-history.tsx`, `app/journal-stats.tsx`, `src/components/gratitude/StatisticsCard.tsx`.
+
+| Hodnota / akce v laboratoři | Zdroj v ostré appce | Stav | Pozn. |
+|---|---|---|---|
+| Stav dne v kalendáři `journal.dayState(d)` – plno / ★ / rozepsáno / nic (`JournalHistoryConcept.tsx:398-410`; `journalMock.tsx:328-337`) | počty za den z `state.gratitudes` (`GratitudeContext.tsx:11`; `getGratitudesByDate` `:193`) – pravidla ≥ 3 / ≥ 4 jako `getCompletedDates` `SQLiteGratitudeStorage.ts:733-749` a `getBonusDates` `:755-770` | ✅ | |
+| **❄ den zaplacený reklamou** (`'paid'`, `journalMock.tsx:332`) | `state.streakInfo.warmUpPayments` (plní `calculateAndUpdateStreak` `:1267` přes `refreshStats`; `getWarmUpPayments` `:201-219`, `isComplete` = ≥ 1 reklama) | ⚠️ | (1) **`resetStreak` maže všechny platby** (`:1581`) → po „Začít znovu“ i po automatickém resetu ❄ dny z historie zmizí a stuha se v minulosti přetrhne – historie se mění zpětně (rozhodnout, zda to vadí); (2) `getStreak()` vrací `warmUpPayments: []` (`:715`) – číst ze `state.streakInfo` po `refreshStats`, ne ze surového stavu |
+| Stuha série `inStreak` = sousední plné / ❄ dny (`:383-386`, `:405-406`) | odvodit ze stejných dat | ✅ | kresba, ne pravidlo série (neříká „aktuální série“) |
+| Měsíce zpět `MONTHS_BACK = 3` (`:58`, `:329`) | data od prvního záznamu (`state.gratitudes`) | ⚠️ | omezení laboratoře; ostrá historie musí jít až k prvnímu měsíci se záznamem |
+| Panel dne: záznamy (`:110-111`), ‹ › (`:238`, `:250`), „Dnes“ (`:339`) | `getGratitudesByDate(date)`; `navigateDate` `journal-history.tsx:61-72`, `goToToday` `:74-80` | ✅ | |
+| **Hledání** `journal.entries.filter(includes)` (`:84-90`), strop `SEARCH_CAP = 40` (`:57`, `:178`) | `actions.searchGratitudes(term)` `GratitudeContext.tsx:226-233` → `searchByContent` `SQLiteGratitudeStorage.ts:78-92` (bez ohledu na velikost písmen, nad `getAll` řazeným `created_at DESC` `:53`) | ✅ | strop nepřevzít – výsledky ve `FlatList` (audit N9); pozice v dni = `Gratitude.order` |
+| Akce ⋯ Upravit / Smazat v historii | `handleEditGratitude` / `confirmDelete` / `handleEditSuccess` `journal-history.tsx:89-128` → `updateGratitude` / `deleteGratitude` + `forceRefresh` | ✅ | `Alert.alert` `:57`, `:114` → `ProblemNote` (3b) |
+| Statistiky: série a nejlepší (`JournalStatsConcept.tsx:73-75`, `:107-135`) | `state.streakInfo.currentStreak / longestStreak`; text `journal-stats.tsx:57-71` | ✅ | |
+| Celkem záznamů `stats.totalEntries` (`:145-147`) | `state.stats.totalGratitudes` (`getStats` `SQLiteGratitudeStorage.ts:1672-1697` → `count()` `:1608`) | ✅ | |
+| Aktivní dny `stats.activeDays` (`:153-155`) | `state.stats.totalDays` (`getTotalDaysWithGratitude` `:1625-1636`); text `journal.stats.daysWithEntries_one/_other` (`locales/en/index.ts:746-747`) | ✅ | ověřit vykreslený text testem (P29) |
+| Průměr na aktivní den (`:163-166`) | `state.stats.averagePerDay` (`getAverageGratitudesPerDay` `:1642-1658`: průměr přes dny se záznamem, 1 desetinné) | ✅ | stejné jako `journalMock.tsx:370` |
+| Odznaky ⭐🔥👑 a jejich součet (`:172-201`) | `streakInfo.starCount + flameCount + crownCount` (`journal-stats.tsx:73-78`) | ✅ | |
+| **Graf 30 dní** `stats.last30` (`:327-329`) | počty za den: `gratitudeStorage.countByDate` po dnech (`StreakHistoryGraph.tsx:84-91`) nebo seskupení `state.gratitudes` | ✅ | čára cíle 3 = `getCompletedDates` (≥ 3) |
+| Poměr typů (`:786-789`) | `state.gratitudes.filter(g => g.type …)` `journal-stats.tsx:31-40` | ✅ | |
+| Povzbuzení (`:231-240`) | stejné klíče `journal-stats.tsx:297-303` | ✅ | |
+| Načtení čísel | `loadStats` `journal-stats.tsx:42-55` | ⚠️ | `setStats(state.stats)` po `await refreshStats()` (`:45-46`) ukládá **zastaralý** snímek ze záběru a obrazovka se pak už neobnoví (žádný efekt na `state.stats`) – nepřevzít, číst `state.stats` přímo |
+
+**Rozdíly laboratoř × appka (platí appka)**
+- ❄ dny drží jen tabulka plateb, kterou „Začít znovu“ / automatický reset celou maže.
+- Historie bez stropu 3 měsíců; hledání bez stropu 40 (virtualizovaný seznam).
+
+**Chybí zdroj (zastavit)** – nic. (K rozhodnutí: mají ❄ dny po resetu z historie mizet?)
+
+**Sliby, které ověřit**
+- „❄ = den zachráněný reklamou“ – platí jen do příštího resetu série.
+- Text „N dní se záznamem“ – plurál `_one/_other`.
+
+---
+
+## E14 – Cíle: seznam, karta s tempem, rychlý zápis
+
+Zdroj: `GoalsConcept.tsx`, `goalParts.tsx`; kulisy `useLabGoals` (`goalsMock.tsx`). Cíl: `src/screens/goals/GoalsScreen.tsx`, `src/components/goals/{GoalItem,GoalListWithDragAndDrop,GoalList,ProgressModal,ProgressEntryForm}.tsx`.
+
+| Hodnota / akce v laboratoři | Zdroj v ostré appce | Stav | Pozn. |
+|---|---|---|---|
+| Seznam cílů, aktivní / splněné `goals`, `completedOn` (`GoalsConcept.tsx:83-88`) | `useGoalsData()` `src/hooks/useGoalsData.ts:6-24` (`activeGoals`, `completedGoals` podle `GoalStatus`, řazeno `order`) | ✅ | laboratoř dělí podle `completedOn`, appka podle `status` (`src/types/goal.ts:3-8`) |
+| Hodnota `currentValue(goal)` (`goalsMock.tsx:122-133`; `goalParts.tsx:296`) | `Goal.currentValue` (`types/goal.ts:24`; drží ho `updateGoalValue` `src/utils/data.ts:197-240` a `recalculateGoalValue` `SQLiteGoalStorage.ts:745-816`) | ✅ | druh „Messen“ až E16 |
+| Procento `fractionOf` (`goalsMock.tsx:135-140`; `goalParts.tsx:298`) | `currentValue / targetValue` (jako `GoalItem.tsx:106`) | ✅ | smí přes 100 % |
+| **Ikona a barva cíle** `CATEGORY_LOOK` (`goalsMock.tsx:38-48`; `goalColor` `goalParts.tsx:86-89`) | `Goal.category` ano, mapa kategorie → ikona/barva ne | ❌ | stejné jako E10 – přesunout mapu do konstant/tokenů? rozhodne Petr |
+| Zářezy 25/50/75 `goal.paid` nebo procento (`goalParts.tsx:186-190`) | vyplacené milníky jen v tabulce `goal_milestones` (id `${goalId}_xp_${práh}`, zápis `SQLiteGoalStorage.ts:546-549`) – **čtecí funkce není**; „dosaženo“ = procento | ⚠️ | milník odložený denním stropem (`:538-543`) je dosažený, ale nevyplacený; po poklesu pod práh zářez podle procenta zhasne (laboratoř ho drží). „Svítí, když se vyplatil“ = nová čtecí funkce |
+| **Tempo** `paceOf` (`goalsMock.tsx:163-212`; `PaceChip` `goalParts.tsx:98`; ryska plánu `:192-205`) | dnes jen `getGoalStats()` `SQLiteGoalStorage.ts:870-951` (`estimatedCompletionDate`, `isOnTrack`, `timelineStatus`) + `calculateTimelineStatus` `src/utils/goalCalculations.ts:23-64` | ⚠️ | **jiný model:** appka odhaduje z průměru na **den se zápisem** (`averageDaily = totalProgress / uniqueProgressDays` `:914`) a porovná odhad s termínem (pásma ±1 / ±30 dní); laboratoř = přímka start → termín, dny napřed/pozadu, ±3 dny „v plánu“. Karta (R-17) zavádí jednu novou funkci v `goalCalculations.ts` – data pro ni jsou (`startDate`, `targetDate`, `currentValue`, `targetValue`). Pozor: `new Date('YYYY-MM-DD')` v `goalCalculations.ts:45` a `SQLiteGoalStorage.ts:909`, `:935` čte datum jako UTC (posun o den západně od Greenwiche) – nová funkce parsuje místně |
+| Přehled: aktivní / v plánu / hotové (`GoalsConcept.tsx:87-93`) | odvodit z řádků výš | ✅ | |
+| Čára termínů (`:587-690`) | `Goal.targetDate` (`DateString`; úložiště snese i starý tvar `DD.MM.YYYY` `:926-934`) | ✅ | |
+| **Rychlé částky** `goal.quick` (`goalsMock.tsx:74`; `goalParts.tsx:421-431`; vznik `suggestQuick(target)` `GoalComposerConcept.tsx:200-205`) | `Goal` takové pole nemá (`types/goal.ts:19-31`) | ❌ | možnosti: (a) přenést `suggestQuick` jako čistou funkci a počítat z `targetValue` při zobrazení (beze změny dat), (b) ukládat u cíle (změna dat), (c) odvodit z historie zápisů |
+| **Akce rychlý zápis** `goalsState.log(id, value)` (`GoalsConcept.tsx:176-222`) | zopakovat `GoalsScreen.handleSubmitProgress` `:229-275`: `actions.addProgress({ goalId, value, note, date: today(), progressType })` `GoalsContext.tsx:228-266` → `SQLiteGoalStorage.addProgress` `:409-598`; pak `goalStorage.getById` a okno `goal_completion` (`GoalsScreen.tsx:239-256`) | ✅ | karta bod 5 |
+| Zápis „Odečíst“ (`LogSheet` režim `subtract`, `goalParts.tsx:546-552`) | `progressType: 'subtract'` | ⚠️ | **jiné pravidlo XP:** appka za odečet **bere 35 XP** (`SQLiteGoalStorage.ts:477-483`); laboratoř dá 0 a nic nebere |
+| Zápis „Nastavit“ (`LogSheet` režim `set` – ukládá rozdíl `delta`, `goalParts.tsx:546-552`, `:606`) | `progressType: 'set'` (`types/goal.ts:38`; dnešní formulář `ProgressEntryForm.tsx:121-125`) | ⚠️ | laboratoř uloží nastavení jako přičtení (a dá 35 XP); appka zná `'set'` a XP za něj **nedává** (žádná větev `:477-490`), milníky a dokončení ano (`:516`, `:557-590`). Režim mapovat 1:1 na `progressType` |
+| XP za zápis 35, 3× denně `XP_PER_LOG`, `logsToday` (`goalsMock.tsx:103-104`, `:439-455`) | `XP_REWARDS.GOALS.PROGRESS_ENTRY` `src/constants/gamification.ts:48`; strop `MAX_GOAL_TRANSACTIONS_PER_DAY = 3` `src/services/gamification/xpLimits.ts:61`, kontrola `:149-162` | ⚠️ | strop počítá **XP transakce cíle** – zápis i milník sdílí stejné 3 (`:152`); laboratoř počítá jen zápisy a milníky platí mimo strop. Jeden zápis přes dva prahy spotřebuje 3 transakce. Násobič |
+| Milníky 50 / 75 / 100 XP (`goalsMock.tsx:107-114`) | `SQLiteGoalStorage.ts:516-554` (čísla `gamification.ts:49-51`) | ✅ | odklad při stropu viz výš |
+| Dokončení 250 / 350 `completionXp` (`goalsMock.tsx:116-120`) | `goalCompletionXP(targetValue)` `gamification.ts:379-383`; výplata/vrácení `SQLiteGoalStorage.ts:571-584` | ✅ | pravidlo mění E16 (O-8) |
+| **„+35 XP“, milníky a „dnes už bez XP“ v pruhu po zápisu** (`GoalsConcept.tsx:185-217`; `LogResult` `goalsMock.tsx:406-412`) | `addProgress` vrací jen `GoalProgress` (`:409`, `:588`) | ❌ | karta bod 6 / D-4. Pro cestu (b): `xpGained` nese `source` a `sourceId = goalId` (`:484-489`, `:532-536`, `:573-577`), ale **milník nenese práh** (jen popis) a odmítnutý zápis (strop) **nepošle nic** → „dnes už bez XP“ by se odvozovalo z nepřítomnosti události (P49). Cesta (a) = rozšířit návrat úložiště |
+| **Akce Zpět** `goalsState.removeEntry` (`GoalsConcept.tsx:197-201`) | `actions.deleteProgress(id)` `GoalsContext.tsx:268-302` → `SQLiteGoalStorage.deleteProgress` `:658-714` | ⚠️ | (1) za smazaný `'add'` **vždy odečte 35 XP** (`:684-690`), i když zápis kvůli stropu nic nepřinesl – známá hrana N-5.9, kterou Petr přijal jako vzácnou (`technical-guides:Goals.md:625-628`); s ťuknutím + Zpět bude **běžná** (4. ťuk dne + Zpět = −35 XP). `findGrantedXPToReverse` vezme poslední dnešní grant cíle (`gamificationService.ts:1017-1068`, datum `:1125`) – tedy 35 z dřívějšího zápisu. (2) za smazaný `'subtract'` 35 XP **přidá** (`:691-697`). (3) dokončení vrátí `recalculateGoalValue` (`:782-797`), milníky zůstanou ✅ (karta bod 7) |
+| Okno dokončení `setDoneId` (`GoalsConcept.tsx:222`) | `enqueueModal({ type: 'goal_completion' })` `GoalsScreen.tsx:248-255` | ✅ | |
+| Značka `goal_completion_celebrations_shown` (karta bod 5) | zapisuje `GoalsScreen.tsx:257-268` | ⚠️ | **nic ji nečte** (jediný výskyt v `src/`) – zapsat ji jde, ale nic nehlídá; říct Petrovi |
+| „⋯“ Detail / Upravit / Smazat (`GoalsConcept.tsx:436-447`, smazání `:450-463`) | `handleViewGoalStats` `GoalsScreen.tsx:215-217`; `handleEditGoal` `:170-174`; `handleDeleteGoal` `:196-203` → `actions.deleteGoal` `GoalsContext.tsx:212-226` → `SQLiteGoalStorage.delete` `:237-266` (smaže zápisy i `goal_milestones`, XP zůstává) | ✅ | |
+| Akce „+“ nový cíl (`GoalsConcept.tsx:270`) | `handleAddGoal` `GoalsScreen.tsx:153-157`; `?quickAction=addGoal` `:142-151` | ✅ | |
+| Řazení (laboratoř nemá) | `handleReorderGoals` `GoalsScreen.tsx:205-213` → `actions.updateGoalOrder` `GoalsContext.tsx:304` → `SQLiteGoalStorage.updateGoalOrder` `:818` | ✅ | dál přes `ReorderableList` |
+| Panel „Jiné“: datum zápisu | dnešní formulář má volné **textové** pole data (`ProgressEntryForm.tsx:350-357`), `validateForm` ho nekontroluje (`:62-76`) | ⚠️ | laboratoř zapisuje vždy dnes → zpětný zápis zmizí (rozhodnout); dnešní pole přijme i nesmysl |
+| Validace částky > 0 a ≤ `MAX_GOAL_VALUE` (`goalParts.tsx:590-595`) | `ProgressEntryForm.validateForm` `:65-69` (klíče `valueRequired`, `valueTooLarge`) | ✅ | laboratoř má vlastní text `g.tooLarge` → použít `goals.progress.form.errors.valueTooLarge` |
+| Chyby (`ErrorModal` s `error.message`) | `GoalsScreen.tsx:191`, `:200`, `:209`, `:271` | ⚠️ | `error.message` nikdy neukazovat (PREVOD `systemScreens`) |
+
+**Rozdíly laboratoř × appka (platí appka)**
+- Odečet bere 35 XP; „nastavit“ je samostatný typ zápisu bez XP.
+- Denní strop = 3 XP transakce na cíl (zápisy + milníky dohromady).
+- Tempo appky je dnes jiný model (průměr na den se zápisem); nová funkce tempa ho nahrazuje podle R-17.
+- „Zpět“ po zápisu nad stropem vezme 35 XP, které nepřišlo (přijatá hrana N-5.9 – s novým ovládáním častá).
+
+**Chybí zdroj (zastavit)**
+- ❌ Ikona/barva cíle podle kategorie (`CATEGORY_LOOK`) – jen v kulisách (shodně s E10).
+- ❌ Rychlé částky na kartě (`quick`) – appka je nemá.
+- ❌ „+N XP / milníky / dnes už bez XP“ po zápisu – `addProgress` to nevrací (D-4).
+
+**Sliby, které ověřit**
+- „+35 XP“ za zápis jen do 3 XP transakcí na cíl a den (milníky se počítají do stejných 3).
+- „Zpět“ odečte 35 XP vždy – text nesmí slibovat „vrátíme, co jsi dostal“.
+- „Milník +50/+75/+100“ – může se odložit na příští zápis (`:538-543`).
+
+---
+
+## E15 – Cíle: tvorba a úprava, detail
+
+Zdroj: `GoalComposerConcept.tsx`, `GoalDetailConcept.tsx`. Cíl: `GoalModal`, `GoalForm`, `TargetDateStepSelectionModal`, `TargetDateConfirmationModal`, `GoalTemplatesModal`, `app/goal-stats.tsx`, `GoalStatsScreen` a jeho karty.
+
+| Hodnota / akce v laboratoři | Zdroj v ostré appce | Stav | Pozn. |
+|---|---|---|---|
+| Validace názvu, jednotky, cíle, popisu (`GoalComposerConcept.tsx:350-380`) | `GoalForm.validateForm` `src/components/goals/GoalForm.tsx:113-142` (stejná pravidla a klíče) | ⚠️ | funkce je vnitřní v komponentě – „sdílet, nekopírovat“ = vytáhnout ji (jako u návyků v E6); `MAX_GOAL_VALUE` `src/constants/goals.ts:8` |
+| Nápady `IDEAS` (kopie klíčů, `:88-198`) | `useGoalTemplates()` `src/constants/goalTemplates.ts:31` | ⚠️ | šablony **druh nemají** – „Zhubnout“ je dnes počítání 10 kg (`goalTemplates.ts:37-40`), v laboratoři „Messen“ (`:101-104`) → E16 |
+| Termín předvolbami 1/3/6 měsíců, konec roku, bez termínu `presetDate` (`:209-232`) + kalendář | `Goal.targetDate?: DateString` (`types/goal.ts:27`) | ✅ | nové ovládání, stejná data; dnešní tříkrokové okno a potvrzení „bez termínu“ (`GoalForm.tsx:152-157`) zanikají |
+| „To je asi N za týden“ `perWeek` (`:282`, `:519-528`) | odvodit z cíle a termínu | ✅ | nové, bez dat |
+| Druh + počáteční hodnota (`:253-256`, `:631-680`) | v `Goal` není | ⚠️ | E16 (karta přidává) – v E15 volbu nekreslit |
+| Kategorie (`:261-262`, `:760-…`) | `GoalCategory` (`types/goal.ts:10-17`) | ✅ | barva/ikona ❌ viz E14 |
+| **Akce Uložit nový** `onSave(goal, null)` (`:396-402`) | `GoalsScreen.handleSubmitGoal` `:182-194` → `actions.createGoal` `GoalsContext.tsx:153` → `SQLiteGoalStorage.create` `:102-155` | ✅ | |
+| **Akce Uložit úpravu** `onSave(goal, id)` | `actions.updateGoal` `GoalsContext.tsx:194-210` → `SQLiteGoalStorage.update` `:157-236` | ⚠️ | **chyba appky:** změna `targetValue` nepřepočítá stav – snížení pod `currentValue` nechá cíl ACTIVE nad 100 % bez XP za dokončení (až do dalšího zápisu), zvýšení nad hodnotu nechá COMPLETED i s XP. Výplata i vrácení 250/350 se řídí **aktuálním** `targetValue` (`:571`, `:782`) → změna cíle přes hranici 10 000 mezi dokončením a vrácením rozhodí částku (souvisí s E16 3a) |
+| Detail: kruh, hodnota, procento (`GoalDetailConcept.tsx:110-114`) | `getGoalWithStats(goalId)` `useGoalsData.ts:42-52` (dnes `GoalStatsScreen.tsx:25`) | ✅ | trasa `/goal-stats?goalId=` zůstává |
+| Fakta tempa: dní zbývá, potřeba / týden, tvoje / týden, dojezd (`:118-134`) | nová funkce tempa z E14 | ⚠️ | dnešní `estimatedCompletionDate` (`SQLiteGoalStorage.ts:920-938`) počítá jinak (průměr na den se zápisem) a datum píše přes `toISOString` (UTC, `:924`) – nepřebírat |
+| Graf „Ty a plán“ `seriesOf` (`:78-87`) | průběh z `getGoalProgress(goalId)` `useGoalsData.ts:34-36` (zápisy `add/subtract/set` s datem) | ✅ | přehrát stejnými pravidly jako `recalculateGoalValue` (`:752-766`) – **pozor na pořadí zápisů téhož dne** (E16, chyba 1) |
+| Milníky s datem dosažení (`:689-735`) | odvodit z průběhu | ✅ | skutečné datum výplaty je v `goal_milestones.completed_at` (`:546-549`), čtecí funkce není |
+| Historie zápisů (`:136`, `:259-300`) | `getGoalProgress(goalId)`; dnes `ProgressHistoryList` | ✅ | laboratoř zná jen ± rozdíl; zápis `set` v počítaném cíli musí mít vlastní řádek („= 40“) |
+| **„+35 XP“ u zápisu v historii** `entry.xp` (`:291-297`) | zápis XP nenese (`types/goal.ts:33-39`), transakce se k zápisu neváží (`sourceId = goalId`, `SQLiteGoalStorage.ts:484-489`) | ❌ | bez změny dat neukazovat |
+| Akce Smazat zápis `onDeleteEntry` (`:345`) | `GoalStatsScreen` `:38-46` → `goalsActions.deleteProgress` | ✅ | pravidla XP viz E14 „Zpět“; chyba ukazuje text `failedToAddProgress` (`GoalStatsScreen.tsx:44`) – špatný text (drobná chyba appky) |
+| Akce Zapsat / Upravit z detailu (`:208`, `:323`) | stejné cesty jako E14 / řádek „Uložit úpravu“ | ✅ | |
+| Nápověda `HelpLink topic="pace"` (`:185`) | `goals.predictions` žije v `GoalCompletionPredictions.tsx:511`, která zaniká | ⚠️ | nové téma `pace` (7.10) |
+
+**Rozdíly laboratoř × appka (platí appka)**
+- Šablony nemají druh; „Zhubnout“ je dnes počítání.
+- Úprava cílové hodnoty dnes nepřepočítá dokončení.
+
+**Chybí zdroj (zastavit)**
+- ❌ XP u jednotlivého zápisu v historii.
+- (❌ ikona/barva kategorie – viz E14.)
+
+**Sliby, které ověřit**
+- Detail neslibuje odměnu za milník jinou než `gamification.ts:49-53`; „+350“ jen podle `goalCompletionXP` (dnes `targetValue ≥ 10 000`, od E16 podle O-8) – čte ho i `GoalCompletionModal.tsx:205`.
+
+---
+
+## E16 – Cíle: druh „Messen“ (změna dat)
+
+Zdroj: `goalsMock.tsx` (pravidla `kind`, `start`, `fractionOf`, `paceOf`, `log`), `GoalComposerConcept.tsx` (volba druhu), `goalParts.tsx` (`LogSheet` u měření). Mock se nepřevádí – níže je, **co data potřebují a co už existuje**.
+
+| Potřeba (laboratoř) | Co je v ostré appce | Stav | Pozn. |
+|---|---|---|---|
+| Druh cíle `kind: 'count' \| 'measure'` (`goalsMock.tsx:34`, `:66`) | `Goal` ho nemá (`types/goal.ts:19-31`), tabulka `goals` taky ne (`src/services/database/init.ts:288-305`) | ⚠️ | karta přidává |
+| Počáteční hodnota `start` (`goalsMock.tsx:67-68`) | není (`createGoal` dává `currentValue: 0`, `src/utils/data.ts:164-186`) | ⚠️ | karta přidává |
+| Migrace sloupců | vzor `PRAGMA table_info` + `ALTER TABLE goals ADD COLUMN … DEFAULT` (`init.ts:77-105`) | ✅ | `DEFAULT` druh „Hochzählen“ a start 0 → stávající cíle beze změny |
+| Čtení/zápis nových polí | mapování řádku na 3 místech (`SQLiteGoalStorage.ts:37`, `:79`, `:320` – `getAll`, `getById`, `getByStatus`), `INSERT` v `create` (`:122-142`), `UPDATE` (`:202`), `CreateGoalInput` / `UpdateGoalInput` (`types/goal.ts:58-77`) | ⚠️ | všechna doplnit |
+| **Záloha a obnova** („starší zálohy musí jít načíst“) | **v appce není** – export/záloha smazány v auditu Fáze 13 (`src/services/storage/index.ts:11-28`) | ⚠️ | jediná „záloha“ je obnova celého zařízení (soubor databáze) → pokryje ji migrace sloupců při startu. Bod 2 karty upřesnit s Petrem |
+| Marketingová demo data | `marketingDemoDataService.ts:834-850` (`INSERT INTO goals` s vyjmenovanými sloupci), `:864` (`goal_milestones`), `:886` (`goal_progress`) | ⚠️ | `DEFAULT` pokryje; demo „hubnutí“ ale chce druh „Messen“ a start |
+| Zápis naměřené hodnoty (`LogSheet` u měření ukládá čtení, `goalParts.tsx:606`) | `progressType: 'set'` už existuje (`types/goal.ts:38`, CHECK `init.ts:334`, `updateGoalValue` `data.ts:207-208`) | ✅ | |
+| XP za čtení „blíž k cíli“ (`goalsMock.tsx:452-455`) | za `'set'` XP **není** (`SQLiteGoalStorage.ts:477-490`) | ⚠️ | nové pravidlo – rozhodnout. Navíc měsíční výzvy počítají „dny s pokrokem cíle“ z XP události `GOAL_PROGRESS` (`monthlyProgressTracker.ts:584`, `:653-661`) → čtení bez XP se do výzvy nezapočítá |
+| Nula jako cíl i čtení (dluh → 0) (`GoalComposerConcept.tsx:362-374`, `goalParts.tsx:590-595`) | `GoalForm.tsx:130` (`targetValue <= 0` = chyba), `Validator.minValue(targetValue, 0.01)` `src/types/validation.ts:179-180`, `ProgressEntryForm.tsx:65` (`value <= 0` = chyba) | ⚠️ | u „Messen“ povolit 0 |
+| **Pořadí zápisů téhož dne** při přepočtu | `getProgressByGoalId` řadí jen `ORDER BY date DESC` (`SQLiteGoalStorage.ts:387`), `recalculateGoalValue` pole otočí `progress.reverse()` (`:754`) | ⚠️ | **chyba appky (ověřeno):** zápisy jednoho dne se při přepočtu přehrají **v opačném pořadí**, než vznikly. U samých `add` nevadí, u `set` ano – v sqlite3 se stejnou tabulkou a indexem (`init.ts:328-340`) vrací dotaz zápisy dne v pořadí vzniku, `reverse()` je obrátí → „+5, pak =10“ téhož dne vyjde po přepočtu **15 místo 10**. Dnes nastane po smazání nebo úpravě libovolného zápisu (`deleteProgress` `:702`, `updateProgress` `:641-643`). Pro „Messen“ (víc vážení za den) zásadní → řadit i podle `created_at` |
+| Výpočty se startem 0 a směrem nahoru | `addProgress` `:425`, `:468` (procento), `:516` (milníky jen když ne `subtract`), dokončení `updateGoalValue` `data.ts:220`, `:234`; `recalculateGoalValue` `:769`; `getGoalStats` `:915`, `:921` (`remainingValue = target − totalProgress`); `calculateTimelineStatus` `goalCalculations.ts:23`; funkce tempa z E14 | ⚠️ | místa z karty bod 3 sedí. **Mimo úložiště navíc:** `recommendationEngine.ts:304`, `GoalItem.tsx:106` (nahradí E14), `userActivityTracker.ts:582`, trofeje `achievementIntegration.ts:352` (dokončený cíl ≥ 1 000 000) a `:374-409` (největší cíl) – u „Messen“ (např. dluh 1 000 000 → 0, cíl 0) by trofej podle `targetValue` nešla; rozhodnout, zda brát `|cíl − start|` |
+| `getGoalStats.totalProgress` | `'subtract'` bez ořezu na 0 (`:900`), přepočet ořezává (`:760`) | ⚠️ | drobná nesrovnalost – sjednotit při přepisu |
+| **O-8 velký cíl podle úsilí** (≥ 30 dní, ≥ 10 zápisů) | `Goal.startDate` / `completedDate` (`types/goal.ts:28-29`), počet zápisů `getGoalStats().progressEntries` (`:908`) | ✅ | data jsou |
+| O-8: místa dnešního pravidla `≥ 10 000` | `goalCompletionXP(goal.targetValue)` `:571` (výplata i vrácení v `addProgress`), `:782` (výplata i vrácení v `recalculateGoalValue`), `bigGoalsCompleted` `:994` (statistika); zobrazení `GoalCompletionModal.tsx:205` | ⚠️ | tři místa v úložišti sedí s kartou; čtvrtý čtenář je okno |
+| O-8: vrátit přesně vyplacené | transakce dokončení existuje (`source = GOAL_COMPLETION`, `sourceId = goal.id`, `:573-577`); hledání `findGrantedXPToReverse` je soukromé a **jen pro dnešek** (`gamificationService.ts:1017-1068`, datum `:1125`) | ⚠️ | **dnešní asymetrie:** zruší-li se dokončení jiný den, odečte se základ podle **aktuálního** cíle – dokončení pod násobičem (např. 500) pak vrátí jen 250. Pro O-8 buď hledání bez data, nebo uložit vyplacenou částku u cíle (karta) |
+| Tempo a pokrok směrem dolů (84,6 → 78 kg) | `fractionOf` a `paceOf` laboratoře počítají s rozpětím `target − start` (`goalsMock.tsx:135-140`, `:163-212`) | ✅ | pravidlo laboratoře je hotové; patří do funkce tempa (E14) |
+| Šablona „Zhubnout“ | `goalTemplates.ts:37-40` (počítání, 10 kg) | ⚠️ | rozhodnout, zda se stane „Messen“ |
+| Cíl z úvodu | `goalDraft.ts:28-40`, `FirstGoalScreen` | ✅ | zůstává „Hochzählen“ (DEFAULT) |
+| Testy migrace | `src/services/database/__tests__/`, `src/services/storage/__tests__/sqliteGoalStorage.progressXP.test.ts` (umí `add/subtract/set`, `:50`) | ✅ | rozšířit podle karty |
+
+**Rozdíly laboratoř × appka (platí appka)**
+- „Měření“ = existující typ zápisu `set`, ale bez XP a bez započtení do měsíční výzvy.
+- Nula jako cíl / čtení je dnes všude zakázaná.
+
+**Chybí zdroj (zastavit)** – nic mimo to, co karta sama přidává (druh, start). **Zastavit kvůli kartě:** plán migrace Petrovi před prvním řádkem kódu; navíc rozhodnout XP za čtení, trofeje „milion“ u Messen, šablonu „Zhubnout“, výklad „zálohy“.
+
+**Sliby, které ověřit**
+- „Stávající cíle beze změny“ – jen s `DEFAULT` hodnotami a nezměněnými výpočty pro „Hochzählen“ (testy XP pravidel).
+- „+350 za velký cíl“ – po O-8 podle úsilí; vrácení musí sedět i jiný den a pod násobičem.
+
+**Chyby ostré appky nalezené při mapování (E14–E16)**
+1. `SQLiteGoalStorage.ts:387` + `:754` – zápisy téhož dne se při přepočtu přehrají obráceně (`set` + `add` → špatná hodnota). Ověřeno v sqlite3.
+2. `SQLiteGoalStorage.update` `:157-236` – změna cílové hodnoty nepřepočítá dokončení.
+3. Zrušení dokončení jiný den vrátí základ podle aktuálního cíle, ne vyplacenou částku (`gamificationService.ts:1125`).
+4. Značka `goal_completion_celebrations_shown` se jen zapisuje.
+5. `GoalStatsScreen.tsx:44` – chyba mazání zápisu ukazuje text „nepodařilo se přidat“.
+6. `ProgressEntryForm.tsx:350-357` – datum zápisu je nekontrolovaný text.
+
+---
+
+## Události pro E11–E16
+
+| Událost | Kde | Co s ní |
+|---|---|---|
+| `xpGained` | posílá `gamificationService.ts:2493` (i záporně při odečtu `:1262`) | E11 obnova čipu „dnes“; E14 cesta (b) k číslům po zápisu – cíle mají `sourceId = goalId`, milník bez prahu, odmítnutý zápis bez události |
+| `openHomeCustomization` | `DeviceEventEmitter` `index.tsx:61-72`, `:305` (není v `appEvents.ts`) | zachovat (karta E11) |
+| `monthly_progress_updated` | posluchač `index.tsx:137-155` | karta výzvy na Home (do E17 beze změny) |
+| platba ohřátí | **žádná událost**; Home a Deník sdílejí jen `GratitudeContext.state` | hook z E11 musí po platbě zavolat `refreshStats` (viz E11) |
+
+---
+
 ## Události – co už existuje a co karty přidávají
 
 | Událost | Existuje | Posílá | Poslouchá dnes | Co s ní E5–E10 |
@@ -282,3 +568,9 @@ Zdroj: `goalParts.tsx` (`GoalDoneMoment`), `journalParts.tsx` (`MilestoneMoment`
 | E8 | 8 | 4 | 0 | 52/75 trofejí = velké okno; XP z `xpGained`; časové okno sběrače (kombo, trofeje v nečinnosti) |
 | E9 | 19 | 5 | 0 | názvy zdrojů násobiče; událost návratu a klíč D-9 přidává karta |
 | E10 | 13 | 6 | 1 | ikona cíle podle kategorie jen v kulisách; dnešní okno cíle ukazuje 250 místo 350 |
+| E11 | 25 | 14 | 0 | „x/y“ jen z naplánovaných; sdílený stav ohřátí potřebuje obnovu po každé platbě; trend 4 týdnů v appce obráceně; vlastní pořadí sekcí dnes nemá nikdo; akce doporučení = jen záložka |
+| E12 | 12 | 5 | 0 | Debt Gate žije v `GratitudeInput` (přenést); úprava/mazání na záložce nové; okno série chodí o den později (chyba appky) |
+| E13 | 13 | 3 | 0 | ❄ dny mizí s každým resetem série (maže platby); historie bez stropu 3 měsíců |
+| E14 | 12 | 9 | 3 | ikona/barva kategorie, rychlé částky a čísla po zápisu (D-4) bez zdroje; odečet bere 35 XP; „Zpět“ nad stropem bere 35 XP |
+| E15 | 10 | 6 | 1 | XP u zápisu v historii bez zdroje; úprava cíle nepřepočítá dokončení |
+| E16 | 6 | 13 | 0 | „set“ existuje, ale bez XP; pořadí zápisů téhož dne v přepočtu obráceně (chyba appky); záloha v appce není; vrácení O-8 jen „dnes“ |
