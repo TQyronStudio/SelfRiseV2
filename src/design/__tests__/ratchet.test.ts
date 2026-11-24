@@ -55,6 +55,11 @@ const CONVERTED: readonly string[] = [
   'src/services/xpDisplay/xpLedger.ts',
   'src/services/xpDisplay/xpOriginRegistry.ts',
   'src/services/xpDisplay/multiplierDisplay.ts',
+  // E8 (part 1) – one action, one moment: pure rules, the queue's ordering rule
+  'src/services/moments/moments.ts',
+  'src/services/moments/momentRules.ts',
+  'src/services/levels/levelsJourney.ts',
+  'src/contexts/modalQueueOrdering.ts',
   'src/constants/feel.ts',
   'src/services/feelService.ts',
 ];

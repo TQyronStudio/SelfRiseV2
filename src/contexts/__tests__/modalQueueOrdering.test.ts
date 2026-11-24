@@ -19,7 +19,9 @@
 //
 // RULE: priority orders what is WAITING; it must never yank the modal on screen.
 //
-// These tests pin the reducer logic used by ModalQueueContext.enqueue().
+// These tests pin the rule ModalQueueContext.enqueue() uses (modalQueueOrdering.ts).
+
+import { insertModal } from '../modalQueueOrdering';
 
 interface QueuedModal {
   id: string;
@@ -28,24 +30,12 @@ interface QueuedModal {
   timestamp: number;
 }
 
-const byPriority = (a: QueuedModal, b: QueuedModal) => {
-  if (a.priority !== b.priority) return a.priority - b.priority;
-  return a.timestamp - b.timestamp;
-};
-
-/** Mirrors the enqueue() reducer in ModalQueueContext. */
-function enqueue(
+/** THE rule of ModalQueueContext.enqueue() (no longer a copy, E8 step 3). */
+const enqueue = (
   prev: QueuedModal[],
   newModal: QueuedModal,
   presentedId: string | null
-): QueuedModal[] {
-  const head = prev[0];
-  const headIsPresented = head !== undefined && presentedId === head.id;
-
-  return headIsPresented
-    ? [head, ...[...prev.slice(1), newModal].sort(byPriority)]
-    : [...prev, newModal].sort(byPriority);
-}
+): QueuedModal[] => insertModal(prev, newModal, presentedId);
 
 let seq = 0;
 const modal = (type: string, priority: number): QueuedModal => ({

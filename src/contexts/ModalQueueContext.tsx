@@ -19,6 +19,7 @@
  */
 
 import React, { createContext, useContext, useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import { insertModal } from './modalQueueOrdering';
 import { DeviceEventEmitter } from 'react-native';
 import CelebrationModal from '../components/gratitude/CelebrationModal';
 import { AchievementCelebrationModal } from '../components/achievements/AchievementCelebrationModal';
@@ -132,32 +133,9 @@ export const ModalQueueProvider: React.FC<ModalQueueProviderProps> = ({ children
         }
       }
 
-      // Sort by priority (lower = first), stable by timestamp within a priority.
-      const byPriority = (a: QueuedModal, b: QueuedModal) => {
-        if (a.priority !== b.priority) return a.priority - b.priority;
-        return a.timestamp - b.timestamp;
-      };
-
-      // 🔒 THE HEAD IS PINNED ONCE IT IS ON SCREEN.
-      //
-      // The renderer draws queue[0] as <Modal visible> keyed by its id. If a
-      // later, higher-priority modal is sorted in FRONT of a head that React has
-      // already committed, that head is unmounted and a different modal mounted in
-      // the SAME frame — iOS gets a dismiss racing a present and the whole UI
-      // freezes. Exactly what happened on the 10th bonus entry: a level-up modal was
-      // already presented when the (priority 1) bonus-milestone celebration arrived a
-      // second later, displaced it, and locked the app.
-      //
-      // So a new arrival may only be sorted among the PENDING tail. Priority still
-      // fully decides the order of everything not yet shown — including a burst of
-      // enqueues in one tick, where nothing has been committed yet and the whole
-      // queue is still free to reorder.
-      const head = prev[0];
-      const headIsPresented = head !== undefined && presentedIdRef.current === head.id;
-
-      const updated = headIsPresented
-        ? [head, ...[...prev.slice(1), newModal].sort(byPriority)]
-        : [...prev, newModal].sort(byPriority);
+      // Priority orders what is WAITING; the window on screen is never yanked
+      // (it froze iOS — the full story in modalQueueOrdering.ts).
+      const updated = insertModal(prev, newModal, presentedIdRef.current);
 
       console.log(`📋 ModalQueue: ${updated.length} items - [${updated.map(m => m.type).join(', ')}]`);
       return updated;
