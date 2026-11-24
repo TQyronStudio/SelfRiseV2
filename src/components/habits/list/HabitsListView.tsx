@@ -46,6 +46,7 @@ import {
   AppText,
   Chip,
   chipColors,
+  DetailRect,
   IntroProvider,
   ProgressBar,
   Rise,
@@ -82,7 +83,8 @@ interface HabitsListViewProps {
     date: string,
     isBonus: boolean
   ) => Promise<void>;
-  onOpenStats: (habitId: string) => void;
+  /** Opens the habit's detail; `origin` = the card's rectangle in the window (null if unknown). */
+  onOpenStats: (habitId: string, origin: DetailRect | null) => void;
   onEdit: (habit: Habit) => void;
   onToggleActive: (habitId: string, isActive: boolean) => void;
   onDelete: (habitId: string) => void;
@@ -233,10 +235,28 @@ function HabitsListContent({
       .onToggleCompletion(id, latest.current.today, kind === 'bonus')
       .finally(() => inFlight.current.delete(id));
   }, []);
-  const open = useCallback((id: string) => {
-    feel('tap');
-    latest.current.onOpenStats(id);
+  // Where each card is, so its detail grows out of it (DetailFrame).
+  const cardRefs = useRef(new Map<string, View | null>());
+  const openFromCard = useCallback((id: string) => {
+    const card = cardRefs.current.get(id);
+    if (!card) {
+      latest.current.onOpenStats(id, null);
+      return;
+    }
+    card.measureInWindow((x, y, width, height) =>
+      latest.current.onOpenStats(
+        id,
+        width > 0 ? { x, y, width, height } : null
+      )
+    );
   }, []);
+  const open = useCallback(
+    (id: string) => {
+      feel('tap');
+      openFromCard(id);
+    },
+    [openFromCard]
+  );
   const [sheetFor, setSheetFor] = useState<string | null>(null);
   const more = useCallback((id: string) => setSheetFor(id), []);
   const resume = useCallback(
@@ -285,7 +305,14 @@ function HabitsListContent({
         : null;
     const done = doneToday(habit.id, completions, today);
     return (
-      <View key={habit.id} style={styles.cardGap}>
+      <View
+        key={habit.id}
+        style={styles.cardGap}
+        ref={view => {
+          cardRefs.current.set(habit.id, view);
+        }}
+        collapsable={false}
+      >
         <HabitCard
           id={habit.id}
           name={habit.name}
@@ -490,7 +517,7 @@ function HabitsListContent({
           paused={!sheetHabit.isActive}
           bottomInset={bottomInset}
           onClose={() => setSheetFor(null)}
-          onCalendar={() => onOpenStats(sheetHabit.id)}
+          onCalendar={() => openFromCard(sheetHabit.id)}
           onEdit={() => onEdit(sheetHabit)}
           onTogglePause={() =>
             onToggleActive(sheetHabit.id, !sheetHabit.isActive)

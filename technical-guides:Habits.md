@@ -377,7 +377,24 @@ návyku (uživatel si může vybrat i žlutou a červenou – R-11):
 - „⋯“ (R-4c) nahrazuje čtyři tlačítka řádku: kalendář a statistiky, upravit, pozastavit / obnovit,
   smazat (s potvrzením `ConfirmSheet`). Karta je `React.memo` – odškrtnutí překreslí jen svou kartu.
 - Pulz úvodu: obrazovka 3 úvodu, jen pojmenovaný návyk (jinak všechny neodškrtnuté) – stejně jako dřív.
-- Režim řazení, tvorba a úprava a ťuk na kartu (stará trasa statistik) zůstávají do E6 postaru.
+- Režim řazení a tvorba a úprava zůstávají do dalších bodů E6 postaru.
+
+**Detail návyku (migrace E6 bod 1, 2026-11-24)** – `src/components/habits/detail/HabitDetail.tsx`:
+- Ťuk na kartu (i „⋯ → Kalendář a statistiky“) **nevede na trasu `habit-stats`**: karta změří svou polohu
+  (`measureInWindow`) a detail z ní vyroste (`DetailFrame`); `HabitsScreen` ji přepočte na svůj rámeček.
+  Trasa a její soubory (`IndividualHabitStatsScreen`, starý `HabitCalendarView` se „zlatou fajfkou“ a jeho
+  nápověda `help.habits.makeupFunction`) jsou z Návyků nedosažitelné a mažou se v E26.
+- Kalendář měsíce: stavy z `dayStatuses()` (stejné párování jako seznam). Splněno ✓ a nahrazení ↺ v barvě
+  návyku, bonus ★ se zlatým lemem, **vynechaný = červený × na neutrální dlaždici bez kroužku**, zachráněný =
+  kroužek v barvě návyku, pauza ⏸ – každý stav má symbol, nikdy jen barvu. Čárkovaný oblouček spojí den
+  nahrazení se zachráněným dnem; překrývající se páry jdou na druhou stranu řádku.
+- Ťuk na den řekne slovy, co se stalo (`habits.dayStatus.*`); čtečka čte totéž u každého dne.
+- **Série v detailu se počítá v NAPLÁNOVANÝCH dnech** (`planStreaks`, rozhodnuto 2026-11-24): splněný nebo
+  zachráněný plánovaný den +1, vynechaný ji ukončí; dny mimo plán, pauza a dnešek, dokud běží, ji
+  nepřeruší. Úspěšnost = `keptRate` za 30 dní (zachráněný = splněný; bez plánu „–“, nikdy vymyšlených 100 %).
+  `useHabitsData().getHabitStats` (kalendářní dny) dál slouží starým místům.
+- Pravidlo nahrazování je tiché „i“ u legendy (`HelpLink`, `src/components/ui/help.tsx`, texty
+  `help.rules.makeUp` – jeden zdroj se stránkou „Jak SelfRise funguje“ v E22).
 
 **Staré obrazovky (kalendář a grafy do jejich etapy):** zelená = splněno nebo den navíc (`isConverted`),
 zlatá = skutečný bonus, červená = vynechaný den, modrá tečka = zachráněný den (`isCovered`).

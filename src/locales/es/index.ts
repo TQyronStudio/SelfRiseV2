@@ -3375,7 +3375,7 @@ const es: Partial<TranslationKeys> = {
     rules: {
       makeUp: {
         title: 'Un día extra recupera uno perdido',
-        text: '¿Hiciste un hábito un día que no estaba programado? Cubre un día programado que perdiste en la misma semana, de lunes a domingo, uno por uno. El día salvado aparece como un anillo, unido a su día de recuperación por un corchete debajo.',
+        text: '¿Hiciste un hábito un día que no estaba programado? Cubre un día programado que perdiste en la misma semana, de lunes a domingo, uno por uno. El día salvado aparece como un anillo, unido al día que lo recuperó.',
       },
     },
     allRules: 'Todas las reglas',

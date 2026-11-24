@@ -8,6 +8,9 @@ import {
   dayStatuses,
   dotLook,
   doneToday,
+  keptRate,
+  monthLayout,
+  planStreaks,
   makeupLinks,
   sameCardProps,
   pausedDays,
@@ -255,5 +258,61 @@ describe('sameCardProps()', () => {
     expect(sameCardProps(card(), card({ onToggle: () => undefined }))).toBe(
       false
     );
+  });
+});
+
+describe('planStreaks() — the streak in planned days (E6)', () => {
+  const statusMap = (kinds: string[], start = '2026-11-02') => {
+    const days: string[] = [];
+    const map = new Map<string, { kind: any }>();
+    const d = new Date(2026, 10, Number(start.slice(8)));
+    kinds.forEach(kind => {
+      const key = `2026-11-${String(d.getDate()).padStart(2, '0')}`;
+      days.push(key);
+      map.set(key, { kind });
+      d.setDate(d.getDate() + 1);
+    });
+    return { days, map };
+  };
+
+  it('a Mon/Wed/Fri habit kept all week has a streak of 3, not 1', () => {
+    const { days, map } = statusMap(['done', 'none', 'done', 'none', 'done', 'none', 'none']);
+    expect(planStreaks(days, map)).toEqual({ current: 3, best: 3 });
+  });
+
+  it('a rescued day keeps the streak, a missed one ends it', () => {
+    const { days, map } = statusMap(['done', 'covered', 'makeup', 'done', 'missed', 'done']);
+    expect(planStreaks(days, map)).toEqual({ current: 1, best: 3 });
+  });
+
+  it('today still open, a pause and a bonus day never break it', () => {
+    const { days, map } = statusMap(['done', 'paused', 'bonus', 'done', 'todayOpen']);
+    expect(planStreaks(days, map)).toEqual({ current: 2, best: 2 });
+  });
+});
+
+describe('keptRate()', () => {
+  const map = new Map([
+    ['a', { kind: 'done' as const }],
+    ['b', { kind: 'covered' as const }],
+    ['c', { kind: 'missed' as const }],
+    ['d', { kind: 'bonus' as const }],
+    ['e', { kind: 'todayOpen' as const }],
+  ]);
+  it('counts rescued days as kept and leaves bonus and today out', () => {
+    expect(keptRate(['a', 'b', 'c', 'd', 'e'], map)).toBe(67);
+  });
+  it('is null with nothing planned — no made-up 100 %', () => {
+    expect(keptRate(['d', 'e'], map)).toBeNull();
+  });
+});
+
+describe('monthLayout()', () => {
+  it('starts the week on Monday', () => {
+    // 1 Nov 2026 is a Sunday → six empty cells before it.
+    const { days, lead } = monthLayout(2026, 10);
+    expect(lead).toBe(6);
+    expect(days).toHaveLength(30);
+    expect(days[0]).toBe('2026-11-01');
   });
 });

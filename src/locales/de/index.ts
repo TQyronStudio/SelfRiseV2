@@ -3375,7 +3375,7 @@ const de: Partial<TranslationKeys> = {
     rules: {
       makeUp: {
         title: 'Ein zusätzlicher Tag gleicht einen verpassten aus',
-        text: 'Du hast eine Routine an einem ungeplanten Tag erledigt? Sie gleicht einen verpassten geplanten Tag derselben Woche aus, Montag bis Sonntag, eins zu eins. Der gerettete Tag erscheint als Ring, mit seinem Nachholtag durch eine Klammer darunter verbunden.',
+        text: 'Du hast eine Routine an einem ungeplanten Tag erledigt? Sie gleicht einen verpassten geplanten Tag derselben Woche aus, Montag bis Sonntag, eins zu eins. Der gerettete Tag erscheint als Ring, verbunden mit dem Tag, der ihn nachgeholt hat.',
       },
     },
     allRules: 'Alle Regeln',

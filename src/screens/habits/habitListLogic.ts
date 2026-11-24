@@ -295,3 +295,72 @@ function sameWeek(a: DayStatus[], b: DayStatus[]): boolean {
     a.every((s, i) => s.kind === b[i]?.kind && s.pairKey === b[i]?.pairKey)
   );
 }
+
+// ---------------------------------------------------------------------------
+// Habit detail (migration E6)
+// ---------------------------------------------------------------------------
+
+/**
+ * A habit's streak counted in PLANNED days (E6, decided 2026-11-24): a planned
+ * day kept — done, or rescued by a make-up — adds one; a missed planned day ends
+ * it; days off the plan, paused days and today while it still runs leave it as
+ * it is. The app's calendar-day streak (useHabitsData) would show at most 1 for a
+ * Mon/Wed/Fri habit and 0 every morning.
+ *
+ * `statuses` = dayStatuses() of the days from the habit's creation to today,
+ * oldest first.
+ */
+export function planStreaks(
+  days: DateString[],
+  statuses: Map<DateString, DayStatus>
+): { current: number; best: number } {
+  let run = 0;
+  let best = 0;
+  for (const day of days) {
+    const kind = statuses.get(day)?.kind;
+    if (kind === 'done' || kind === 'covered') {
+      run++;
+      if (run > best) best = run;
+    } else if (kind === 'missed') {
+      run = 0;
+    }
+  }
+  return { current: run, best };
+}
+
+/**
+ * Share of planned days kept over the last `span` days (today excluded while it
+ * runs): kept = done or rescued; planned = kept + missed. null when nothing was
+ * planned — the detail shows a dash, never a made-up 100 %.
+ */
+export function keptRate(
+  days: DateString[],
+  statuses: Map<DateString, DayStatus>
+): number | null {
+  let kept = 0;
+  let planned = 0;
+  for (const day of days) {
+    const kind = statuses.get(day)?.kind;
+    if (kind === 'done' || kind === 'covered') {
+      kept++;
+      planned++;
+    } else if (kind === 'missed') {
+      planned++;
+    }
+  }
+  return planned === 0 ? null : Math.round((kept / planned) * 100);
+}
+
+/** The month grid: the month's days and how many empty cells precede day 1 (weeks start Monday). */
+export function monthLayout(year: number, month: number): {
+  days: DateString[];
+  lead: number;
+} {
+  const first = new Date(year, month, 1);
+  const count = new Date(year, month + 1, 0).getDate();
+  const days: DateString[] = [];
+  for (let d = 1; d <= count; d++) {
+    days.push(formatDateToString(new Date(year, month, d)));
+  }
+  return { days, lead: (first.getDay() + 6) % 7 };
+}

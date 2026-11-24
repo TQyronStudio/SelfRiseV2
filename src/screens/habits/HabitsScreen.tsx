@@ -1,10 +1,12 @@
 // src/screens/habits/HabitsScreen.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RoundButton, TopRow } from '@/src/components/ui/TopRow';
 import { HabitsListView } from '@/src/components/habits/list/HabitsListView';
+import { HabitDetail } from '@/src/components/habits/detail/HabitDetail';
+import { DetailRect } from '@/src/components/ui';
 import { useFocusEffect } from '@react-navigation/native';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -178,9 +180,38 @@ export function HabitsScreen() {
     }
   };
 
-  const handleViewHabitStats = (habitId: string) => {
-    router.push(`/habit-stats?habitId=${habitId}` as any);
+  // The habit detail grows out of its card (E6; replaces the habit-stats route,
+  // whose files go in E26). Origin in the window → relative to this screen.
+  const rootRef = useRef<View>(null);
+  const [pageSize, setPageSize] = useState({ width: 0, height: 0 });
+  const [detail, setDetail] = useState<{
+    habitId: string;
+    origin: DetailRect;
+  } | null>(null);
+  const handleViewHabitStats = (
+    habitId: string,
+    origin: DetailRect | null = null
+  ) => {
+    const fallback = {
+      x: pageSize.width / 2 - 40,
+      y: pageSize.height / 3,
+      width: 80,
+      height: 80,
+    };
+    if (!origin || !rootRef.current) {
+      setDetail({ habitId, origin: fallback });
+      return;
+    }
+    rootRef.current.measureInWindow((px, py) =>
+      setDetail({
+        habitId,
+        origin: { ...origin, x: origin.x - px, y: origin.y - py },
+      })
+    );
   };
+  const detailHabit = detail
+    ? habits.find(h => h.id === detail.habitId)
+    : undefined;
 
   // Přepnutí inline edit/reorder módu (stejné chování na iOS i Android)
   const handleEditPress = () => {
@@ -188,7 +219,19 @@ export function HabitsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
+    <SafeAreaView
+      ref={rootRef}
+      style={styles.container}
+      edges={[]}
+      onLayout={e => {
+        const { width, height } = e.nativeEvent.layout;
+        setPageSize(prev =>
+          prev.width === width && prev.height === height
+            ? prev
+            : { width, height }
+        );
+      }}
+    >
       {/* Top row: the level badge comes in E7; the screen's buttons on the right. */}
       <TopRow>
         {isEditMode ? (
@@ -243,10 +286,21 @@ export function HabitsScreen() {
         />
       )}
 
-      {/* AdMob Banner - Fixed at bottom */}
+      {detail && detailHabit && pageSize.width > 0 && (
+        <HabitDetail
+          habit={detailHabit}
+          origin={detail.origin}
+          size={pageSize}
+          bottomInset={BANNER_ROOM}
+          onClosed={() => setDetail(null)}
+        />
+      )}
+
+      {/* AdMob Banner - Fixed at bottom — stays above the detail */}
       <View style={styles.bannerContainer}>
         <AdBanner />
       </View>
+
 
       <HabitModal
         visible={modalVisible}

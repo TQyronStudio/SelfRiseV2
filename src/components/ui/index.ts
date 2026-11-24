@@ -19,3 +19,4 @@ export * from './dragToCloseLogic';
 export * from './sheets';
 export * from './DetailFrame';
 export * from './windowFrame';
+export * from './help';

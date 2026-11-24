@@ -3401,7 +3401,7 @@ const en: TranslationKeys = {
     rules: {
       makeUp: {
         title: 'An extra day makes up for a missed one',
-        text: 'Did a habit on a day it wasn’t planned? It covers a planned day you missed in the same week, Monday to Sunday, one for one. The saved day shows as a ring, linked to its make-up day by a bracket below.',
+        text: 'Did a habit on a day it wasn’t planned? It covers a planned day you missed in the same week, Monday to Sunday, one for one. The saved day shows as a ring, linked to the day that made it up.',
       },
     },
     allRules: 'All the rules',
