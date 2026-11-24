@@ -327,10 +327,52 @@ export interface TranslationKeys {
     };
     schedule: {
       everyDay: string;
+      weekdays: string;
+      weekends: string;
     };
     actions: {
       calendarStats: string;
       pause: string;
+    };
+    // New look (migration E6)
+    detail: {
+      currentStreak: string,
+      bestStreak: string,
+      rate: string,
+      previousMonth: string,
+      nextMonth: string,
+      tapHint: string,
+    };
+    dayStatus: {
+      done: string,
+      makeup: string,
+      covered: string,
+      bonus: string,
+      paused: string,
+      planned: string,
+      todayOpen: string,
+      none: string,
+    };
+    composer: {
+      title: string,
+      editTitle: string,
+      placeholder: string,
+      previewName: string,
+      ideas: string,
+      create: string,
+    };
+    reorderMode: {
+      hint: string,
+    };
+    colors: {
+      red: string,
+      blue: string,
+      green: string,
+      yellow: string,
+      purple: string,
+      orange: string,
+      pink: string,
+      teal: string,
     };
     title: string;
     addHabit: string;
@@ -2286,6 +2328,13 @@ export interface TranslationKeys {
 
   // Help system
   help: {
+    topics: {
+      makeUp: string;
+    };
+    rules: {
+      makeUp: { title: string; text: string; };
+    };
+    allRules: string;
     howItWorksIntro: string;
     sections: {
       habits: string;

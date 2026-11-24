@@ -25,6 +25,9 @@ Každé rozhodnutí lze zvrátit – stačí říct.
 
 **E6 (Petr):** 1 nápověda podle nového značení (kroužek + závorka) – i živá `help.habits.makeupFunction` („zlatá fajfka“ pryč) ·
 2 jen jedna karta pravidla · 3 jedno slovo „Scheduled“ · 4 jména 8 barev hned · 5 „Edit habit“ / „Save“ · 6 DE „Neu ordnen“.
+✅ **Texty E6 v locales 2026-11-24** (hlídá `src/locales/__tests__/habitsDetailCopy.test.ts`). Jedna karta = zůstává tiché „i“
+s oknem pravidla (`help.rules.makeUp`, jeden zdroj s E22, plán 7.10); karta `habits.detail.explainTitle/Body` se nezakládá.
+Nadpis úpravy `habits.composer.editTitle` („Edit habit“ větou), tlačítko existující `common.save`.
 
 **E7.** 1 DE zůstává „LEVEL UP“ (appka říká „Level“), ES „NUEVO NIVEL · 16“ – „LEVEL UP“ ve španělské appce nikde není.
 

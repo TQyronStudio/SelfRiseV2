@@ -516,10 +516,52 @@ const en: TranslationKeys = {
     },
     schedule: {
       everyDay: 'Every day',
+      weekdays: 'Weekdays',
+      weekends: 'Weekends',
     },
     actions: {
       calendarStats: 'Calendar & stats',
       pause: 'Pause',
+    },
+    // New look (migration E6)
+    detail: {
+      currentStreak: 'Current streak',
+      bestStreak: 'Best streak',
+      rate: 'Completion',
+      previousMonth: 'Previous month',
+      nextMonth: 'Next month',
+      tapHint: 'Tap a day to see what happened',
+    },
+    dayStatus: {
+      done: 'Done',
+      makeup: 'Make-up — covers {{day}}',
+      covered: 'Missed — made up on {{day}}',
+      bonus: 'Bonus — an extra day',
+      paused: 'Paused — never counted as missed',
+      planned: 'Scheduled',
+      todayOpen: 'Today — still open',
+      none: 'Not planned',
+    },
+    composer: {
+      title: 'New habit',
+      editTitle: 'Edit habit',
+      placeholder: 'What will you do?',
+      previewName: 'Your new habit',
+      ideas: 'Start from an idea',
+      create: 'Create habit',
+    },
+    reorderMode: {
+      hint: 'Hold a handle and drag. The new order shows on every screen.',
+    },
+    colors: {
+      red: 'Red',
+      blue: 'Blue',
+      green: 'Green',
+      yellow: 'Yellow',
+      purple: 'Purple',
+      orange: 'Orange',
+      pink: 'Pink',
+      teal: 'Teal',
     },
     title: 'My Habits',
     addHabit: 'Add Habit',
@@ -3352,6 +3394,17 @@ const en: TranslationKeys = {
 
   // Help system
   help: {
+    // Help rules of the new look (migration E6, 7.10) — one source for the sheet and the rules page
+    topics: {
+      makeUp: 'How missed days are made up',
+    },
+    rules: {
+      makeUp: {
+        title: 'An extra day makes up for a missed one',
+        text: 'Did a habit on a day it wasn’t planned? It covers a planned day you missed in the same week, Monday to Sunday, one for one. The saved day shows as a ring, linked to its make-up day by a bracket below.',
+      },
+    },
+    allRules: 'All the rules',
     howItWorksIntro: 'Everything below is something the app does for you that you cannot see on screen. The obvious parts are not here.',
     sections: {
       habits: 'Habits',

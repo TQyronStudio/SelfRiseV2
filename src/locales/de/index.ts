@@ -526,10 +526,52 @@ const de: Partial<TranslationKeys> = {
     },
     schedule: {
       everyDay: 'Jeden Tag',
+      weekdays: 'Werktags',
+      weekends: 'Wochenende',
     },
     actions: {
       calendarStats: 'Kalender & Statistik',
       pause: 'Pausieren',
+    },
+    // New look (migration E6)
+    detail: {
+      currentStreak: 'Aktuelle Serie',
+      bestStreak: 'Beste Serie',
+      rate: 'Erfüllung',
+      previousMonth: 'Vorheriger Monat',
+      nextMonth: 'Nächster Monat',
+      tapHint: 'Tippe auf einen Tag, um zu sehen, was passiert ist',
+    },
+    dayStatus: {
+      done: 'Erledigt',
+      makeup: 'Nachgeholt – ersetzt {{day}}',
+      covered: 'Verpasst – nachgeholt am {{day}}',
+      bonus: 'Bonus – ein zusätzlicher Tag',
+      paused: 'Pausiert – zählt nie als verpasst',
+      planned: 'Geplant',
+      todayOpen: 'Heute – noch offen',
+      none: 'Nicht geplant',
+    },
+    composer: {
+      title: 'Neue Routine',
+      editTitle: 'Routine bearbeiten',
+      placeholder: 'Was möchtest du tun?',
+      previewName: 'Deine neue Routine',
+      ideas: 'Mit einer Idee starten',
+      create: 'Routine erstellen',
+    },
+    reorderMode: {
+      hint: 'Halte einen Griff und ziehe. Die neue Reihenfolge gilt überall.',
+    },
+    colors: {
+      red: 'Rot',
+      blue: 'Blau',
+      green: 'Grün',
+      yellow: 'Gelb',
+      purple: 'Lila',
+      orange: 'Orange',
+      pink: 'Rosa',
+      teal: 'Türkis',
     },
     title: 'Meine Routine',
     addHabit: 'Neue Routine',
@@ -3326,6 +3368,17 @@ const de: Partial<TranslationKeys> = {
 
   // Help system
   help: {
+    // Help rules of the new look (migration E6, 7.10) — one source for the sheet and the rules page
+    topics: {
+      makeUp: 'So werden verpasste Tage ausgeglichen',
+    },
+    rules: {
+      makeUp: {
+        title: 'Ein zusätzlicher Tag gleicht einen verpassten aus',
+        text: 'Du hast eine Routine an einem ungeplanten Tag erledigt? Sie gleicht einen verpassten geplanten Tag derselben Woche aus, Montag bis Sonntag, eins zu eins. Der gerettete Tag erscheint als Ring, mit seinem Nachholtag durch eine Klammer darunter verbunden.',
+      },
+    },
+    allRules: 'Alle Regeln',
     howItWorksIntro: 'Alles hier unten macht die App fur dich, ohne dass du es auf dem Bildschirm siehst. Das Offensichtliche steht nicht dabei.',
     sections: {
       habits: 'Gewohnheiten',

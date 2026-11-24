@@ -526,10 +526,52 @@ const es: Partial<TranslationKeys> = {
     },
     schedule: {
       everyDay: 'Todos los días',
+      weekdays: 'Entre semana',
+      weekends: 'Fines de semana',
     },
     actions: {
       calendarStats: 'Calendario y estadísticas',
       pause: 'Pausar',
+    },
+    // New look (migration E6)
+    detail: {
+      currentStreak: 'Racha actual',
+      bestStreak: 'Mejor racha',
+      rate: 'Cumplimiento',
+      previousMonth: 'Mes anterior',
+      nextMonth: 'Mes siguiente',
+      tapHint: 'Toca un día para ver qué pasó',
+    },
+    dayStatus: {
+      done: 'Hecho',
+      makeup: 'Recuperación — cubre el {{day}}',
+      covered: 'Perdido — recuperado el {{day}}',
+      bonus: 'Bonificación — un día extra',
+      paused: 'En pausa — nunca cuenta como perdido',
+      planned: 'Programado',
+      todayOpen: 'Hoy — aún pendiente',
+      none: 'No programado',
+    },
+    composer: {
+      title: 'Nuevo hábito',
+      editTitle: 'Editar hábito',
+      placeholder: '¿Qué vas a hacer?',
+      previewName: 'Tu nuevo hábito',
+      ideas: 'Empieza con una idea',
+      create: 'Crear hábito',
+    },
+    reorderMode: {
+      hint: 'Mantén presionada el asa y arrastra. El nuevo orden se ve en todas las pantallas.',
+    },
+    colors: {
+      red: 'Rojo',
+      blue: 'Azul',
+      green: 'Verde',
+      yellow: 'Amarillo',
+      purple: 'Morado',
+      orange: 'Naranja',
+      pink: 'Rosa',
+      teal: 'Turquesa',
     },
     title: 'Mis Hábitos',
     addHabit: 'Añadir Hábito',
@@ -3326,6 +3368,17 @@ const es: Partial<TranslationKeys> = {
 
   // Help System
   help: {
+    // Help rules of the new look (migration E6, 7.10) — one source for the sheet and the rules page
+    topics: {
+      makeUp: 'Cómo se recuperan los días perdidos',
+    },
+    rules: {
+      makeUp: {
+        title: 'Un día extra recupera uno perdido',
+        text: '¿Hiciste un hábito un día que no estaba programado? Cubre un día programado que perdiste en la misma semana, de lunes a domingo, uno por uno. El día salvado aparece como un anillo, unido a su día de recuperación por un corchete debajo.',
+      },
+    },
+    allRules: 'Todas las reglas',
     howItWorksIntro: 'Todo lo de abajo es algo que la app hace por ti sin que se vea en pantalla. Lo evidente no esta aqui.',
     sections: {
       habits: 'Habitos',
