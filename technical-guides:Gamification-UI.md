@@ -221,6 +221,12 @@ jsou odstraněné; hlídá to `src/services/__tests__/levelMilestonePromises.tes
 pod jiskrami XP), ne sám `ModalQueueProvider`. Okno trofeje je `View` (`TrophyWindow`); ostatní okna jsou zatím RN
 `<Modal>` a převádí je E10. Kontext navíc vydává `queuedTypes` (typy ve frontě) pro přidržení XP momentů.
 Zátěžový test fronty: `src/contexts/__tests__/momentQueueStress.test.ts`.
+**🚨 Vrstva oken musí být NAD úvodem i podle zIndexu:** React Native řadí sourozence podle `zIndex` (iOS) /
+`elevation` (Android), ne podle pořadí. Úvod má 9999, `ModalQueueOutlet` obaluje okno vrstvou `WINDOW_LAYER_Z`
+(`src/contexts/windowLayer.ts`, 10000). Jinak by okno první trofeje bylo pod úvodem a úvod by 2 min čekal na jeho
+zavření. Hlídá `windowLayerAboveOnboarding.test.ts` (projde všechny zIndexy v `src/components/onboarding`).
+**Tiché oznámení končí právě jednou** – i když zmizí dřív, než doběhne animace (ťuk → Síň trofejí, sheet, okno):
+jinak by zůstalo ve frontě, XP přidržené, srovnání pozastavené a později by se přehrálo znovu.
 
 ### 🎯 FUNDAMENTAL PRINCIPLE
 **Centralizovaná fronta s prioritou: Pouze JEDEN `<Modal visible={true}>` v jakýkoli moment. Fronta automaticky řadí podle priority.**

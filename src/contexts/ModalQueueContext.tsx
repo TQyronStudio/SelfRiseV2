@@ -20,7 +20,8 @@
 
 import React, { createContext, useContext, useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { insertModal } from './modalQueueOrdering';
-import { DeviceEventEmitter } from 'react-native';
+import { DeviceEventEmitter, View, StyleSheet, Platform } from 'react-native';
+import { WINDOW_LAYER_Z } from './windowLayer';
 import CelebrationModal from '../components/gratitude/CelebrationModal';
 import { TrophyWindow } from '../components/achievements/TrophyWindow';
 import { GoalCompletionModal } from '../components/goals/GoalCompletionModal';
@@ -197,8 +198,26 @@ interface ModalRendererProps {
 /** The window layer (layer 4): renders the queue head. Mount it once, in the root layout. */
 export function ModalQueueOutlet() {
   const { currentModal, closeCurrentModal } = useModalQueue();
-  return <ModalRenderer currentModal={currentModal} onClose={closeCurrentModal} />;
+  if (!currentModal) return null;
+  // Above the onboarding takeover (zIndex / elevation 9999 in OnboardingFlow,
+  // WelcomeScreen, DayOneCelebration, FirstCheckCard): React Native stacks by
+  // zIndex (iOS) / elevation (Android), not by sibling order. The onboarding
+  // waits for its first trophy window to be CLOSED — hidden under the takeover
+  // it could not be (review 2026-11-24).
+  return (
+    <View style={outletStyles.layer} pointerEvents="box-none">
+      <ModalRenderer currentModal={currentModal} onClose={closeCurrentModal} />
+    </View>
+  );
 }
+
+const outletStyles = StyleSheet.create({
+  layer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: WINDOW_LAYER_Z,
+    ...Platform.select({ android: { elevation: WINDOW_LAYER_Z }, default: {} }),
+  },
+});
 
 const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) => {
   if (!currentModal) return null;

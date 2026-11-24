@@ -1070,21 +1070,45 @@ function TrophyNoteView({
   const p = useSharedValue(0);
   const xpRef = useRef<View>(null);
   const left = useRef(false);
+  // The note ends exactly once — also if it is torn down before its exit
+  // animation finishes (a tap navigates away, a sheet or a window covers it):
+  // a cancelled animation must not leave it queued, its XP held and the
+  // storage check paused, to replay later (review 2026-11-24).
+  const ended = useRef(false);
+  const end = useCallback(
+    (point: XpOriginPoint | null) => {
+      if (ended.current) return;
+      ended.current = true;
+      onDone(point);
+    },
+    [onDone]
+  );
+  const endRef = useRef(end);
+  endRef.current = end;
+  useEffect(() => () => endRef.current(null), []);
   const leave = useCallback(
     (open: boolean) => {
       if (left.current) return;
       left.current = true;
-      const finish = (point: XpOriginPoint | null) => {
-        p.value = withTiming(0, { duration: 240 }, finished => {
-          if (finished) scheduleOnRN(onDone, point);
-        });
+      const measure = (then: (point: XpOriginPoint | null) => void) => {
+        if (xpRef.current) xpRef.current.measureInWindow((x, y, w, h) => then({ x: x + w / 2, y: y + h / 2 }));
+        else then(null);
       };
-      if (xpRef.current) {
-        xpRef.current.measureInWindow((x, y, w, h) => finish({ x: x + w / 2, y: y + h / 2 }));
-      } else finish(null);
-      if (open) router.push('/achievements');
+      if (open) {
+        // Navigating away: done now (no exit to wait for), then open the room.
+        measure(point => {
+          end(point);
+          router.push('/achievements');
+        });
+        return;
+      }
+      measure(point => {
+        p.value = withTiming(0, { duration: 240 }, finished => {
+          if (finished) scheduleOnRN(end, point);
+        });
+      });
     },
-    [p, onDone, router]
+    [p, end, router]
   );
   const leaveRef = useRef(leave);
   leaveRef.current = leave;
