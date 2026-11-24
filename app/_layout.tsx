@@ -3,6 +3,7 @@ import 'react-native-get-random-values';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { LevelBadgeLayer, XpDisplayProvider } from '@/src/components/xp/XpDisplay';
+import { ModalQueueOutlet } from '@/src/contexts/ModalQueueContext';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -113,6 +114,9 @@ function LayoutContent() {
         {/* Layer 2: the level badge (tabs only; hidden during onboarding). */}
         <LevelBadgeLayer />
         <OnboardingFlow />
+        {/* Layer 4: the windows of the moment queue (one at a time) — above the
+            onboarding (it waits for its trophy windows), under the sparks. */}
+        <ModalQueueOutlet />
       </XpDisplayProvider>
     </TutorialProvider>
   );

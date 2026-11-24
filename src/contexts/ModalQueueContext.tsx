@@ -22,7 +22,7 @@ import React, { createContext, useContext, useState, useCallback, useRef, useMem
 import { insertModal } from './modalQueueOrdering';
 import { DeviceEventEmitter } from 'react-native';
 import CelebrationModal from '../components/gratitude/CelebrationModal';
-import { AchievementCelebrationModal } from '../components/achievements/AchievementCelebrationModal';
+import { TrophyWindow } from '../components/achievements/TrophyWindow';
 import { GoalCompletionModal } from '../components/goals/GoalCompletionModal';
 import MonthlyChallengeCompletionModal from '../components/challenges/MonthlyChallengeCompletionModal';
 import MonthlyChallengeFailureModal from '../components/challenges/MonthlyChallengeFailureModal';
@@ -178,8 +178,9 @@ export const ModalQueueProvider: React.FC<ModalQueueProviderProps> = ({ children
   return (
     <ModalQueueContext.Provider value={contextValue}>
       {children}
-      {/* Centralized modal rendering - only ONE modal visible at a time */}
-      <ModalRenderer currentModal={contextValue.currentModal} onClose={closeCurrentModal} />
+      {/* The queue's output is drawn by <ModalQueueOutlet/> in the root layout's
+          window layer (plan 6.0, layer 4 — migration E8): above the onboarding,
+          under the XP sparks. Still only ONE modal at a time. */}
     </ModalQueueContext.Provider>
   );
 };
@@ -191,6 +192,12 @@ export const ModalQueueProvider: React.FC<ModalQueueProviderProps> = ({ children
 interface ModalRendererProps {
   currentModal: QueuedModal | null;
   onClose: () => void;
+}
+
+/** The window layer (layer 4): renders the queue head. Mount it once, in the root layout. */
+export function ModalQueueOutlet() {
+  const { currentModal, closeCurrentModal } = useModalQueue();
+  return <ModalRenderer currentModal={currentModal} onClose={closeCurrentModal} />;
 }
 
 const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) => {
@@ -339,9 +346,9 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
     // --- Achievement ---
     case 'achievement':
       return (
-        <AchievementCelebrationModal
+        // E8: a view in the window layer, not an RN <Modal> (plan 6.0).
+        <TrophyWindow
           key={id}
-          visible={true}
           onClose={onClose}
           achievement={props.achievement}
           xpAwarded={props.xpAwarded}

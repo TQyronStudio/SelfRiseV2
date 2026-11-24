@@ -864,6 +864,11 @@ celou dávku platí jedním `addXP`. **`AchievementContext` sbírá události je
 - **Kombo trofejí** (`xpMultiplierActivated`, zdroj `achievement`) jede uvnitř momentu (`boost`: štítek v oznámení,
   řádek v okně); **vlastní okno `multiplier_activation` se pro kombo neřadí** (`XpMultiplierSection`).
 - `multipleAchievementsUnlocked` už nic neřadí – dřív každou trofej ukázal podruhé.
+- **Velké okno = `TrophyWindow`** (`src/components/achievements/TrophyWindow.tsx`, od 2026-11-24): `View` ve vrstvě
+  oken, ne RN `<Modal>` – nemůže se poprat s nativním dialogem (příčina dřívějšího zamrzání) a jiskry XP létají nad
+  ním. Pořád jedno okno fronty `ModalQueueContext`. Po „Continue“ zaregistruje bod tlačítka
+  (`registerMomentOrigin('trophy', …)`) a přidržené XP vyletí odtud do odznaku. Staré `AchievementCelebrationModal`
+  se už nepoužívá (smaže se v E26).
 
 ### Achievement Celebration Requirements
 

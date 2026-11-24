@@ -217,6 +217,11 @@ jsou odstraněné; hlídá to `src/services/__tests__/levelMilestonePromises.tes
 
 ## Centralized Modal Queue System (ModalQueueContext)
 
+**Vrstva oken (E8, 2026-11-24):** frontu kreslí `<ModalQueueOutlet/>` v `app/_layout.tsx` (vrstva 4 – nad úvodem,
+pod jiskrami XP), ne sám `ModalQueueProvider`. Okno trofeje je `View` (`TrophyWindow`); ostatní okna jsou zatím RN
+`<Modal>` a převádí je E10. Kontext navíc vydává `queuedTypes` (typy ve frontě) pro přidržení XP momentů.
+Zátěžový test fronty: `src/contexts/__tests__/momentQueueStress.test.ts`.
+
 ### 🎯 FUNDAMENTAL PRINCIPLE
 **Centralizovaná fronta s prioritou: Pouze JEDEN `<Modal visible={true}>` v jakýkoli moment. Fronta automaticky řadí podle priority.**
 

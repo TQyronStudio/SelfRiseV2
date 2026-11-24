@@ -64,6 +64,7 @@ const CONVERTED: readonly string[] = [
   // E8 (part 2) – one action, one moment
   'src/services/moments/trophyBatch.ts',
   'src/services/moments/noteBus.ts',
+  'src/components/achievements/TrophyWindow.tsx',
   // E7 (part 1) – the XP display: books, origins, multiplier mark rules
   'src/services/xpDisplay/xpLedger.ts',
   'src/services/xpDisplay/xpOriginRegistry.ts',

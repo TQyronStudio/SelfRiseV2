@@ -94,7 +94,7 @@ import {
   releaseHeld,
   syncLedger,
 } from '@/src/services/xpDisplay/xpLedger';
-import { takeXpOrigin, XpOriginPoint } from '@/src/services/xpDisplay/xpOriginRegistry';
+import { takeMomentOrigin, takeXpOrigin, XpOriginPoint } from '@/src/services/xpDisplay/xpOriginRegistry';
 import { pendingHoldKinds, releasedKind } from '@/src/services/xpDisplay/heldMoments';
 import { listenTrophyNotes } from '@/src/services/moments/noteBus';
 import { PressableScale, typeStyle, useOverlayCovered, RollingNumber } from '@/src/components/ui';
@@ -465,7 +465,18 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
     lastHead.current = head;
     lastLength.current = queuedTypes.length;
     if (kind) {
+      const before = ledger.current.nextId;
       ledger.current = releaseHeld(ledger.current, kind);
+      // The window said where its XP leaves from (its Continue button).
+      const point = takeMomentOrigin(kind);
+      if (point) {
+        for (const f of ledger.current.flights) {
+          if (f.id >= before) {
+            origins.current.set(f.id, point);
+            quietOrigins.current.add(f.id);
+          }
+        }
+      }
       pump();
     }
   }, [head, queuedTypes.length, pump]);

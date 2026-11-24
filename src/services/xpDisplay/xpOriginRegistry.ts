@@ -82,3 +82,23 @@ export function takeXpOrigin(
 export function resetXpOrigins(): void {
   records = [];
 }
+
+// ---------------------------------------------------------------------------
+// The point a MOMENT's held XP leaves from (E8): the window's Continue button.
+// The window registers it as it closes; the XP layer takes it when it releases
+// the held XP of that kind (a moment closes once, so one point per kind).
+// ---------------------------------------------------------------------------
+
+const MOMENT_ORIGIN_MAX_AGE_MS = 3000;
+const momentOrigins = new Map<string, { point: XpOriginPoint; at: number }>();
+
+export function registerMomentOrigin(kind: string, point: XpOriginPoint, now: number = Date.now()): void {
+  momentOrigins.set(kind, { point, at: now });
+}
+
+export function takeMomentOrigin(kind: string, now: number = Date.now()): XpOriginPoint | null {
+  const record = momentOrigins.get(kind);
+  momentOrigins.delete(kind);
+  if (!record || now - record.at > MOMENT_ORIGIN_MAX_AGE_MS) return null;
+  return record.point;
+}

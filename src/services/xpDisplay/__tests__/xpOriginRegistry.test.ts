@@ -56,3 +56,14 @@ describe('xpOriginRegistry', () => {
     ).toBeNull();
   });
 });
+
+describe('moment origins (E8)', () => {
+  const { registerMomentOrigin, takeMomentOrigin } = require('../xpOriginRegistry');
+  it('gives the Continue point once, and only while fresh', () => {
+    registerMomentOrigin('trophy', { x: 1, y: 2 }, 1000);
+    expect(takeMomentOrigin('trophy', 1500)).toEqual({ x: 1, y: 2 });
+    expect(takeMomentOrigin('trophy', 1500)).toBeNull();
+    registerMomentOrigin('trophy', { x: 1, y: 2 }, 1000);
+    expect(takeMomentOrigin('trophy', 9000)).toBeNull();
+  });
+});
