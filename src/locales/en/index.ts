@@ -3289,7 +3289,7 @@ const en: TranslationKeys = {
       duration24h: '24 hours',
 
       // XP Multiplier Indicator
-      harmonyStreak: 'Harmony Streak',
+      harmonyStreak: 'Harmony streak',
       harmonyStreakProgress: 'Harmony Streak: {{current}}/7',
       activeMultiplier: 'Active XP multiplier: {{multiplier}}x, {{time}} remaining',
       multiplierValue: '{{multiplier}}x XP',

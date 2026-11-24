@@ -3293,7 +3293,7 @@ const es: Partial<TranslationKeys> = {
       duration24h: '24 horas',
 
       // XP Multiplier Indicator
-      harmonyStreak: 'Racha de Armonía',
+      harmonyStreak: 'Racha de armonía',
       harmonyStreakProgress: 'Racha de Armonía: {{current}}/7',
       activeMultiplier: 'Multiplicador de XP activo: {{multiplier}}x, {{time}} restante',
       multiplierValue: '{{multiplier}}x XP',

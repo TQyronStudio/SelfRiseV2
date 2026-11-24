@@ -66,6 +66,10 @@ const CONVERTED: readonly string[] = [
   'src/services/moments/noteBus.ts',
   'src/components/achievements/TrophyWindow.tsx',
   'src/contexts/windowLayer.ts',
+  // E9 – level panel
+  'src/components/xp/LevelPanel.tsx',
+  'src/components/xp/useMultiplierState.ts',
+  'src/services/levels/rankTitle.ts',
   // E7 (part 1) – the XP display: books, origins, multiplier mark rules
   'src/services/xpDisplay/xpLedger.ts',
   'src/services/xpDisplay/xpOriginRegistry.ts',

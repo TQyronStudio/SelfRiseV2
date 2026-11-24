@@ -16,23 +16,44 @@ import { Ionicons } from '@expo/vector-icons';
 import { useDesign } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { space } from '@/src/design/tokens';
+import { XP_MULTIPLIERS } from '@/src/constants/gamification';
 import { AppText, PressableScale } from './primitives';
 import { BottomSheet } from './sheets';
 
-export type HelpTopic = 'makeUp';
+export type HelpTopic = 'makeUp' | 'multiplier';
 
 /** Which rules a topic shows (keys under help.rules). */
 export const HELP_TOPIC_RULES: Record<HelpTopic, string[]> = {
   makeUp: ['makeUp'],
+  // E9: the harmony multiplier (new host for the old home.xpSystem tooltip, 7.10)
+  multiplier: ['harmony'],
 };
+
+/** Numbers a rule's text prints — from the app's constants, never written into the text. */
+function ruleParams(id: string): Record<string, string | number> {
+  if (id !== 'harmony') return {};
+  const factor = `${XP_MULTIPLIERS.HARMONY_STREAK_MULTIPLIER}×`;
+  return {
+    days: XP_MULTIPLIERS.HARMONY_STREAK_DAYS_REQUIRED,
+    factor,
+    hours: XP_MULTIPLIERS.HARMONY_STREAK_DURATION,
+    cooldownDays: Math.round(XP_MULTIPLIERS.HARMONY_STREAK_COOLDOWN / 24),
+  };
+}
 
 export function HelpLink({
   topic,
   bottomInset,
+  onOpen,
 }: {
   topic: HelpTopic;
   /** Room at the bottom the sheet must stay above (banner). */
   bottomInset: number;
+  /**
+   * The sheet is hosted elsewhere (the level panel closes first, then the badge
+   * layer opens the sheet — one thing at a time).
+   */
+  onOpen?: () => void;
 }) {
   const { c } = useDesign();
   const { t } = useI18n();
@@ -40,7 +61,7 @@ export function HelpLink({
   return (
     <>
       <PressableScale
-        onPress={() => setOpen(true)}
+        onPress={() => (onOpen ? onOpen() : setOpen(true))}
         pressScale={0.88}
         accessibilityLabel={t(`help.topics.${topic}`)}
         style={styles.link}
@@ -62,7 +83,7 @@ export function HelpLink({
   );
 }
 
-function HelpSheet({
+export function HelpSheet({
   topic,
   bottomInset,
   onClosed,
@@ -86,9 +107,9 @@ function HelpSheet({
         >
           {HELP_TOPIC_RULES[topic].map((id, i) => (
             <View key={id} style={i > 0 ? styles.next : undefined}>
-              <AppText variant="titleSm">{t(`help.rules.${id}.title`)}</AppText>
+              <AppText variant="titleSm">{t(`help.rules.${id}.title`, ruleParams(id))}</AppText>
               <AppText variant="body" tone="muted" style={styles.text}>
-                {t(`help.rules.${id}.text`)}
+                {t(`help.rules.${id}.text`, ruleParams(id))}
               </AppText>
             </View>
           ))}

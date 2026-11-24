@@ -541,6 +541,15 @@ se rozpadne v 5–12 jisker (podle částky) po obloucích do kroužku; každý 
 odskok. Nová úroveň = kroužek se uzavře, záblesk, číslo se přeroluje, štítek `gamification.badge.levelUpTag`
 (DE „LEVEL UP“, ES „NUEVO NIVEL“). Staré okno nové úrovně (fronta) zatím zůstává – sloučí ho E8/E10.
 
+**Panel úrovně (E9, 2026-11-24):** `src/components/xp/LevelPanel.tsx` – ťuk na odznak (pravidla `levelPanelLogic.ts`,
+test): odznak se zvětší do kroužku panelu (tentýž odznak, ne kopie – XP dál dopadá), karta roste z jeho středu, jedna
+hodnota `progress` (RN Animated, nativní driver) řídí ztmavení, kartu i odznak; zavírá ťuk vedle, ťuk na kroužek, zpět,
+přepnutí záložky a tažení (lze pustit v půli). Jen na záložkách, ne pod sheetem, ne během momentu (moment ho schová).
+**Ztmavení končí nad lištou a reklamním pruhem.** Obsah: hodnost (`rankTitle`, přeložená), XP odznaku, zbytek do další
+úrovně, „Dnes“ = `getTodayXP()` (stejný zdroj jako čip Home), násobič (`useMultiplierState` – běží / připraven se zlatým
+tlačítkem / sbírá se se sedmi dílky a dnešními třemi), tiché „i“ (téma `multiplier`, okno nápovědy hostí vrstva odznaku
+až po zavření panelu), „All levels“ → `/levels-overview`. Ťuk na odznak během tichého oznámení = ťuk na oznámení.
+
 **Značka násobiče (6a):** `src/components/xp/useBadgeMark.ts` – zlatý štítek s faktorem, který opravdu běží
 (`getActiveMultiplier`), tichá tečka, když je násobič harmonie připravený (`calculateHarmonyStreak().canActivateMultiplier`
 bez běžícího); čtečka `gamification.badge.levelWithMark`. Znovu se čte po zisku XP, po zapnutí násobiče, po návratu

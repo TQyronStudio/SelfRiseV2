@@ -73,7 +73,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useSegments } from 'expo-router';
 import { useDesign } from '@/src/contexts/ThemeContext';
-import { useModalQueue } from '@/src/contexts/ModalQueueContext';
+import { ModalPriority, useModalQueue } from '@/src/contexts/ModalQueueContext';
 import { useTutorial } from '@/src/contexts/TutorialContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { fixed, fonts, radius, rarity, space, withAlpha } from '@/src/design/tokens';
@@ -97,9 +97,15 @@ import {
 import { takeMomentOrigin, takeXpOrigin, XpOriginPoint } from '@/src/services/xpDisplay/xpOriginRegistry';
 import { pendingHoldKinds, releasedKind } from '@/src/services/xpDisplay/heldMoments';
 import { listenTrophyNotes } from '@/src/services/moments/noteBus';
-import { PressableScale, typeStyle, useOverlayCovered, RollingNumber } from '@/src/components/ui';
+import { HelpSheet, PressableScale, typeStyle, useOverlayCovered, RollingNumber } from '@/src/components/ui';
+import { TAB_BAR_HEIGHT } from '@/src/components/ui/TabBar';
+import { LEVEL_BADGE_OPEN_DROP, LEVEL_BADGE_OPEN_SCALE, LevelPanel, useLevelPanel } from './LevelPanel';
+
+/** The ad banner above the tab bar (every tab keeps this room). */
+const AD_BANNER_ROOM = 60;
 import { TOP_ROW_HEIGHT } from '@/src/components/ui/TopRow';
 import { useBadgeMark } from './useBadgeMark';
+import { useMultiplierState } from './useMultiplierState';
 
 // ---------------------------------------------------------------------------
 // Tunables (the lab's, kolo 9–27)
@@ -169,6 +175,8 @@ interface XpDisplay {
   impactAngle: SharedValue<number>;
   impactFlash: SharedValue<number>;
   levelUpKey: number;
+  /** The XP the badge shows (sparks landed) — the level panel reads it. */
+  shownXp: number;
   /** The badge hands over a way to measure itself (null = it is gone). */
   registerBadge: (measure: ((done: (center: Point) => void) => void) | null) => void;
   /** The badge layer says whether the badge can be seen. */
@@ -191,6 +199,8 @@ interface MomentNotes {
   current: TrophyNoteData | null;
   /** A window of the queue is up: notes wait. */
   windowUp: boolean;
+  /** The note on screen's own tap (a tap on the badge while a note is out is the note's). */
+  noteTap: React.MutableRefObject<(() => void) | null>;
 }
 const MomentNotesContext = createContext<MomentNotes | null>(null);
 
@@ -223,6 +233,8 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
   /** XP the ring will show once every launched spark has landed. */
   const ringXp = useRef(0);
   const [level, setLevel] = useState(1);
+  /** The XP the badge shows (for the level panel): moves when sparks land. */
+  const [shownXp, setShownXp] = useState(0);
   const [levelUpKey, setLevelUpKey] = useState(0);
   const [waves, setWaves] = useState<Wave[]>([]);
   const [pops, setPops] = useState<Pop[]>([]);
@@ -257,6 +269,7 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
       const shown = displayedXP(ledger.current);
       const before = levelOf(ringXp.current);
       ringXp.current = shown;
+      setShownXp(shown);
       ring.value = withTiming(ringOf(shown), { duration: 320 });
       const after = levelOf(shown);
       setLevel(after);
@@ -278,6 +291,7 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
     ringXp.current = real;
     ring.value = ringOf(real);
     setLevel(levelOf(real));
+    setShownXp(real);
     ready.current = true;
   }, [ring]);
   useEffect(() => {
@@ -350,6 +364,7 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
         setWaves(prev => prev.filter(w => w.id !== id));
         ledger.current = landFlight(ledger.current, flight.id);
         launched.current.delete(flight.id);
+        setShownXp(displayedXP(ledger.current));
         // The last spark is home: ring and level follow the books exactly (a gain
         // taken back while sparks were flying is settled here, not mid-flight).
         if (launched.current.size === 0) showDirect(false);
@@ -550,8 +565,9 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
     if (visible) pumpRef.current();
   }, []);
 
+  const noteTap = useRef<(() => void) | null>(null);
   const notesApi = useMemo(
-    () => ({ showTrophyNote, noteDone, current: notes[0] ?? null, windowUp: queuedTypes.length > 0 }),
+    () => ({ showTrophyNote, noteDone, current: notes[0] ?? null, windowUp: queuedTypes.length > 0, noteTap }),
     [showTrophyNote, noteDone, notes, queuedTypes.length]
   );
 
@@ -566,10 +582,11 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
       impactAngle,
       impactFlash,
       levelUpKey,
+      shownXp,
       registerBadge,
       setBadgeVisible,
     }),
-    [level, ring, pulse, bodyX, bodyY, bodyScale, impactAngle, impactFlash, levelUpKey, registerBadge, setBadgeVisible]
+    [level, ring, pulse, bodyX, bodyY, bodyScale, impactAngle, impactFlash, levelUpKey, shownXp, registerBadge, setBadgeVisible]
   );
 
   return (
@@ -742,12 +759,16 @@ const BADGE_CANVAS = 76;
  * (their tops would collide with it); flights wait until it is back.
  */
 export function LevelBadgeLayer() {
-  const mark = useBadgeMark();
+  const multiplier = useMultiplierState();
+  const mark = useBadgeMark(multiplier);
   const insets = useSafeAreaInsets();
   const segments = useSegments();
+  const router = useRouter();
   const { state: tutorial } = useTutorial();
   const covered = useOverlayCovered();
-  const { setBadgeVisible } = useXpDisplay();
+  const { setBadgeVisible, shownXp } = useXpDisplay();
+  const { current: note, windowUp, noteTap } = useMomentNotes();
+  const { enqueue } = useModalQueue();
   const visible = segments[0] === '(tabs)' && !tutorial.isActive && !covered;
   useEffect(() => {
     setBadgeVisible(visible);
@@ -757,16 +778,50 @@ export function LevelBadgeLayer() {
     fade.value = withTiming(visible ? 1 : 0, { duration: 180 });
   }, [visible, fade]);
   const style = useAnimatedStyle(() => ({ opacity: fade.value }));
+
+  // E9: the level panel grows out of the badge (tabs only, nothing open, no moment).
+  const moment: 'quiet' | 'big' | null = windowUp ? 'big' : note ? 'quiet' : null;
+  const openNote = useCallback(() => noteTap.current?.(), [noteTap]);
+  const panel = useLevelPanel({ closeKey: segments.join('/'), covered: covered || !visible, moment, openNote });
+  const [help, setHelp] = useState(false);
+  // The dim ends above the tab bar and the ad banner (plan E9 point 2).
+  const bottomChrome = TAB_BAR_HEIGHT + insets.bottom + AD_BANNER_ROOM;
+
   return (
-    <Animated.View
-      pointerEvents={visible ? 'box-none' : 'none'}
-      style={[styles.layer, { paddingTop: insets.top }, style]}
-    >
-      <View style={[contentColumn, styles.layerRow]} pointerEvents="box-none">
-        <LevelBadge mark={mark} />
-        {visible && <NoteHost />}
-      </View>
-    </Animated.View>
+    <>
+      {panel.shown && (
+        <LevelPanel
+          panel={panel}
+          shownXp={shownXp}
+          multiplier={multiplier}
+          topInset={insets.top}
+          bottomChrome={bottomChrome}
+          onOpenLevels={() => router.push('/levels-overview')}
+          onHelp={() => setHelp(true)}
+          onActivated={result =>
+            enqueue({
+              type: 'multiplier_activation',
+              priority: ModalPriority.MULTIPLIER_ACTIVATION,
+              props: {
+                multiplier: result.multiplier,
+                harmonyStreakLength: multiplier.harmonyDays,
+                bonusXP: result.xpBonusAwarded || 0,
+              },
+            })
+          }
+        />
+      )}
+      <Animated.View
+        pointerEvents={visible ? 'box-none' : 'none'}
+        style={[styles.layer, { paddingTop: insets.top }, style]}
+      >
+        <View style={[contentColumn, styles.layerRow]} pointerEvents="box-none">
+          <LevelBadge mark={mark} onPress={panel.onBadgePress} openness={panel.progress} open={panel.shown} />
+          {visible && !panel.shown && <NoteHost />}
+        </View>
+      </Animated.View>
+      {help && <HelpSheet topic="multiplier" bottomInset={bottomChrome} onClosed={() => setHelp(false)} />}
+    </>
   );
 }
 
@@ -775,7 +830,19 @@ export type BadgeMark =
   | { kind: 'dot'; label: string }
   | null;
 
-export function LevelBadge({ onPress, mark = null }: { onPress?: () => void; mark?: BadgeMark }) {
+export function LevelBadge({
+  onPress,
+  mark = null,
+  openness,
+  open = false,
+}: {
+  onPress?: () => void;
+  mark?: BadgeMark;
+  /** 0 = the badge alone … 1 = its panel is open; the ring grows into the panel's (E9). */
+  openness?: RNAnimated.Value;
+  /** The panel is out: nothing else comes out of the badge (the LEVEL UP tag gives way). */
+  open?: boolean;
+}) {
   const { c } = useDesign();
   const { t } = useI18n();
   const {
@@ -830,6 +897,28 @@ export function LevelBadge({ onPress, mark = null }: { onPress?: () => void; mar
   );
   const rippleR = useDerivedValue(() => 4 + 11 * (1 - impactFlash.value));
 
+  // The ring grows into the panel's big ring from its own top-left corner (built
+  // once: a re-render must not swap the animated node mid-animation).
+  const openStyle = useMemo(() => {
+    if (!openness) return null;
+    const grow = (BADGE * (LEVEL_BADGE_OPEN_SCALE - 1)) / 2;
+    const to = (value: number) => openness.interpolate({ inputRange: [0, 1], outputRange: [0, value] });
+    return {
+      transform: [
+        { translateX: to(grow) },
+        { translateY: to(grow + LEVEL_BADGE_OPEN_DROP) },
+        { scale: openness.interpolate({ inputRange: [0, 1], outputRange: [1, LEVEL_BADGE_OPEN_SCALE] }) },
+      ],
+    };
+  }, [openness]);
+  const markFade = useMemo(
+    () =>
+      openness
+        ? { opacity: openness.interpolate({ inputRange: [0, 0.3], outputRange: [1, 0], extrapolate: 'clamp' }) }
+        : null,
+    [openness]
+  );
+
   const label = mark
     ? t('gamification.badge.levelWithMark', { level, mark: mark.label })
     : t('onboarding.done.statLevel', { level });
@@ -844,6 +933,7 @@ export function LevelBadge({ onPress, mark = null }: { onPress?: () => void; mar
           registerBadge(done => ref.current?.measureInWindow((x, y, w, h) => done({ x: x + w / 2, y: y + h / 2 })))
         }
       >
+        <RNAnimated.View style={openStyle}>
         <PressableScale
           {...(onPress ? { onPress } : null)}
           feel={null}
@@ -900,7 +990,7 @@ export function LevelBadge({ onPress, mark = null }: { onPress?: () => void; mar
           </RNAnimated.View>
         </PressableScale>
         {mark && (
-          <View pointerEvents="none" style={styles.markPin}>
+          <RNAnimated.View pointerEvents="none" style={[styles.markPin, markFade]}>
             <Animated.View
               key={mark.kind}
               entering={ZoomIn.springify().damping(14)}
@@ -913,10 +1003,11 @@ export function LevelBadge({ onPress, mark = null }: { onPress?: () => void; mar
                 </Text>
               )}
             </Animated.View>
-          </View>
+          </RNAnimated.View>
         )}
+        </RNAnimated.View>
       </View>
-      <LevelUpTag levelUpKey={levelUpKey} level={level} onPress={onPress} />
+      <LevelUpTag levelUpKey={levelUpKey} level={level} onPress={onPress} hidden={open} />
     </View>
   );
 }
@@ -929,15 +1020,23 @@ function LevelUpTag({
   levelUpKey,
   level,
   onPress,
+  hidden = false,
 }: {
   levelUpKey: number;
   level: number;
   onPress?: (() => void) | undefined;
+  /** The panel is out: the tag gives way at once. */
+  hidden?: boolean;
 }) {
   const { c } = useDesign();
   const { t } = useI18n();
   const p = useSharedValue(0);
   const [live, setLive] = useState(false);
+  useEffect(() => {
+    if (!hidden) return;
+    p.value = withTiming(0, { duration: 120 });
+    setLive(false);
+  }, [hidden, p]);
   useEffect(() => {
     if (levelUpKey === 0) return undefined;
     p.value = withSequence(
@@ -955,7 +1054,7 @@ function LevelUpTag({
     opacity: Math.min(1, p.value),
     transform: [{ translateX: (1 - p.value) * -16 }, { scale: 0.9 + 0.1 * p.value }],
   }));
-  const tappable = live && !!onPress;
+  const tappable = live && !hidden && !!onPress;
   return (
     <Animated.View
       pointerEvents={tappable ? 'auto' : 'none'}
@@ -1112,6 +1211,13 @@ function TrophyNoteView({
   );
   const leaveRef = useRef(leave);
   leaveRef.current = leave;
+  const { noteTap } = useMomentNotes();
+  useEffect(() => {
+    noteTap.current = () => leaveRef.current(true);
+    return () => {
+      noteTap.current = null;
+    };
+  }, [noteTap]);
   useEffect(() => {
     feel(rare ? 'confirm' : 'note');
     AccessibilityInfo.announceForAccessibility(
