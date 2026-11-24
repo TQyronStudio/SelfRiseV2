@@ -1906,10 +1906,15 @@ const es: Partial<TranslationKeys> = {
       announcement: '¡Logro {{rarity}} desbloqueado: {{name}}! Has ganado {{xp}} puntos de experiencia.',
       continue_button: 'Continuar',
       continue_hint: 'Cerrar celebración de logro y volver a la app',
-      rarity_common: '¡Logro Desbloqueado!',
-      rarity_rare: '¡Logro Raro!',
-      rarity_epic: '¡Logro Épico!',
-      rarity_legendary: '¡Logro Legendario!',
+      rarity_common: '¡Trofeo desbloqueado!',
+      rarity_rare: '¡Trofeo raro!',
+      rarity_epic: '¡Trofeo épico!',
+      rarity_legendary: '¡Trofeo legendario!',
+      // One action, one moment (migration E8)
+      alsoUnlocked: 'También desbloqueaste',
+      trophiesUnlocked_one: '{{count}} trofeo desbloqueado',
+      trophiesUnlocked_other: '{{count}} trofeos desbloqueados',
+      opensTrophyRoom: 'Abre la Sala de Trofeos',
       xp_earned: 'XP Ganado',
     },
 
@@ -3209,6 +3214,9 @@ const es: Partial<TranslationKeys> = {
 
     // XP Multiplier
     multiplier: {
+      boostLine_one: '{{factor}}× XP durante la próxima {{count}} hora',
+      boostLine_other: '{{factor}}× XP durante las próximas {{count}} horas',
+      factorTag: '{{factor}}× XP',
       continue: 'Continuar',
       harmonyActivated: '¡Racha de Armonía Activada!',
       achievementUnlocked: '🎯 ¡Logro Desbloqueado!',

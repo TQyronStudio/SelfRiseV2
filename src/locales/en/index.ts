@@ -1924,10 +1924,15 @@ const en: TranslationKeys = {
       announcement: '{{rarity}} achievement unlocked: {{name}}! You earned {{xp}} experience points.',
       continue_button: 'Continue',
       continue_hint: 'Close achievement celebration and return to app',
-      rarity_common: 'Achievement Unlocked!',
-      rarity_rare: 'Rare Achievement!',
-      rarity_epic: 'Epic Achievement!',
-      rarity_legendary: 'Legendary Achievement!',
+      rarity_common: 'Trophy unlocked!',
+      rarity_rare: 'Rare trophy!',
+      rarity_epic: 'Epic trophy!',
+      rarity_legendary: 'Legendary trophy!',
+      // One action, one moment (migration E8)
+      alsoUnlocked: 'Also unlocked',
+      trophiesUnlocked_one: '{{count}} trophy unlocked',
+      trophiesUnlocked_other: '{{count}} trophies unlocked',
+      opensTrophyRoom: 'Opens the Trophy Room',
       xp_earned: 'XP Earned',
     },
 
@@ -3205,6 +3210,9 @@ const en: TranslationKeys = {
 
     // XP Multiplier
     multiplier: {
+      boostLine_one: '{{factor}}× XP for the next {{count}} hour',
+      boostLine_other: '{{factor}}× XP for the next {{count}} hours',
+      factorTag: '{{factor}}× XP',
       continue: 'Continue',
       harmonyActivated: 'Harmony Streak Activated!',
       achievementUnlocked: '🎯 Achievement Unlocked!',

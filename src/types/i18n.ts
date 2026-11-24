@@ -1381,6 +1381,10 @@ export interface TranslationKeys {
       rarity_rare: string;
       rarity_epic: string;
       rarity_legendary: string;
+      alsoUnlocked: string;
+      trophiesUnlocked_one: string;
+      trophiesUnlocked_other: string;
+      opensTrophyRoom: string;
       xp_earned: string;
     };
     detail: {
@@ -2261,6 +2265,9 @@ export interface TranslationKeys {
       };
     };
     multiplier: {
+      boostLine_one: string;
+      boostLine_other: string;
+      factorTag: string;
       continue: string;
       harmonyActivated: string;
       achievementUnlocked: string;

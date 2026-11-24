@@ -31,7 +31,7 @@ Nadpis úpravy `habits.composer.editTitle` („Edit habit“ větou), tlačítko
 
 **E7.** 1 DE zůstává „LEVEL UP“ (appka říká „Level“), ES „NUEVO NIVEL · 16“ – „LEVEL UP“ ve španělské appce nikde není.
 
-**E8.** 1 DE všude **„Trophäenhalle“** (= laboratoř, kterou Petr schválil); záložka zůstává krátká „Trophäen“.
+**E8** (✅ v locales 2026-11-24, test `momentsCopy.test.ts`). 1 DE všude **„Trophäenhalle“** (= laboratoř, kterou Petr schválil); záložka zůstává krátká „Trophäen“.
 2 Nadpisy `rarity_*` přepsat na trofej („Epic trophy!“ / „Epische Trophäe!“ / „¡Trofeo épico!“) – jedno slovo pro jednu věc
 v oznámení i v okně.
 

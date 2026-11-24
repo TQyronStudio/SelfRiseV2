@@ -377,7 +377,7 @@ const de: Partial<TranslationKeys> = {
       loading: 'Wird geladen...',
     },
     trophyRoom: {
-      title: 'Trophäenzimmer',
+      title: 'Trophäenhalle',
     },
   },
 
@@ -2023,12 +2023,17 @@ const de: Partial<TranslationKeys> = {
     // Celebration Modal
     celebration: {
       announcement: '{{rarity}} Erfolg freigeschaltet: {{name}}! Du hast {{xp}} Erfahrungspunkte verdient.',
-      continue_button: 'Fortfahren',
+      continue_button: 'Weiter',
       continue_hint: 'Erfolgsfeier schließen und zur App zurückkehren',
-      rarity_common: 'Erfolg Freigeschaltet!',
-      rarity_rare: 'Seltener Erfolg!',
-      rarity_epic: 'Epischer Erfolg!',
-      rarity_legendary: 'Legendärer Erfolg!',
+      rarity_common: 'Trophäe freigeschaltet!',
+      rarity_rare: 'Seltene Trophäe!',
+      rarity_epic: 'Epische Trophäe!',
+      rarity_legendary: 'Legendäre Trophäe!',
+      // One action, one moment (migration E8)
+      alsoUnlocked: 'Außerdem freigeschaltet',
+      trophiesUnlocked_one: '{{count}} Trophäe freigeschaltet',
+      trophiesUnlocked_other: '{{count}} Trophäen freigeschaltet',
+      opensTrophyRoom: 'Öffnet die Trophäenhalle',
       xp_earned: 'XP Verdient',
     },
 
@@ -3209,6 +3214,9 @@ const de: Partial<TranslationKeys> = {
 
     // XP Multiplier
     multiplier: {
+      boostLine_one: '{{factor}}× XP für die nächste {{count}} Stunde',
+      boostLine_other: '{{factor}}× XP für die nächsten {{count}} Stunden',
+      factorTag: '{{factor}}× XP',
       continue: 'Weiter',
       harmonyActivated: 'Harmonie-Serie aktiviert!',
       achievementUnlocked: '🎯 Erfolg freigeschaltet!',
