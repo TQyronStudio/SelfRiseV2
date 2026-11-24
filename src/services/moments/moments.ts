@@ -16,7 +16,12 @@ import { AchievementRarity } from '@/src/types/gamification';
 export interface MomentTrophy {
   id: string;
   rarity: AchievementRarity | `${AchievementRarity}`;
-  /** XP the trophy paid (what really arrived — the app's catalogue value). */
+  /**
+   * XP the trophy stands for. Fill it from what was really CREDITED (the
+   * xpGained amount, after caps and a running multiplier — e.g. the combo's
+   * 2.5×), not from the catalogue, or the window shows a different number than
+   * the XP that flies.
+   */
   xp: number;
 }
 

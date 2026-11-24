@@ -32,6 +32,15 @@ describe('xpOriginRegistry', () => {
     ).toEqual({ x: 3, y: 4 });
   });
 
+  it('matches the family: the Add button of the journal serves its 4th (bonus) entry too', () => {
+    registerXpOrigin({ source: 'journal_entry' }, { x: 7, y: 8 }, 0);
+    expect(
+      takeXpOrigin({ source: 'journal_bonus_milestone', sourceId: 'e4' }, 500)
+    ).toEqual({ x: 7, y: 8 });
+    registerXpOrigin({ source: 'journal_entry' }, { x: 7, y: 8 }, 0);
+    expect(takeXpOrigin({ source: 'habit_completion' }, 500)).toBeNull();
+  });
+
   it('takes the newest touch of a kind', () => {
     registerXpOrigin({ source: 'goal_progress' }, { x: 1, y: 1 }, 0);
     registerXpOrigin({ source: 'goal_progress' }, { x: 2, y: 2 }, 100);

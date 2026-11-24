@@ -191,8 +191,11 @@ i `monthlyProgressIntegration`).
   dokonceni cile, odmeny za serii deniku a milnikove casti ⭐🔥👑 (podil `milestoneXp` z pripsane castky);
   uvolni se potvrzenim momentu, pojistka: bez momentu do 2 s leti ze stredu. Zaporne XP nic neposila.
 - `xpOriginRegistry.ts` – bod puvodu jiskry: obrazovka zaregistruje bod tesne PRED akci, vrstva jisker
-  si ho vezme jednou podle `sourceId` (nebo druhu zdroje do 3 s); jinak stred. `position` v udalosti
+  si ho vezme jednou podle `sourceId` (nebo podle SKUPINY zdroje `habit_*`/`journal_*`/`goal_*` do 3 s –
+  denik plati zaznam jako `journal_entry`, `journal_bonus` nebo `journal_bonus_milestone` podle poradi);
+  jinak stred. Bod si bere jen cast, ktera leti hned (ne pridrzena ani zaporna). `position` v udalosti
   (vychozi 50/130) se pro jiskry nepouziva.
+- Zaporne XP v knize nejdriv rusi pridrzene XP tehoz (`source` + `sourceId`) – zruseny cil pred oknem.
 - `multiplierDisplay.ts` – znacka nasobice na odznaku (`badgeMark`, `formatFactor`).
 
 ### xpSmartNotification

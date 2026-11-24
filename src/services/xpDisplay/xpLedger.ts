@@ -139,10 +139,28 @@ export function receiveGain(
   hasOrigin: boolean
 ): LedgerState {
   if (gain.amount <= 0) {
-    // Taken back: no flight, the ring just shrinks. Not clamped: a check undone
-    // while its spark is still flying may take `shown` below zero for a moment —
-    // the books still balance, and the badge draws displayedXP() (never < 0).
-    return { ...state, shown: state.shown + gain.amount };
+    // Taken back: no flight. First it cancels XP of the same thing that is still
+    // held (a goal completed and un-completed before its window was seen — no
+    // dip of the badge, no ghost flight later); the rest shrinks the ring. Not
+    // clamped: a check undone while its spark still flies may take `shown` below
+    // zero for a moment — the books balance, the badge draws displayedXP().
+    let remaining = -gain.amount;
+    const held: Held[] = [];
+    for (const h of state.held) {
+      if (
+        remaining > 0 &&
+        gain.sourceId !== undefined &&
+        h.sourceId === gain.sourceId &&
+        h.source === gain.source
+      ) {
+        const take = Math.min(h.amount, remaining);
+        remaining -= take;
+        if (h.amount - take > 0) held.push({ ...h, amount: h.amount - take });
+      } else {
+        held.push(h);
+      }
+    }
+    return { ...state, held, shown: state.shown - remaining };
   }
   const split = splitGain(gain);
   let { nextId } = state;

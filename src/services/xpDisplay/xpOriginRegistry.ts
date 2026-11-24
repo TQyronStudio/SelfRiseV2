@@ -3,8 +3,12 @@
  * logic. Right BEFORE an action that earns XP, the screen registers the point of
  * the control the user touched (a habit's check, the journal's Add button, a
  * goal's quick log). When the `xpGained` event arrives, the spark layer takes
- * the point once: matched by `sourceId`, or by the kind of source when the record
- * is younger than 3 s. Nothing found → the spark starts from the centre.
+ * the point once: matched by `sourceId`, or by the FAMILY of the source (habit_*,
+ * journal_*, goal_* …) when the record is younger than 3 s — the journal pays an
+ * entry as journal_entry, journal_bonus or journal_bonus_milestone depending on
+ * the day's count, which the screen cannot know before the action. Take the
+ * point only for a gain that really flies now (not a held or negative one).
+ * Nothing found → the spark starts from the centre.
  *
  * Contexts, storage and addXP do not change for this. Pure module store, tested
  * in __tests__/xpOriginRegistry.test.ts.
@@ -27,6 +31,12 @@ export const ORIGIN_BY_SOURCE_MS = 3000;
 const ORIGIN_MAX_AGE_MS = 10000;
 
 let records: OriginRecord[] = [];
+
+/** habit_completion → habit, journal_bonus_milestone → journal, … */
+export function sourceFamily(source: string): string {
+  const cut = source.indexOf('_');
+  return cut === -1 ? source : source.slice(0, cut);
+}
 
 function prune(now: number) {
   records = records.filter(r => now - r.at <= ORIGIN_MAX_AGE_MS);
@@ -54,7 +64,10 @@ export function takeXpOrigin(
     // Newest first: the last touch of that kind is the one that earned it.
     for (let i = records.length - 1; i >= 0; i--) {
       const r = records[i]!;
-      if (r.source === gain.source && now - r.at <= ORIGIN_BY_SOURCE_MS) {
+      if (
+        sourceFamily(r.source) === sourceFamily(gain.source) &&
+        now - r.at <= ORIGIN_BY_SOURCE_MS
+      ) {
         index = i;
         break;
       }

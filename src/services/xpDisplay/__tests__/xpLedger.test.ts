@@ -82,6 +82,23 @@ describe('receiveGain()', () => {
     ]);
   });
 
+  it('lets XP taken back cancel what is still held for the same thing first', () => {
+    const goal = {
+      amount: 250,
+      source: XPSourceType.GOAL_COMPLETION,
+      sourceId: 'g1',
+    };
+    let s = receiveGain(syncLedger(1000), goal, 0, false);
+    s = receiveGain(s, { ...goal, amount: -250 }, 100, false);
+    expect(s.held).toEqual([]);
+    expect(s.shown).toBe(1000);
+    expect(ledgerTotal(s)).toBe(1000);
+    // Another goal's held XP stays.
+    let t = receiveGain(syncLedger(0), goal, 0, false);
+    t = receiveGain(t, { ...goal, sourceId: 'g2', amount: -250 }, 100, false);
+    expect(t.held).toHaveLength(1);
+  });
+
   it('sends nothing for XP taken back — the ring only shrinks, never drawn below 0', () => {
     const s = receiveGain(
       syncLedger(10),
