@@ -579,7 +579,7 @@ Hlídá `__tests__/screens/journalStatsLive.test.tsx`.
 `src/utils/journalStreakMilestones.ts`: `JOURNAL_STREAK_MILESTONES` (kdy se slaví —
 7, 14, 21, 30, 50, 60, 75, 90, 100, 150, 180, 200, 250, 365, 500, 750, 1000)
 a `getJournalStreakMilestoneTexts(days)` (jaké texty). Vlastní texty
-(`journal.streakMilestone<N>_title/_text`) mají jen 7, 14, 21, 100, 365, 1000 —
+(`journal.streakMilestone<N>_title/_text`) mají jen 7, 14, 21, 30 (od 2026-11-24), 100, 365, 1000 —
 ostatní dny dostanou obecné texty s počtem dní. Rozhoduje `i18next.exists`, takže
 doplnění textů pro další den nevyžaduje změnu kódu.
 

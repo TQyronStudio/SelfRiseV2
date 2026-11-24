@@ -450,6 +450,8 @@ export interface TranslationKeys {
     streakMilestone14_text: string;
     streakMilestone21_title: string;
     streakMilestone21_text: string;
+    streakMilestone30_title: string;
+    streakMilestone30_text: string;
     streakMilestone100_title: string;
     streakMilestone100_text: string;
     streakMilestone365_title: string;

@@ -40,6 +40,16 @@ describe.each(['en', 'de', 'es'])('journal streak milestones (%s)', (lang) => {
     }
   });
 
+  test('a month (day 30) has its own texts, and no title carries foreign script', () => {
+    const { message } = getJournalStreakMilestoneTexts(30);
+    expect(message).toContain('30');
+    expect(message).not.toBe(getJournalStreakMilestoneTexts(75).message.replace('75', '30'));
+    for (const days of JOURNAL_STREAK_MILESTONES) {
+      // 1000 said "LEGENDARY! 传奇" until 2026-11-24
+      expect(getJournalStreakMilestoneTexts(days).title).not.toMatch(/[\u3400-\u9FFF]/);
+    }
+  });
+
   test('a day without own texts gets the generic texts WITH the day count', () => {
     const { message } = getJournalStreakMilestoneTexts(75);
     expect(message).toContain('75');
