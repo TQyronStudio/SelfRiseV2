@@ -14,6 +14,7 @@ import { CreateHabitInput, UpdateHabitInput } from '../../types/habit';
 import { ColorPicker } from './ColorPicker';
 import { IconPicker } from './IconPicker';
 import { DayPicker } from './DayPicker';
+import { habitFormErrors } from './habitFormRules';
 import { Fonts } from '../../constants/fonts';
 import { useI18n } from '../../hooks/useI18n';
 import { ErrorModal, HelpTooltip } from '@/src/components/common';
@@ -70,24 +71,10 @@ export function HabitForm({
   const [errorMessage, setErrorMessage] = useState('');
 
   const validateForm = (): boolean => {
+    // The one copy of the rules, shared with the composer sheet (E6).
+    const keys = habitFormErrors(formData);
     const newErrors: Record<string, string> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = t('habits.form.errors.nameRequired');
-    } else if (formData.name.trim().length < 2) {
-      newErrors.name = t('habits.form.errors.nameTooShort');
-    } else if (formData.name.trim().length > 50) {
-      newErrors.name = t('habits.form.errors.nameTooLong');
-    }
-
-    if (formData.scheduledDays.length === 0) {
-      newErrors.scheduledDays = t('habits.form.errors.daysRequired');
-    }
-
-    if (formData.description && formData.description.length > 200) {
-      newErrors.description = t('habits.form.errors.descriptionTooLong');
-    }
-
+    for (const [field, key] of Object.entries(keys)) newErrors[field] = t(key);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

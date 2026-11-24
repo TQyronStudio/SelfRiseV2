@@ -54,6 +54,8 @@ const CONVERTED: readonly string[] = [
   // E6 – habit detail and in-place help
   'src/components/habits/detail/HabitDetail.tsx',
   'src/components/ui/help.tsx',
+  'src/components/habits/composer/HabitComposer.tsx',
+  'src/components/habits/habitFormRules.ts',
   // E7 (part 1) – the XP display: books, origins, multiplier mark rules
   'src/services/xpDisplay/xpLedger.ts',
   'src/services/xpDisplay/xpOriginRegistry.ts',

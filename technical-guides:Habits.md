@@ -377,7 +377,20 @@ návyku (uživatel si může vybrat i žlutou a červenou – R-11):
 - „⋯“ (R-4c) nahrazuje čtyři tlačítka řádku: kalendář a statistiky, upravit, pozastavit / obnovit,
   smazat (s potvrzením `ConfirmSheet`). Karta je `React.memo` – odškrtnutí překreslí jen svou kartu.
 - Pulz úvodu: obrazovka 3 úvodu, jen pojmenovaný návyk (jinak všechny neodškrtnuté) – stejně jako dřív.
-- Režim řazení a tvorba a úprava zůstávají do dalších bodů E6 postaru.
+- Režim řazení zůstává do bodu 3 E6 postaru.
+
+**Tvorba a úprava návyku (migrace E6 bod 2, 2026-11-24)** – `src/components/habits/composer/HabitComposer.tsx`:
+- **Jeden sheet pro tvorbu i úpravu** (nahrazuje `HabitModal` na obrazovce Návyky; soubor zaniká v E26).
+  Živý náhled karty, velké pole jména, „Start from an idea“ (`HABIT_PRESETS`, jen u tvorby), barvy, ikony
+  jen z `HABIT_ICON_MAP`, dny jako kulaté přepínače + rychlá volba (každý den / pracovní dny / víkend).
+- **Pravidla formuláře jsou jedna kopie:** `src/components/habits/habitFormRules.ts` (`habitFormErrors`,
+  test) – čte je sheet i starý `HabitForm`. Chyba zatřese polem a řekne proč, žádný dialog.
+- Nový návyk začíná **každý den** (jeden ťuk vytvoří, den se snadno ubere).
+- Sheet zůstane otevřený, dokud úložiště neodpoví: selhání = řádek `habits.form.errors.submitFailed` a
+  zadání zůstane; úspěch = sheet odjede. `HabitsScreen.handleSubmitHabit` proto při chybě **hází** (nezavírá).
+- Popis se posílá vždy (i prázdný) – smazaný popis při úpravě musí přepsat starý.
+- Úvodní obrazovka prvního návyku (`FirstHabitScreen`, `createWithTrophyGate`) používá dál staré
+  `ColorPicker` / `IconPicker` / `DayPicker` – nedotčeno.
 
 **Detail návyku (migrace E6 bod 1, 2026-11-24)** – `src/components/habits/detail/HabitDetail.tsx`:
 - Ťuk na kartu (i „⋯ → Kalendář a statistiky“) **nevede na trasu `habit-stats`**: karta změří svou polohu

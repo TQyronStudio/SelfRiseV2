@@ -6,12 +6,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { RoundButton, TopRow } from '@/src/components/ui/TopRow';
 import { HabitsListView } from '@/src/components/habits/list/HabitsListView';
 import { HabitDetail } from '@/src/components/habits/detail/HabitDetail';
+import { HabitComposer } from '@/src/components/habits/composer/HabitComposer';
 import { DetailRect } from '@/src/components/ui';
 import { useFocusEffect } from '@react-navigation/native';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Habit, CreateHabitInput, UpdateHabitInput } from '@/src/types/habit';
-import { HabitModal, HabitListWithCompletion } from '@/src/components/habits';
+import { HabitListWithCompletion } from '@/src/components/habits';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 // useEnhancedGamification removed - XP handled by habitStorage
 import { useDesign } from '@/src/contexts/ThemeContext';
@@ -88,27 +89,21 @@ export function HabitsScreen() {
     setEditingHabit(undefined);
   };
 
+  // The composer (E6) keeps itself open until this resolves; a throw keeps the
+  // user's input in the sheet with its own error line.
   const handleSubmitHabit = async (
     data: CreateHabitInput | UpdateHabitInput
   ) => {
-    try {
-      if (editingHabit) {
-        await actions.updateHabit(editingHabit.id, data as UpdateHabitInput);
-      } else {
-        const created = await actions.createHabit(data as CreateHabitInput);
-        setFreshId(created.id);
-        // The glow plays once (about 2 s); a later remount must not replay it.
-        setTimeout(
-          () => setFreshId(prev => (prev === created.id ? null : prev)),
-          3000
-        );
-      }
-      handleCloseModal();
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : t('habits.errors.failedToSave')
+    if (editingHabit) {
+      await actions.updateHabit(editingHabit.id, data as UpdateHabitInput);
+    } else {
+      const created = await actions.createHabit(data as CreateHabitInput);
+      setFreshId(created.id);
+      // The glow plays once (about 2 s); a later remount must not replay it.
+      setTimeout(
+        () => setFreshId(prev => (prev === created.id ? null : prev)),
+        3000
       );
-      setShowError(true);
     }
   };
 
@@ -296,19 +291,21 @@ export function HabitsScreen() {
         />
       )}
 
-      {/* AdMob Banner - Fixed at bottom — stays above the detail */}
+      {modalVisible && (
+        <HabitComposer
+          habit={editingHabit}
+          bottomInset={BANNER_ROOM}
+          onSubmit={handleSubmitHabit}
+          onClosed={handleCloseModal}
+        />
+      )}
+
+      {/* AdMob Banner - Fixed at bottom — stays above the detail and the composer */}
       <View style={styles.bannerContainer}>
         <AdBanner />
       </View>
 
 
-      <HabitModal
-        visible={modalVisible}
-        habit={editingHabit}
-        onClose={handleCloseModal}
-        onSubmit={handleSubmitHabit}
-        isLoading={isLoading}
-      />
 
       <ErrorModal
         visible={showError}
