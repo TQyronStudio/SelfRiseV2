@@ -7,6 +7,7 @@ import { Layout, Fonts } from '@/src/constants';
 import { getWeekDates, subtractDays, today, formatDateForDisplay, getDayOfWeekFromDateString, formatDateToString, parseDate } from '@/src/utils/date';
 import { calculateHabitCompletionRate, getHabitAgeInfo, getCompletionRateMessage } from '@/src/utils/habitCalculations';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
+import { overallTrend as overallTrendOf } from './habitTrendLogic';
 
 interface TrendItemProps {
   title: string;
@@ -158,14 +159,10 @@ export const HabitTrendAnalysis: React.FC = () => {
       });
     }
 
-    // Overall trend calculation
-    const recentAvg = ((weeks[0]?.completionRate || 0) + (weeks[1]?.completionRate || 0)) / 2;
-    const earlierAvg = ((weeks[2]?.completionRate || 0) + (weeks[3]?.completionRate || 0)) / 2;
-    const overallTrendChange = recentAvg - earlierAvg;
-
-    let overallTrend: 'improving' | 'declining' | 'stable' = 'stable';
-    if (overallTrendChange > 10) overallTrend = 'improving';
-    else if (overallTrendChange < -10) overallTrend = 'declining';
+    // Overall trend: `weeks` is oldest first (unshift) — this week is weeks[3]
+    const { recent: recentAvg, change: overallTrendChange, trend: overallTrend } = overallTrendOf(
+      weeks.map(w => w.completionRate)
+    );
 
     // Individual habit analysis - using 4 weeks of data (preserving original time period)
     const habitAnalysis = activeHabits.map(habit => {

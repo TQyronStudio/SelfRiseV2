@@ -6,7 +6,8 @@ import { useTheme } from '@/src/contexts/ThemeContext';
 import { Layout, Fonts } from '@/src/constants';
 import { getWeekDates, today, formatDateForDisplay, getPast7Days, getPast30Days, getDayOfWeekFromDateString, getMonthDates, subtractDays } from '@/src/utils/date';
 import { calculateHabitCompletionRate, getHabitAgeInfo } from '@/src/utils/habitCalculations';
-import { wasScheduledOnDate, isHabitActiveOnDate } from '@/src/utils/habitImmutability';
+import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
+import { weekRate } from './habitPerformanceLogic';
 
 interface PerformanceIndicatorProps {
   title: string;
@@ -171,31 +172,11 @@ export const HabitPerformanceIndicators: React.FC = () => {
     const todaysHabits = getHabitsByDate(today());
     const completedToday = todaysHabits.filter(h => h.isCompleted).length;
 
-    // Current week progress
-    let currentWeekCompletions = 0;
-    let currentWeekPossible = 0;
-    
-    currentWeekDates.forEach(date => {
-      const habitsOnDate = getHabitsByDate(date);
-      const completed = habitsOnDate.filter(h => h.isCompleted).length;
-      currentWeekCompletions += completed;
-      // Habits in play THAT day — a paused day is not a possible completion
-      currentWeekPossible += habits.filter(h => isHabitActiveOnDate(h, date)).length;
-    });
-
-    // Previous week progress for comparison
-    let previousWeekCompletions = 0;
-    let previousWeekPossible = 0;
-
-    previousWeekDates.forEach(date => {
-      const habitsOnDate = getHabitsByDate(date);
-      const completed = habitsOnDate.filter(h => h.isCompleted).length;
-      previousWeekCompletions += completed;
-      previousWeekPossible += habits.filter(h => isHabitActiveOnDate(h, date)).length;
-    });
-
-    const currentWeekRate = currentWeekPossible > 0 ? (currentWeekCompletions / currentWeekPossible) * 100 : 0;
-    const previousWeekRate = previousWeekPossible > 0 ? (previousWeekCompletions / previousWeekPossible) * 100 : 0;
+    // This week so far vs. the whole last week — all habits (a habit paused now
+    // keeps its past), only days on the plan, only days that have come
+    const todayStr = today();
+    const currentWeekRate = weekRate(habits, currentWeekDates, todayStr, getHabitsByDate);
+    const previousWeekRate = weekRate(habits, previousWeekDates, todayStr, getHabitsByDate);
 
     // Determine trend
     let trend: 'up' | 'down' | 'stable' = 'stable';

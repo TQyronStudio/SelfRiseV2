@@ -7,6 +7,7 @@ import { getPast365Days, formatDateForDisplay, today, getDayOfWeekFromDateString
 import { calculateHabitCompletionRate } from '@/src/utils/habitCalculations';
 import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 import { useTheme } from '@/src/contexts/ThemeContext';
+import { yearWindow } from './yearlyOverviewLogic';
 
 interface StatCardProps {
   title: string;
@@ -71,7 +72,8 @@ export const YearlyHabitOverview: React.FC = React.memo(() => {
   }, [habits]);
 
   const yearDates = useMemo(() => {
-    return isLoading ? [] : getDataDateRange(); // Use only available data period
+    // The available data, but never more than the last 365 days
+    return isLoading ? [] : yearWindow(getDataDateRange());
   }, [isLoading, getDataDateRange]);
 
   const yearlyStats = useMemo(() => {

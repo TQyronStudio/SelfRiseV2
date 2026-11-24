@@ -658,6 +658,19 @@ Data Flow:
 - Shared performance optimizations
 ```
 
+### Domovské přehledy návyků — čistá pravidla (opraveno 2026-11-24)
+Tři výpočty z Home karet žijí v testovaných čistých souborech v `src/components/home/`:
+- **Celkový trend** (`habitTrendLogic.ts`, karta HabitTrendAnalysis): týdny jsou seřazené **od
+  nejstaršího** (tento týden je poslední); porovnává průměr dvou posledních týdnů s dvěma
+  předchozími, práh ±10 bodů. Dřív bral jako „nedávné" dva NEJSTARŠÍ týdny → zlepšení hlásil
+  jako zhoršení.
+- **Rok** (`yearlyOverviewLogic.ts`, YearlyHabitOverview): dostupná data, ale **nejvýš posledních
+  365 dní**. Dřív celá historie — po roce používání „Rok" znamenal „od začátku".
+- **Týdenní průměr** (`habitPerformanceLogic.ts`, HabitPerformanceIndicators): jednotné pravidlo
+  aplikace — všechna splnění (vč. bonusů) / naplánované dny, sečteno přes všechny návyky, **jen dny
+  do dneška** a od založení návyku, pauza není naplánovaný den. Dřív dělil všemi 7 dny (i
+  budoucími) × všemi návyky bez ohledu na rozvrh → dokonalé pondělí ukázalo ~14 %.
+
 ---
 
 ## Řazení (reorder mode) — platí pro Návyky i Cíle
