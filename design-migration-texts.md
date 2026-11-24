@@ -35,7 +35,7 @@ Nadpis úpravy `habits.composer.editTitle` („Edit habit“ větou), tlačítko
 2 Nadpisy `rarity_*` přepsat na trofej („Epic trophy!“ / „Epische Trophäe!“ / „¡Trofeo épico!“) – jedno slovo pro jednu věc
 v oznámení i v okně.
 
-**E9.** 1 **Přeložit** hodnosti – je jich jen 20 (×5 římských číslic), ne 100. Nové klíče `levels.rank.<id>`:
+**E9** (✅ v locales 2026-11-24 vč. 20 hodností `gamification.levels.rank.*`, test `levelsCopy.test.ts`). 1 **Přeložit** hodnosti – je jich jen 20 (×5 římských číslic), ne 100. Nové klíče `levels.rank.<id>`:
 Novice/Novize/Novato · Beginner/Anfänger/Principiante · Learner/Lernender/Estudiante · Apprentice/Lehrling/Aprendiz ·
 Adept/Adept/Adepto · Seeker/Sucher/Buscador · Adventurer/Abenteurer/Aventurero · Practitioner/Praktiker/Practicante ·
 Pathfinder/Pfadfinder/Explorador · Specialist/Spezialist/Especialista · Veteran/Veteran/Veterano · Expert/Experte/Experto ·

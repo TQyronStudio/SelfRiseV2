@@ -2048,6 +2048,27 @@ export interface TranslationKeys {
 
   // Gamification System
   gamification: {
+    levelPanel: {
+      close: string;
+      allLevels: string;
+      multiplier: string;
+      timeLeftHours_one: string;
+      timeLeftHours_other: string;
+      timeLeftMinutes_one: string;
+      timeLeftMinutes_other: string;
+      harmonyDays: string;
+      harmonyNext_one: string;
+      harmonyNext_other: string;
+      partHabits: string;
+      partJournal: string;
+      partGoals: string;
+      partDone: string;
+      partOpen: string;
+      harmonyHint: string;
+      switchOn: string;
+      readyTitle: string;
+      noteAction: string;
+    };
     badge: {
       levelWithMark: string;
       markRunning: string;
@@ -2059,6 +2080,7 @@ export interface TranslationKeys {
     level: string;
 
     xp: {
+      amount: string;
       amountLost: string;
       label: string;
       short: string;
@@ -2160,6 +2182,7 @@ export interface TranslationKeys {
       };
     };
     progress: {
+      xpToLevel: string;
       level: string;
       progress: string;
       to_next_level: string;
@@ -2174,6 +2197,43 @@ export interface TranslationKeys {
       };
     };
     levels: {
+      rank: {
+        novice: string;
+        beginner: string;
+        learner: string;
+        apprentice: string;
+        adept: string;
+        seeker: string;
+        adventurer: string;
+        practitioner: string;
+        pathfinder: string;
+        specialist: string;
+        veteran: string;
+        expert: string;
+        guardian: string;
+        warden: string;
+        challenger: string;
+        master: string;
+        elite: string;
+        champion: string;
+        grandmaster: string;
+        mythic: string;
+      };
+      journey: {
+        title: string;
+        ofTotal: string;
+        range: string;
+        reached_one: string;
+        reached_other: string;
+        allReached: string;
+        ahead: string;
+        here: string;
+        milestone: string;
+        milestoneTrophy: string;
+        nextMilestone_one: string;
+        nextMilestone_other: string;
+        top: string;
+      };
       current: string;
       next: string;
       milestone: string;
@@ -2265,6 +2325,11 @@ export interface TranslationKeys {
       };
     };
     multiplier: {
+      harmonyOverline_one: string;
+      harmonyOverline_other: string;
+      boostTitle_one: string;
+      boostTitle_other: string;
+      welcomeBack: string;
       boostLine_one: string;
       boostLine_other: string;
       factorTag: string;
@@ -2344,9 +2409,14 @@ export interface TranslationKeys {
   // Help system
   help: {
     topics: {
+      multiplier: string;
       makeUp: string;
     };
     rules: {
+      harmony: {
+        title: string;
+        text: string;
+      };
       makeUp: { title: string; text: string; };
     };
     allRules: string;

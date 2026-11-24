@@ -3031,6 +3031,27 @@ const de: Partial<TranslationKeys> = {
 
   // Gamification System
   gamification: {
+    levelPanel: {
+      close: 'Level-Details schließen',
+      allLevels: 'Alle Level',
+      multiplier: '{{factor}} XP-Multiplikator',
+      timeLeftHours_one: 'noch {{count}} Std.',
+      timeLeftHours_other: 'noch {{count}} Std.',
+      timeLeftMinutes_one: 'noch {{count}} Min.',
+      timeLeftMinutes_other: 'noch {{count}} Min.',
+      harmonyDays: '{{done}} von {{required}} Tagen',
+      harmonyNext_one: 'Der nächste ab morgen',
+      harmonyNext_other: 'Der nächste in {{count}} Tagen',
+      partHabits: 'Routinen',
+      partJournal: 'Tagebuch',
+      partGoals: 'Ziele',
+      partDone: '{{part}}: heute erledigt',
+      partOpen: '{{part}}: heute noch offen',
+      harmonyHint: 'Ein Tag zählt mit einer erledigten Routine, drei Tagebucheinträgen und einem Schritt bei einem Ziel.',
+      switchOn: '{{factor}} XP für {{hours}} Std. einschalten',
+      readyTitle: '{{factor}} XP ist bereit',
+      noteAction: 'Einschalten',
+    },
     // The level badge (migration E7)
     badge: {
       levelWithMark: 'Level {{level}}. {{mark}}',
@@ -3043,6 +3064,7 @@ const de: Partial<TranslationKeys> = {
     level: 'Level',
 
     xp: {
+      amount: '{{xp}} XP',
       amountLost: '−{{xp}} XP',
       label: 'XP',
       short: 'XP',
@@ -3153,6 +3175,7 @@ const de: Partial<TranslationKeys> = {
 
     // Progress and Levels
     progress: {
+      xpToLevel: 'Noch {{xp}} XP bis Level {{level}}',
       level: 'Level',
       progress: 'Status',
       to_next_level: 'to Level {{level}}',
@@ -3172,6 +3195,43 @@ const de: Partial<TranslationKeys> = {
     },
 
     levels: {
+      rank: {
+        novice: 'Novize',
+        beginner: 'Anfänger',
+        learner: 'Lernender',
+        apprentice: 'Lehrling',
+        adept: 'Adept',
+        seeker: 'Sucher',
+        adventurer: 'Abenteurer',
+        practitioner: 'Praktiker',
+        pathfinder: 'Pfadfinder',
+        specialist: 'Spezialist',
+        veteran: 'Veteran',
+        expert: 'Experte',
+        guardian: 'Wächter',
+        warden: 'Hüter',
+        challenger: 'Herausforderer',
+        master: 'Meister',
+        elite: 'Elite',
+        champion: 'Champion',
+        grandmaster: 'Großmeister',
+        mythic: 'Mythos',
+      },
+      journey: {
+        title: 'Dein Weg',
+        ofTotal: 'von {{total}}',
+        range: 'Level {{from}}–{{to}}',
+        reached_one: '{{count}} von {{size}} erreicht',
+        reached_other: '{{count}} von {{size}} erreicht',
+        allReached: 'Alle erreicht',
+        ahead: 'Liegt noch vor dir',
+        here: 'Du bist hier',
+        milestone: 'Meilenstein · Level {{level}}',
+        milestoneTrophy: 'Meilenstein · Trophäe „{{name}}“',
+        nextMilestone_one: 'Nächster Meilenstein: Level {{level}} · noch {{count}} Level',
+        nextMilestone_other: 'Nächster Meilenstein: Level {{level}} · noch {{count}} Level',
+        top: 'Du hast den Gipfel erreicht.',
+      },
       current: 'Aktuell',
       next: 'Nächstes',
       milestone: 'Meilenstein',
@@ -3214,6 +3274,11 @@ const de: Partial<TranslationKeys> = {
 
     // XP Multiplier
     multiplier: {
+      harmonyOverline_one: 'Harmonie-Serie · {{count}} Tag',
+      harmonyOverline_other: 'Harmonie-Serie · {{count}} Tage',
+      boostTitle_one: '{{factor}}× XP für {{count}} Stunde',
+      boostTitle_other: '{{factor}}× XP für {{count}} Stunden',
+      welcomeBack: 'Willkommen zurück',
       boostLine_one: '{{factor}}× XP für die nächste {{count}} Stunde',
       boostLine_other: '{{factor}}× XP für die nächsten {{count}} Stunden',
       factorTag: '{{factor}}× XP',
@@ -3387,9 +3452,14 @@ const de: Partial<TranslationKeys> = {
   help: {
     // Help rules of the new look (migration E6, 7.10) — one source for the sheet and the rules page
     topics: {
+      multiplier: 'So funktioniert der XP-Multiplikator',
       makeUp: 'So werden verpasste Tage ausgeglichen',
     },
     rules: {
+      harmony: {
+        title: '{{days}} Tage mit allen dreien = {{factor}} XP',
+        text: 'Ein Tag zählt mit einer erledigten Routine, drei Tagebucheinträgen und einem Schritt bei einem Ziel. Nach {{days}} Tagen in Folge schaltest du ihn am Level-Abzeichen ein: {{hours}} Stunden lang bringt alles {{factor}} XP. Der nächste ist {{cooldownDays}} Tage später möglich.',
+      },
       makeUp: {
         title: 'Ein zusätzlicher Tag gleicht einen verpassten aus',
         text: 'Du hast eine Routine an einem ungeplanten Tag erledigt? Sie gleicht einen verpassten geplanten Tag derselben Woche aus, Montag bis Sonntag, eins zu eins. Der gerettete Tag erscheint als Ring, verbunden mit dem Tag, der ihn nachgeholt hat.',

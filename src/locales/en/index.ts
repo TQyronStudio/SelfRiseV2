@@ -3020,6 +3020,27 @@ const en: TranslationKeys = {
 
   // Gamification System
   gamification: {
+    levelPanel: {
+      close: 'Close level details',
+      allLevels: 'All levels',
+      multiplier: '{{factor}} XP multiplier',
+      timeLeftHours_one: '{{count}} h left',
+      timeLeftHours_other: '{{count}} h left',
+      timeLeftMinutes_one: '{{count}} min left',
+      timeLeftMinutes_other: '{{count}} min left',
+      harmonyDays: '{{done}} of {{required}} days',
+      harmonyNext_one: 'Next one tomorrow',
+      harmonyNext_other: 'Next one in {{count}} days',
+      partHabits: 'Habits',
+      partJournal: 'Journal',
+      partGoals: 'Goals',
+      partDone: '{{part}}: done today',
+      partOpen: '{{part}}: not yet today',
+      harmonyHint: 'A day counts with one habit done, three journal entries and one goal step.',
+      switchOn: 'Switch on {{factor}} XP for {{hours}} h',
+      readyTitle: '{{factor}} XP is ready',
+      noteAction: 'Switch on',
+    },
     // The level badge (migration E7)
     badge: {
       levelWithMark: 'Level {{level}}. {{mark}}',
@@ -3033,6 +3054,7 @@ const en: TranslationKeys = {
 
     // XP System
     xp: {
+      amount: '{{xp}} XP',
       amountLost: '−{{xp}} XP',
       label: 'Experience Points',
       short: 'XP',
@@ -3147,6 +3169,7 @@ const en: TranslationKeys = {
 
     // Progress and Levels
     progress: {
+      xpToLevel: '{{xp}} XP to Level {{level}}',
       level: 'Level',
       progress: 'Progress',
       to_next_level: 'to Level {{level}}',
@@ -3167,6 +3190,43 @@ const en: TranslationKeys = {
 
     // Level System
     levels: {
+      rank: {
+        novice: 'Novice',
+        beginner: 'Beginner',
+        learner: 'Learner',
+        apprentice: 'Apprentice',
+        adept: 'Adept',
+        seeker: 'Seeker',
+        adventurer: 'Adventurer',
+        practitioner: 'Practitioner',
+        pathfinder: 'Pathfinder',
+        specialist: 'Specialist',
+        veteran: 'Veteran',
+        expert: 'Expert',
+        guardian: 'Guardian',
+        warden: 'Warden',
+        challenger: 'Challenger',
+        master: 'Master',
+        elite: 'Elite',
+        champion: 'Champion',
+        grandmaster: 'Grandmaster',
+        mythic: 'Mythic',
+      },
+      journey: {
+        title: 'Your journey',
+        ofTotal: 'of {{total}}',
+        range: 'Levels {{from}}–{{to}}',
+        reached_one: '{{count}} of {{size}} reached',
+        reached_other: '{{count}} of {{size}} reached',
+        allReached: 'All reached',
+        ahead: 'Still ahead',
+        here: 'You are here',
+        milestone: 'Milestone · Level {{level}}',
+        milestoneTrophy: 'Milestone · trophy “{{name}}”',
+        nextMilestone_one: 'Next milestone: Level {{level}} · {{count}} level to go',
+        nextMilestone_other: 'Next milestone: Level {{level}} · {{count}} levels to go',
+        top: 'You have reached the top.',
+      },
       current: 'Current Level',
       next: 'Next Level',
       milestone: 'Milestone Level',
@@ -3210,6 +3270,11 @@ const en: TranslationKeys = {
 
     // XP Multiplier
     multiplier: {
+      harmonyOverline_one: 'Harmony streak · {{count}} day',
+      harmonyOverline_other: 'Harmony streak · {{count}} days',
+      boostTitle_one: '{{factor}}× XP for {{count}} hour',
+      boostTitle_other: '{{factor}}× XP for {{count}} hours',
+      welcomeBack: 'Welcome back',
       boostLine_one: '{{factor}}× XP for the next {{count}} hour',
       boostLine_other: '{{factor}}× XP for the next {{count}} hours',
       factorTag: '{{factor}}× XP',
@@ -3413,9 +3478,14 @@ const en: TranslationKeys = {
   help: {
     // Help rules of the new look (migration E6, 7.10) — one source for the sheet and the rules page
     topics: {
+      multiplier: 'How the XP multiplier works',
       makeUp: 'How missed days are made up',
     },
     rules: {
+      harmony: {
+        title: '{{days}} days of all three = {{factor}} XP',
+        text: 'A day counts with one habit done, three journal entries and one goal step. After {{days}} in a row, switch it on from the level badge: everything earns {{factor}} XP for {{hours}} hours. The next one is possible {{cooldownDays}} days later.',
+      },
       makeUp: {
         title: 'An extra day makes up for a missed one',
         text: 'Did a habit on a day it wasn’t planned? It covers a planned day you missed in the same week, Monday to Sunday, one for one. The saved day shows as a ring, linked to the day that made it up.',

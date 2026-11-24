@@ -3031,6 +3031,27 @@ const es: Partial<TranslationKeys> = {
 
   // Gamification System
   gamification: {
+    levelPanel: {
+      close: 'Cerrar detalles del nivel',
+      allLevels: 'Todos los niveles',
+      multiplier: 'Multiplicador de {{factor}} XP',
+      timeLeftHours_one: 'Queda {{count}} h',
+      timeLeftHours_other: 'Quedan {{count}} h',
+      timeLeftMinutes_one: 'Queda {{count}} min',
+      timeLeftMinutes_other: 'Quedan {{count}} min',
+      harmonyDays: '{{done}} de {{required}} días',
+      harmonyNext_one: 'El próximo, mañana',
+      harmonyNext_other: 'El próximo en {{count}} días',
+      partHabits: 'Hábitos',
+      partJournal: 'Diario',
+      partGoals: 'Metas',
+      partDone: '{{part}}: hecho hoy',
+      partOpen: '{{part}}: aún no hoy',
+      harmonyHint: 'Un día cuenta con un hábito hecho, tres entradas en el diario y un paso en una meta.',
+      switchOn: 'Activar {{factor}} XP por {{hours}} h',
+      readyTitle: '{{factor}} XP está listo',
+      noteAction: 'Activar',
+    },
     // The level badge (migration E7)
     badge: {
       levelWithMark: 'Nivel {{level}}. {{mark}}',
@@ -3043,6 +3064,7 @@ const es: Partial<TranslationKeys> = {
     level: 'Nivel',
 
     xp: {
+      amount: '{{xp}} XP',
       amountLost: '−{{xp}} XP',
       label: 'Puntos de Experiencia',
       short: 'EXP',
@@ -3153,6 +3175,7 @@ const es: Partial<TranslationKeys> = {
     },
 
     progress: {
+      xpToLevel: 'Faltan {{xp}} XP para el nivel {{level}}',
       level: 'Nivel',
       progress: 'Progreso',
       to_next_level: 'to Level {{level}}',
@@ -3172,6 +3195,43 @@ const es: Partial<TranslationKeys> = {
     },
 
     levels: {
+      rank: {
+        novice: 'Novato',
+        beginner: 'Principiante',
+        learner: 'Estudiante',
+        apprentice: 'Aprendiz',
+        adept: 'Adepto',
+        seeker: 'Buscador',
+        adventurer: 'Aventurero',
+        practitioner: 'Practicante',
+        pathfinder: 'Explorador',
+        specialist: 'Especialista',
+        veteran: 'Veterano',
+        expert: 'Experto',
+        guardian: 'Guardián',
+        warden: 'Custodio',
+        challenger: 'Retador',
+        master: 'Maestro',
+        elite: 'Élite',
+        champion: 'Campeón',
+        grandmaster: 'Gran maestro',
+        mythic: 'Mítico',
+      },
+      journey: {
+        title: 'Tu camino',
+        ofTotal: 'de {{total}}',
+        range: 'Niveles {{from}}–{{to}}',
+        reached_one: '{{count}} de {{size}} alcanzado',
+        reached_other: '{{count}} de {{size}} alcanzados',
+        allReached: 'Todos alcanzados',
+        ahead: 'Aún por delante',
+        here: 'Estás aquí',
+        milestone: 'Hito · Nivel {{level}}',
+        milestoneTrophy: 'Hito · trofeo “{{name}}”',
+        nextMilestone_one: 'Próximo hito: Nivel {{level}} · falta {{count}} nivel',
+        nextMilestone_other: 'Próximo hito: Nivel {{level}} · faltan {{count}} niveles',
+        top: 'Has llegado a la cima.',
+      },
       current: 'Nivel Actual',
       next: 'Siguiente Nivel',
       milestone: 'Nivel Hito',
@@ -3214,6 +3274,11 @@ const es: Partial<TranslationKeys> = {
 
     // XP Multiplier
     multiplier: {
+      harmonyOverline_one: 'Racha de armonía · {{count}} día',
+      harmonyOverline_other: 'Racha de armonía · {{count}} días',
+      boostTitle_one: '{{factor}}× XP durante {{count}} hora',
+      boostTitle_other: '{{factor}}× XP durante {{count}} horas',
+      welcomeBack: 'Hola de nuevo',
       boostLine_one: '{{factor}}× XP durante la próxima {{count}} hora',
       boostLine_other: '{{factor}}× XP durante las próximas {{count}} horas',
       factorTag: '{{factor}}× XP',
@@ -3387,9 +3452,14 @@ const es: Partial<TranslationKeys> = {
   help: {
     // Help rules of the new look (migration E6, 7.10) — one source for the sheet and the rules page
     topics: {
+      multiplier: 'Cómo funciona el multiplicador de XP',
       makeUp: 'Cómo se recuperan los días perdidos',
     },
     rules: {
+      harmony: {
+        title: '{{days}} días con las tres = {{factor}} XP',
+        text: 'Un día cuenta con un hábito hecho, tres entradas en el diario y un paso en una meta. Después de {{days}} seguidos, actívalo desde la insignia de nivel: todo vale {{factor}} XP durante {{hours}} horas. El siguiente es posible {{cooldownDays}} días después.',
+      },
       makeUp: {
         title: 'Un día extra recupera uno perdido',
         text: '¿Hiciste un hábito un día que no estaba programado? Cubre un día programado que perdiste en la misma semana, de lunes a domingo, uno por uno. El día salvado aparece como un anillo, unido al día que lo recuperó.',
