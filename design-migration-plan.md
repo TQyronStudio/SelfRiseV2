@@ -1598,9 +1598,9 @@ vede v téhle tabulce; rozhodnutí a poučení dál v `premium-design-plan.md`.
 | E6 – Návyky: detail, tvorba, řazení (→ B2) | ☐ | | |
 | E7 – odznak a jiskry | ◐ 2026-11-24 část 1 (bez textů, bez viditelné změny): `src/services/xpDisplay/` – `xpLedger.ts` (účetnictví zobrazeného XP s přidržením a pojistkou 2 s, rozdělení ⭐🔥👑), `xpOriginRegistry.ts` (bod původu), `multiplierDisplay.ts` (`badgeMark`, `formatFactor`, `multiplierStatus`, `shouldAnnounceReady` z laboratoře) – vše s testy a negativní zkouškou; `xpGained` trofejí a sbírek nese `sourceId` + `metadata` (bod 2). **Čeká:** schválení textů E7 (6 nových) → část 2: odznak, vrstva jisker, odpojení souhrnné lišty | | |
 | E8 – momenty a okno trofeje | ◐ 2026-11-24 část 1 (bez textů, bez viditelné změny): řadicí pravidlo fronty vyvezeno do `src/contexts/modalQueueOrdering.ts` a test `modalQueueOrdering.test.ts` napojen na něj (krok 3 – dřív testoval kopii; stejná očekávání, negativní zkouška); čistá pravidla `src/services/moments/moments.ts` (`momentFor`, `momentXp`, `enqueueMoment` – nový test: nic se neztratí, okno se neslučuje, hlava se nemění), `momentRules.ts` (`chapterOfAction`, `streakMomentSize`) a `src/services/levels/levelsJourney.ts` převzaty i s testy. **Čeká:** texty E8 (7 nových) → část 2: sběrač dávky v `AchievementContext`, tichá oznámení, velké okno ve vrstvě 4, zátěžový test fronty | | |
-| E9 – panel úrovně, přehled úrovní | ☐ | | |
+| E9 – panel úrovně, přehled úrovní | ◐ 2026-11-24 příprava: pravidla panelu `src/services/levels/levelPanelLogic.ts` (+ test, z laboratoře) a `levelsJourney.ts`; značka násobiče `src/services/xpDisplay/multiplierDisplay.ts` (E7). Zbytek čeká na texty E9 (42 nových) | | |
 | E10 – ostatní okna oslav (→ B3) | ☐ | | |
-| E11 – Home | ☐ | | |
+| E11 – Home | ◐ 2026-11-24 příprava: pravidla `src/screens/home/homeLayoutLogic.ts` a `homeChartsLogic.ts` převzata i s testy (nezapojená). Zbytek čeká na texty a mapu dat E11 | | |
 | E12 – Deník | ☐ | | |
 | E13 – historie a statistiky deníku | ☐ | | |
 | E14 – Cíle: seznam | ☐ | | |

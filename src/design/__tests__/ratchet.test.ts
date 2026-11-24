@@ -60,6 +60,10 @@ const CONVERTED: readonly string[] = [
   'src/services/moments/momentRules.ts',
   'src/services/levels/levelsJourney.ts',
   'src/contexts/modalQueueOrdering.ts',
+  // Prep for E9 / E11 – lab rules moved with their tests
+  'src/services/levels/levelPanelLogic.ts',
+  'src/screens/home/homeLayoutLogic.ts',
+  'src/screens/home/homeChartsLogic.ts',
   'src/constants/feel.ts',
   'src/services/feelService.ts',
 ];
