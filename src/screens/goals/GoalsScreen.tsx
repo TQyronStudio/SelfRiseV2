@@ -179,10 +179,38 @@ export function GoalsScreen() {
     setTemplateData(undefined);
   };
 
+  /** The completion window (through the queue), remembered so it never shows twice. */
+  const celebrateCompletion = async (goal: Goal) => {
+    console.log(`🎉 Goal completion → ModalQueue: ${goal.title}`);
+    enqueueModal({
+      type: 'goal_completion',
+      priority: ModalPriority.GOAL_COMPLETION,
+      props: { goal },
+    });
+    const SHOWN_CELEBRATIONS_KEY = 'goal_completion_celebrations_shown';
+    const storedCelebrations = await AsyncStorage.getItem(SHOWN_CELEBRATIONS_KEY);
+    const shownCelebrations = new Set<string>(
+      storedCelebrations ? JSON.parse(storedCelebrations) : []
+    );
+    shownCelebrations.add(`${goal.id}_${goal.completedDate}`);
+    await AsyncStorage.setItem(
+      SHOWN_CELEBRATIONS_KEY,
+      JSON.stringify(Array.from(shownCelebrations))
+    );
+  };
+
   const handleSubmitGoal = async (data: CreateGoalInput | UpdateGoalInput) => {
     try {
       if (editingGoal) {
-        await actions.updateGoal(editingGoal.id, data as UpdateGoalInput);
+        const updated = await actions.updateGoal(editingGoal.id, data as UpdateGoalInput);
+        // Lowering the target under the progress completes the goal (storage
+        // pays the XP) — it gets its window like a completion by progress.
+        if (
+          updated.status === GoalStatus.COMPLETED &&
+          editingGoal.status !== GoalStatus.COMPLETED
+        ) {
+          await celebrateCompletion(updated);
+        }
       } else {
         await actions.createGoal(data as CreateGoalInput);
       }
@@ -244,27 +272,7 @@ export function GoalsScreen() {
         if (freshGoal &&
             freshGoal.status === GoalStatus.COMPLETED &&
             previousGoal.status !== GoalStatus.COMPLETED) {
-          console.log(`🎉 Goal completion → ModalQueue: ${freshGoal.title}`);
-
-          // Enqueue goal completion modal to centralized queue
-          enqueueModal({
-            type: 'goal_completion',
-            priority: ModalPriority.GOAL_COMPLETION,
-            props: { goal: freshGoal },
-          });
-
-          // Save to persistent storage to prevent re-showing
-          const SHOWN_CELEBRATIONS_KEY = 'goal_completion_celebrations_shown';
-          const storedCelebrations = await AsyncStorage.getItem(SHOWN_CELEBRATIONS_KEY);
-          const shownCelebrations = new Set<string>(
-            storedCelebrations ? JSON.parse(storedCelebrations) : []
-          );
-          const celebrationKey = `${freshGoal.id}_${freshGoal.completedDate}`;
-          shownCelebrations.add(celebrationKey);
-          await AsyncStorage.setItem(
-            SHOWN_CELEBRATIONS_KEY,
-            JSON.stringify(Array.from(shownCelebrations))
-          );
+          await celebrateCompletion(freshGoal);
         }
       }
     } catch (error) {

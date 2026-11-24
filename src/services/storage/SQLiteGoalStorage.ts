@@ -172,6 +172,29 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
         ...updates,
       } as Goal);
 
+      // A new target re-decides "reached" (fixed 2026-11-24): raising the target
+      // above the current value left the goal COMPLETED (and its XP paid); lowering
+      // it under the current value never completed it. Only an edit of the target
+      // with no explicit status — the internal writers pass the status themselves.
+      const targetChanged =
+        updates.targetValue !== undefined &&
+        updates.targetValue !== currentGoal.targetValue &&
+        updates.status === undefined &&
+        (currentGoal.status === GoalStatus.ACTIVE ||
+          currentGoal.status === GoalStatus.COMPLETED);
+      const wasCompleted = currentGoal.status === GoalStatus.COMPLETED;
+      const nowReached =
+        targetChanged && updatedGoal.currentValue >= updatedGoal.targetValue;
+      const justCompleted = targetChanged && nowReached && !wasCompleted;
+      const justUncompleted = targetChanged && !nowReached && wasCompleted;
+      if (justCompleted) {
+        updatedGoal.status = GoalStatus.COMPLETED;
+        updatedGoal.completedDate = today();
+      } else if (justUncompleted) {
+        updatedGoal.status = GoalStatus.ACTIVE;
+        delete updatedGoal.completedDate;
+      }
+
       // Convert timestamps
       // Convert updatedAt to timestamp
       let updatedAtTimestamp: number;
@@ -220,6 +243,22 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
           id,
         ]
       );
+
+      // Completion XP follows the new status: paid for the NEW target, taken back
+      // as much as was paid for the OLD one.
+      if (justCompleted) {
+        await GamificationService.addXP(goalCompletionXP(updatedGoal.targetValue), {
+          source: XPSourceType.GOAL_COMPLETION,
+          description: `🎉 Goal completed: ${updatedGoal.title}`,
+          sourceId: id
+        });
+      } else if (justUncompleted) {
+        await GamificationService.subtractXP(goalCompletionXP(currentGoal.targetValue), {
+          source: XPSourceType.GOAL_COMPLETION,
+          description: `📉 Goal target raised above progress: ${updatedGoal.title}`,
+          sourceId: id
+        });
+      }
 
       console.log(`✅ SQLite update: Goal updated (${id})`);
       return updatedGoal;
@@ -384,7 +423,11 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
     try {
       const db = getDatabase();
       const rows = await db.getAllAsync<any>(
-        'SELECT * FROM goal_progress WHERE goal_id = ? ORDER BY date DESC',
+        // Newest first — and inside one day by the moment it was written (rowid
+        // breaks a tie of the same millisecond). Sorting by date alone left
+        // same-day entries in any order, and the recalculation (which replays
+        // them oldest first) turned "+5, then =10" into 15 (fixed 2026-11-24).
+        'SELECT * FROM goal_progress WHERE goal_id = ? ORDER BY date DESC, created_at DESC, rowid DESC',
         [goalId]
       );
 

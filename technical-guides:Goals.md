@@ -883,8 +883,26 @@ if (shouldBeActive && wasCompleted) {
 //  1. přímé ODEČTENÍ progressu pod target (addProgress + updateGoalValue
 //     přepne COMPLETED → ACTIVE, smaže completedDate, odečte 250/350 XP),
 //  2. SMAZÁNÍ progress záznamu (recalculateGoalValue — stejné chování).
+//  3. ÚPRAVA CÍLOVÉ HODNOTY (goalStorage.update, 2026-11-24) — viz níže.
 // Opětovné dokončení pak znovu udělí +250/350 (symetrický cyklus, net 0).
 ```
+
+#### Změna cílové hodnoty znovu rozhodne „splněno" (2026-11-24)
+`SQLiteGoalStorage.update` dřív jen sloučil úpravu: zvýšený target nad progress nechal cíl
+COMPLETED i s vyplaceným XP, snížený target pod progress cíl nikdy nedokončil. Teď — **jen když
+se mění `targetValue` a úprava nenese vlastní `status`** (vnitřní zapisovače ho posílají samy),
+a jen u ACTIVE/COMPLETED:
+- target zvýšen nad progress → ACTIVE, `completedDate` smazáno, odečte se XP za **starý** target
+  (tolik, kolik bylo vyplaceno),
+- target snížen pod progress → COMPLETED, `completedDate` = dnes, vyplatí se XP za **nový** target;
+  `GoalsScreen` pak ukáže okno dokončení (stejný `celebrateCompletion` jako u progressu).
+- Stav se nemění → žádné XP. Hlídá `src/services/storage/__tests__/sqliteGoalStorage.targetEdit.test.ts`.
+
+#### Pořadí záznamů jednoho dne (2026-11-24)
+`getProgressByGoalId` řadí `date DESC, created_at DESC, rowid DESC`. Přepočet (`recalculateGoalValue`)
+přehrává záznamy od nejstaršího — řazení jen podle data vracelo záznamy jednoho dne v libovolném
+pořadí a „+5, pak =10" po smazání jiného záznamu dalo 15. Hlídá
+`src/services/storage/__tests__/sqliteGoalStorage.recalcOrder.test.ts`.
 
 #### Goal Deletion & XP (rozhodnutí Petra, 2026-07-19 — paralela N-4.5 u návyků)
 ```typescript
