@@ -213,7 +213,7 @@ export function LevelPanel({
   bottomChrome,
   onOpenLevels,
   onHelp,
-  onActivated,
+  onActivate,
 }: {
   panel: LevelPanelControl;
   /** The XP the badge shows (sparks landed). */
@@ -225,8 +225,8 @@ export function LevelPanel({
   onOpenLevels: () => void;
   /** The help sheet opens after the panel went away. */
   onHelp: () => void;
-  /** The harmony multiplier was switched on: the activation window follows. */
-  onActivated: (result: NonNullable<Awaited<ReturnType<MultiplierState['activate']>>>) => void;
+  /** Switch the harmony multiplier on (the activation window follows). */
+  onActivate: () => void;
 }) {
   const { c } = useDesign();
   const { t } = useI18n();
@@ -349,10 +349,9 @@ export function LevelPanel({
                     panel.close();
                     onHelp();
                   }}
-                  onActivate={async () => {
+                  onActivate={() => {
                     panel.close();
-                    const result = await multiplier.activate();
-                    if (result?.success) onActivated(result);
+                    onActivate();
                   }}
                 />
                 <PressableScale

@@ -70,6 +70,7 @@ import {
   vec,
 } from '@shopify/react-native-skia';
 import { scheduleOnRN } from 'react-native-worklets';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useSegments } from 'expo-router';
 import { useDesign } from '@/src/contexts/ThemeContext';
@@ -106,6 +107,15 @@ const AD_BANNER_ROOM = 60;
 import { TOP_ROW_HEIGHT } from '@/src/components/ui/TopRow';
 import { useBadgeMark } from './useBadgeMark';
 import { useMultiplierState } from './useMultiplierState';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { XP_MULTIPLIERS, XP_REWARDS } from '@/src/constants/gamification';
+import { XPMultiplierService } from '@/src/services/xpMultiplierService';
+import { shouldAnnounceReady } from '@/src/services/xpDisplay/multiplierDisplay';
+
+/** The harmony readiness last announced (its streak start) — D-9. */
+const READY_ANNOUNCED_KEY = 'xp_multiplier_ready_announced';
+/** The comeback boost last announced (its start). */
+const COMEBACK_ANNOUNCED_KEY = 'xp_multiplier_comeback_announced';
 
 // ---------------------------------------------------------------------------
 // Tunables (the lab's, kolo 9–27)
@@ -188,15 +198,34 @@ const XpDisplayContext = createContext<XpDisplay | null>(null);
 /** A quiet trophy note (E8): what one action unlocked, common / rare only. */
 export interface TrophyNoteData {
   id: number;
+  kind?: 'trophy';
   items: { id: string; rarity: string; icon: string; nameKey: string }[];
   /** XP the note stands for (what was credited). */
   xp: number;
   boost?: { factor: string; hours: number } | undefined;
 }
+/**
+ * A quiet note that is not a trophy (E9): "multiplier ready", "welcome back".
+ * With an `action` it offers ONE thing to do: a tap on the note does it, a tap on
+ * the badge only lets it go; it holds longer. The offer itself stays where the
+ * note came from (the level panel) — a missed note loses nothing.
+ */
+export interface PlainNoteData {
+  id: number;
+  kind: 'plain';
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  overline: string;
+  title: string;
+  /** 0 = no XP shown. */
+  xp: number;
+  action?: { label: string; run: () => void } | undefined;
+}
+export type NoteData = TrophyNoteData | PlainNoteData;
 interface MomentNotes {
   showTrophyNote: (note: Omit<TrophyNoteData, 'id'>) => void;
+  showPlainNote: (note: Omit<PlainNoteData, 'id' | 'kind'>) => void;
   noteDone: (point: XpOriginPoint | null) => void;
-  current: TrophyNoteData | null;
+  current: NoteData | null;
   /** A window of the queue is up: notes wait. */
   windowUp: boolean;
   /** The note on screen's own tap (a tap on the badge while a note is out is the note's). */
@@ -496,13 +525,18 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
     }
   }, [head, queuedTypes.length, pump]);
   // --- Quiet notes (E8): one at a time next to the badge, only while no window is up ---
-  const [notes, setNotes] = useState<TrophyNoteData[]>([]);
+  const [notes, setNotes] = useState<NoteData[]>([]);
+  const notesRef = useRef(notes);
+  notesRef.current = notes;
+  const showPlainNote = useCallback((note: Omit<PlainNoteData, 'id' | 'kind'>) => {
+    setNotes(prev => [...prev, { ...note, kind: 'plain', id: nextId.current++ }]);
+  }, []);
   const showTrophyNote = useCallback((note: Omit<TrophyNoteData, 'id'>) => {
     setNotes(prev => {
-      const next = { ...note, id: nextId.current++ };
-      // Waiting notes (not the one on screen) fold into one (enqueueMoment rule).
+      const next: TrophyNoteData = { ...note, id: nextId.current++ };
+      // Waiting trophy notes (not the one on screen) fold into one (enqueueMoment rule).
       const last = prev[prev.length - 1];
-      if (prev.length >= 2 && last) {
+      if (prev.length >= 2 && last && last.kind !== 'plain') {
         return [
           ...prev.slice(0, -1),
           { ...last, items: [...last.items, ...next.items], xp: last.xp + next.xp, boost: last.boost ?? next.boost },
@@ -514,7 +548,12 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
   /** A note left: its XP flies from its number (no second pop), the trophy gate hears it. */
   const noteDone = useCallback(
     (point: XpOriginPoint | null) => {
+      const head = notesRef.current[0];
       setNotes(prev => prev.slice(1));
+      if (head?.kind === 'plain') {
+        reconcileRef.current();
+        return; // a plain note holds no XP and is no trophy
+      }
       const before = ledger.current.nextId;
       ledger.current = releaseHeld(ledger.current, 'trophy');
       if (point) {
@@ -534,7 +573,7 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
   useEffect(() => listenTrophyNotes(note => showTrophyNote(note)), [showTrophyNote]);
   const pendingRef = useRef(pendingHoldKinds(queuedTypes));
   pendingRef.current = pendingHoldKinds(queuedTypes);
-  if (notes.length > 0) pendingRef.current.add('trophy');
+  if (notes.some(n => n.kind !== 'plain')) pendingRef.current.add('trophy');
   useEffect(() => {
     const tick = setInterval(() => {
       if (ledger.current.held.length === 0) return;
@@ -567,8 +606,8 @@ export function XpDisplayProvider({ children }: { children: ReactNode }) {
 
   const noteTap = useRef<(() => void) | null>(null);
   const notesApi = useMemo(
-    () => ({ showTrophyNote, noteDone, current: notes[0] ?? null, windowUp: queuedTypes.length > 0, noteTap }),
-    [showTrophyNote, noteDone, notes, queuedTypes.length]
+    () => ({ showTrophyNote, showPlainNote, noteDone, current: notes[0] ?? null, windowUp: queuedTypes.length > 0, noteTap }),
+    [showTrophyNote, showPlainNote, noteDone, notes, queuedTypes.length]
   );
 
   const value = useMemo(
@@ -786,6 +825,86 @@ export function LevelBadgeLayer() {
   const [help, setHelp] = useState(false);
   // The dim ends above the tab bar and the ad banner (plan E9 point 2).
   const bottomChrome = TAB_BAR_HEIGHT + insets.bottom + AD_BANNER_ROOM;
+  const { t } = useI18n();
+  const { showPlainNote } = useMomentNotes();
+
+  // Switching the harmony multiplier on (panel button or the "ready" note): the
+  // activation window follows (E10 converts it).
+  const activateHarmony = useCallback(async () => {
+    const result = await multiplier.activate();
+    if (result?.success) {
+      enqueue({
+        type: 'multiplier_activation',
+        priority: ModalPriority.MULTIPLIER_ACTIVATION,
+        props: { multiplier: result.multiplier, harmonyStreakLength: multiplier.harmonyDays, bonusXP: result.xpBonusAwarded || 0 },
+      });
+    }
+  }, [multiplier, enqueue]);
+
+  // 2c: "ready" is announced ONCE per readiness (key = the harmony streak's start,
+  // stored — D-9); the dot on the badge and the panel's button stay anyway (P73).
+  const status = multiplier.status;
+  const readyKey = multiplier.streakStartDate ?? '';
+  useEffect(() => {
+    if (status?.kind !== 'ready' || !readyKey) return;
+    let cancelled = false;
+    void (async () => {
+      const announced = await AsyncStorage.getItem(READY_ANNOUNCED_KEY);
+      if (cancelled || !shouldAnnounceReady(status, readyKey, announced)) return;
+      await AsyncStorage.setItem(READY_ANNOUNCED_KEY, readyKey);
+      const factor = multiplier.print(XP_MULTIPLIERS.HARMONY_STREAK_MULTIPLIER);
+      showPlainNote({
+        icon: 'flash',
+        overline: t('gamification.multiplier.harmonyOverline', { count: XP_MULTIPLIERS.HARMONY_STREAK_DAYS_REQUIRED }),
+        title: t('gamification.levelPanel.readyTitle', { factor }),
+        xp: 0,
+        action: { label: t('gamification.levelPanel.noteAction'), run: () => void activateHarmony() },
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [status, readyKey, multiplier, showPlainNote, t, activateHarmony]);
+
+  // 2d: what the Home multiplier section announced, now here (L-11).
+  useEffect(() => {
+    const comeback = async (bonus: number) => {
+      const info = await XPMultiplierService.getActiveMultiplier();
+      if (!info.isActive || String(info.source) !== 'inactive_user_return') return;
+      const key = info.activatedAt ? new Date(info.activatedAt).toISOString() : 'comeback';
+      if ((await AsyncStorage.getItem(COMEBACK_ANNOUNCED_KEY)) === key) return;
+      await AsyncStorage.setItem(COMEBACK_ANNOUNCED_KEY, key);
+      showPlainNote({
+        icon: 'sunny',
+        overline: t('gamification.multiplier.welcomeBack'),
+        title: t('gamification.multiplier.boostTitle', {
+          factor: new Intl.NumberFormat(t('common.locale')).format(XP_MULTIPLIERS.COMEBACK_MULTIPLIER),
+          count: XP_MULTIPLIERS.COMEBACK_DURATION,
+        }),
+        xp: bonus,
+      });
+    };
+    // The comeback starts at app start — maybe before this layer listened.
+    void comeback(XP_REWARDS.SPECIAL.COMEBACK_BONUS);
+    const sub = addAppEventListener('xpMultiplierActivated', event => {
+      const e = event as { source?: string; xpBonusAwarded?: number };
+      if (e?.source === 'inactive_user_return') void comeback(e.xpBonusAwarded ?? XP_REWARDS.SPECIAL.COMEBACK_BONUS);
+      else if (e?.source === 'challenge_completion') {
+        // Until E18 tells it inside the challenge's own window.
+        void XPMultiplierService.getActiveMultiplier().then(info => {
+          if (info.isActive) {
+            enqueue({
+              type: 'multiplier_activation',
+              priority: ModalPriority.MULTIPLIER_ACTIVATION,
+              props: { multiplier: info, harmonyStreakLength: 0, bonusXP: (event as { xpBonusAwarded?: number }).xpBonusAwarded || 0 },
+            });
+          }
+        });
+      }
+      // 'achievement' rides in the trophy moment (E8); 'harmony_streak' is switched on here.
+    });
+    return () => sub.remove();
+  }, [showPlainNote, t, enqueue]);
 
   return (
     <>
@@ -798,17 +917,7 @@ export function LevelBadgeLayer() {
           bottomChrome={bottomChrome}
           onOpenLevels={() => router.push('/levels-overview')}
           onHelp={() => setHelp(true)}
-          onActivated={result =>
-            enqueue({
-              type: 'multiplier_activation',
-              priority: ModalPriority.MULTIPLIER_ACTIVATION,
-              props: {
-                multiplier: result.multiplier,
-                harmonyStreakLength: multiplier.harmonyDays,
-                bonusXP: result.xpBonusAwarded || 0,
-              },
-            })
-          }
+          onActivate={activateHarmony}
         />
       )}
       <Animated.View
@@ -1140,7 +1249,106 @@ const NOTE_HOLD_MS = { common: 2600, rare: 3400 } as const;
 function NoteHost() {
   const { current, windowUp, noteDone } = useMomentNotes();
   if (!current || windowUp) return null;
+  if (current.kind === 'plain') return <PlainNoteView key={current.id} note={current} onDone={noteDone} />;
   return <TrophyNoteView key={current.id} note={current} onDone={noteDone} />;
+}
+
+/** Hold of a note that offers an action — long enough to read and decide. */
+const ACTION_HOLD_MS = 6000;
+const PLAIN_HOLD_MS = 3400;
+
+function PlainNoteView({ note, onDone }: { note: PlainNoteData; onDone: (point: XpOriginPoint | null) => void }) {
+  const { c } = useDesign();
+  const { t } = useI18n();
+  const reducedMotion = useReducedMotion();
+  const p = useSharedValue(0);
+  const ended = useRef(false);
+  const end = useCallback(() => {
+    if (ended.current) return;
+    ended.current = true;
+    onDone(null);
+  }, [onDone]);
+  const endRef = useRef(end);
+  endRef.current = end;
+  useEffect(() => () => endRef.current(), []);
+  const left = useRef(false);
+  const leave = useCallback(
+    (act: boolean) => {
+      if (left.current) return;
+      left.current = true;
+      if (act && note.action) {
+        // Done first (no exit to wait for), then the action — it opens a window.
+        end();
+        note.action.run();
+        return;
+      }
+      p.value = withTiming(0, { duration: 240 }, finished => {
+        if (finished) scheduleOnRN(end);
+      });
+    },
+    [p, end, note.action]
+  );
+  const leaveRef = useRef(leave);
+  leaveRef.current = leave;
+  const { noteTap } = useMomentNotes();
+  useEffect(() => {
+    // A tap on the badge only lets the note go; it never runs the action.
+    noteTap.current = () => leaveRef.current(false);
+    return () => {
+      noteTap.current = null;
+    };
+  }, [noteTap]);
+  const xpText = note.xp > 0 ? t('achievements.card.xpReward', { xp: note.xp }) : null;
+  useEffect(() => {
+    feel('note');
+    AccessibilityInfo.announceForAccessibility(`${note.overline}. ${note.title}.${xpText ? ` ${xpText}.` : ''}`);
+    p.value = withSpring(1, { damping: 14, stiffness: 200 });
+    const id = setTimeout(() => leaveRef.current(false), note.action ? ACTION_HOLD_MS : PLAIN_HOLD_MS);
+    return () => clearTimeout(id);
+    // One note = one entrance.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const style = useAnimatedStyle(() =>
+    reducedMotion
+      ? { opacity: p.value }
+      : { opacity: p.value, transform: [{ translateX: (1 - p.value) * -16 }, { scale: 0.92 + 0.08 * p.value }] }
+  );
+  return (
+    <Animated.View style={[styles.noteWrap, style]} pointerEvents="box-none">
+      <PressableScale
+        onPress={() => leave(true)}
+        feel={null}
+        pressScale={0.97}
+        accessibilityLabel={`${note.overline}. ${note.title}.${xpText ? ` ${xpText}.` : ''}${
+          note.action ? ` ${note.action.label}` : ''
+        }`}
+        style={[styles.note, { backgroundColor: c.surface, borderColor: withAlpha(GOLD_DEEP, 0.6) }]}
+      >
+        <View style={[styles.medal, { borderColor: GOLD_DEEP, backgroundColor: c.surface }]}>
+          <Ionicons name={note.icon} size={16} color={c.rewardText} />
+        </View>
+        <View style={styles.noteText}>
+          <Text maxFontSizeMultiplier={1.2} numberOfLines={1} style={typeStyle('overline', c.rewardText)}>
+            {note.overline}
+          </Text>
+          <Text maxFontSizeMultiplier={1.2} numberOfLines={1} style={typeStyle('label', c.text)}>
+            {note.title}
+          </Text>
+        </View>
+        {note.action ? (
+          <View style={[styles.noteAction, { backgroundColor: GOLD }]}>
+            <Text maxFontSizeMultiplier={1.2} style={[typeStyle('caption', fixed.goldInk), { fontFamily: fonts.bold }]}>
+              {note.action.label}
+            </Text>
+          </View>
+        ) : xpText ? (
+          <Text maxFontSizeMultiplier={1.2} style={[typeStyle('caption', c.rewardText), styles.plainXp, { fontFamily: fonts.bold }]}>
+            {xpText}
+          </Text>
+        ) : null}
+      </PressableScale>
+    </Animated.View>
+  );
 }
 
 function TrophyNoteView({
@@ -1361,6 +1569,8 @@ const styles = StyleSheet.create({
   noteText: { flexShrink: 1, marginLeft: space.sm },
   noteXp: { marginLeft: space.sm, alignItems: 'flex-end' },
   boostTag: { borderRadius: radius.pill, paddingHorizontal: 6, marginBottom: 2 },
+  noteAction: { marginLeft: space.sm, borderRadius: radius.pill, paddingHorizontal: space.md, paddingVertical: 6 },
+  plainXp: { marginLeft: space.sm },
   boostText: { ...typeStyle('micro', fixed.goldInk), fontFamily: fonts.bold },
   tagHit: { paddingHorizontal: space.md, paddingVertical: 5 },
   tagText: { letterSpacing: 1.4 },

@@ -25,6 +25,10 @@ export interface MultiplierState {
   today: { habits: boolean; journal: boolean; goals: boolean };
   /** Harmony days in a row (for the windows' overline). */
   harmonyDays: number;
+  /** Start of the current harmony streak — names one readiness (the "ready" note's key, D-9). */
+  streakStartDate: string | null;
+  /** The running multiplier's source and start (the comeback note). */
+  running: { source: string; activatedAt: string | null } | null;
   /** "2×", "2,5×" in the app's language. */
   print: (factor: number) => string;
   /** Switches the harmony multiplier on (ready only; one at a time). */
@@ -37,6 +41,8 @@ export function useMultiplierState(): MultiplierState {
   const [status, setStatus] = useState<MultiplierStatus | null>(null);
   const [today, setToday] = useState({ habits: false, journal: false, goals: false });
   const [harmonyDays, setHarmonyDays] = useState(0);
+  const [streakStartDate, setStreakStartDate] = useState<string | null>(null);
+  const [running, setRunning] = useState<MultiplierState['running']>(null);
   const endTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const activating = useRef(false);
 
@@ -62,6 +68,15 @@ export function useMultiplierState(): MultiplierState {
         )
       );
       setHarmonyDays(harmony.currentStreak);
+      setStreakStartDate(harmony.streakStartDate ?? null);
+      setRunning(
+        active.isActive && msLeft > 0
+          ? {
+              source: String(active.source),
+              activatedAt: active.activatedAt ? new Date(active.activatedAt).toISOString() : null,
+            }
+          : null
+      );
       const day = harmony.streakHistory.find(d => d.date === todayString());
       setToday({
         habits: !!day?.hasHabitActivity,
@@ -115,5 +130,5 @@ export function useMultiplierState(): MultiplierState {
     }
   }, [status, load]);
 
-  return { status, today, harmonyDays, print, activate };
+  return { status, today, harmonyDays, streakStartDate, running, print, activate };
 }

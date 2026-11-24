@@ -1095,7 +1095,7 @@ export class XPMultiplierService {
       }
       
       // Create multiplier (48 hours = 2 days duration)
-      const BOOST_DURATION_HOURS = 48;
+      const BOOST_DURATION_HOURS = XP_MULTIPLIERS.COMEBACK_DURATION;
       const now = new Date();
       const expiresAt = new Date(now.getTime() + (BOOST_DURATION_HOURS * 60 * 60 * 1000));
       
@@ -1103,7 +1103,7 @@ export class XPMultiplierService {
         id: `inactive_return_${Date.now()}`,
         createdAt: now,
         updatedAt: now,
-        multiplier: 2.0, // 2x XP
+        multiplier: XP_MULTIPLIERS.COMEBACK_MULTIPLIER,
         activatedAt: now,
         expiresAt,
         source: 'inactive_user_return',
@@ -1146,6 +1146,16 @@ export class XPMultiplierService {
       // Record activation in history
       await this.recordMultiplierActivation(multiplier, 0, bonusXP);
       
+      // Told by a quiet note at the level badge (E9) — the badge layer also checks
+      // on mount, because this runs at app start, before the layer listens.
+      DeviceEventEmitter.emit('xpMultiplierActivated', {
+        multiplier: multiplier.multiplier,
+        duration: multiplier.duration,
+        source: multiplier.source,
+        expiresAt: multiplier.expiresAt,
+        xpBonusAwarded: bonusXP,
+        timestamp: Date.now(),
+      });
       console.log(`✅ Inactive User Comeback Boost activated: 2x XP for ${BOOST_DURATION_HOURS} hours`);
       console.log(`💎 Comeback bonus awarded: +${bonusXP} XP (${inactiveStatus.daysSinceLastActivity} days away)`);
       

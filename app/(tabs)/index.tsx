@@ -16,8 +16,6 @@ import { PersonalizedRecommendations } from '@/src/components/home/PersonalizedR
 import { HomeCustomizationModal } from '@/src/components/home/HomeCustomizationModal';
 import { OptimizedXpProgressBar } from '@/src/components/gamification/OptimizedXpProgressBar';
 import { PremiumTrophyIcon } from '@/src/components/home/PremiumTrophyIcon';
-import { XpMultiplierSection } from '@/src/components/home/XpMultiplierSection';
-import { MultiplierCountdownTimer } from '@/src/components/gamification/MultiplierCountdownTimer';
 import {
   MonthlyChallengeSection,
   MonthlyChallengeDetailModal
@@ -219,7 +217,10 @@ export default function HomeScreen() {
       case 'xpProgressBar':
         return <OptimizedXpProgressBar key={componentId} />;
       case 'xpMultiplier':
-        return <XpMultiplierSection key={componentId} />;
+        // E9: the multiplier lives on the level badge and in its panel now (its
+        // announcements moved to the badge layer). The stored section id stays
+        // until Home's customisation is converted (E11).
+        return null;
       case 'quickActions':
         return <QuickActionButtons key={componentId} onHabitToggle={handleHabitToggle} />;
       case 'journalStreak':
@@ -284,15 +285,10 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
-      {/* Top row (E3): the left place waits for the level badge (E7). The timer
-          moves to the badge in E9; trophy room and customize get their final
+      {/* Top row (E3): the level badge (E7) sits in the left place; the
+          multiplier is on it (E9); trophy room and customize get their final
           form in E11. */}
       <TopRow>
-        <MultiplierCountdownTimer
-          size="small"
-          variant="light"
-          showMultiplier={false}
-        />
         <RoundButton
           signature="trophy"
           tone="reward"

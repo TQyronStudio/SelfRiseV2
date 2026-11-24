@@ -709,3 +709,11 @@ Common: 50 XP, Rare: 100 XP, Epic: 200 XP, Legendary: 500 XP
 ---
 
 **GOLDEN RULE**: *"One gamification system, clear rules, zero exceptions, full reversibility"*
+
+---
+
+## Oznámení „násobič připraven“ – jednou na připravení (D-9, migrace E9, 2026-11-24)
+Klíč jednoho připravení = `calculateHarmonyStreak().streakStartDate`. Uložený v AsyncStorage
+`xp_multiplier_ready_announced`; oznámení se ukáže, jen když `shouldAnnounceReady(status, klíč, uložený)`
+(`src/services/xpDisplay/multiplierDisplay.ts`, test). Nová série = nový klíč = nové oznámení. Přehlédnuté oznámení
+nic nebere: tečka na odznaku a zlaté tlačítko v panelu úrovně zůstávají (P73).

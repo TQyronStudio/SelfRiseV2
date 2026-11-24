@@ -265,6 +265,8 @@ export const XP_MULTIPLIERS = {
   HARMONY_STREAK_DURATION: 24,       // 24 hours of 2x XP
   CHALLENGE_COMPLETION_DURATION: 12,  // 12 hours of 1.5x XP
   ACHIEVEMENT_COMBO_DURATION: 6,     // 6 hours of 2.5x XP
+  COMEBACK_MULTIPLIER: 2,            // returning after a break (E9: moved from the service)
+  COMEBACK_DURATION: 48,             // hours of the comeback 2x XP
 
   // Activation requirements
   HARMONY_STREAK_DAYS_REQUIRED: 7,   // 7 days of all features used

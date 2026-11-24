@@ -550,6 +550,17 @@ přepnutí záložky a tažení (lze pustit v půli). Jen na záložkách, ne po
 tlačítkem / sbírá se se sedmi dílky a dnešními třemi), tiché „i“ (téma `multiplier`, okno nápovědy hostí vrstva odznaku
 až po zavření panelu), „All levels“ → `/levels-overview`. Ťuk na odznak během tichého oznámení = ťuk na oznámení.
 
+**Oznámení násobiče (E9 2c/2d, 2026-11-24)** – vrstva odznaku (`LevelBadgeLayer`) převzala, co dělala sekce Home
+`XpMultiplierSection` (z Home i s odpočtem `MultiplierCountdownTimer` odstraněna; soubory zaniknou v E26):
+- **„připraveno“** = tiché oznámení s akcí „Switch on“ **jednou na připravení** (`shouldAnnounceReady`, klíč = začátek
+  série harmonie v AsyncStorage `xp_multiplier_ready_announced`, D-9). Ťuk na oznámení zapne násobič (okno zapnutí z
+  fronty), ťuk na odznak oznámení jen pustí. Tečka na odznaku a tlačítko v panelu zůstávají.
+- **návrat po pauze** (`inactive_user_return`) = tiché oznámení „Welcome back“ + 2× na 48 h + 25 XP; služba posílá
+  `xpMultiplierActivated` a vrstva to ověřuje i při připojení (bonus se zapíná při startu, dřív než vrstva poslouchá);
+  ohlásí se jednou na zapnutí (`xp_multiplier_comeback_announced`). 2× a 48 h jsou v `XP_MULTIPLIERS.COMEBACK_*`.
+- **výzva** (`challenge_completion`) dál řadí okno zapnutí – do E18, kdy řádek přejde do okna výzvy.
+- **kombo trofejí** jede v momentu trofeje (E8); **harmonie** se zapíná z panelu / oznámení.
+
 **Značka násobiče (6a):** `src/components/xp/useBadgeMark.ts` – zlatý štítek s faktorem, který opravdu běží
 (`getActiveMultiplier`), tichá tečka, když je násobič harmonie připravený (`calculateHarmonyStreak().canActivateMultiplier`
 bez běžícího); čtečka `gamification.badge.levelWithMark`. Znovu se čte po zisku XP, po zapnutí násobiče, po návratu
