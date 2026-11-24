@@ -99,4 +99,28 @@ describe('a new target re-decides completion', () => {
     expect((await storage.getById(id))?.status).toBe(GoalStatus.COMPLETED);
     expect(subtractXP).not.toHaveBeenCalled();
   });
+
+  test('a completed goal crossing the big-goal line pays or takes back the difference', async () => {
+    const id = await goalAt(10000, 10000); // completed big goal: BIG paid
+    await storage.update(id, { targetValue: 5 }); // still completed, now small
+    expect(subtractXP.mock.calls.map(c => c[0])).toEqual([
+      goalCompletionXP(10000) - goalCompletionXP(5),
+    ]);
+    await storage.update(id, { targetValue: 10000 }); // big again
+    expect(addXP.mock.calls.map(c => c[0])).toEqual([
+      goalCompletionXP(10000) - goalCompletionXP(5),
+    ]);
+  });
+
+  test('editing the target up and down earns nothing (reviewer cycle)', async () => {
+    const id = await goalAt(10000, 10000); // paid BIG
+    for (const target of [20000, 10000, 5, 20000]) {
+      await storage.update(id, { targetValue: target });
+    }
+    const paid = addXP.mock.calls.reduce((sum, c) => sum + c[0], 0);
+    const taken = subtractXP.mock.calls.reduce((sum, c) => sum + c[0], 0);
+    // Ends uncompleted: everything the goal ever paid (BIG) is back.
+    expect(paid - taken).toBe(-goalCompletionXP(10000));
+  });
 });
+

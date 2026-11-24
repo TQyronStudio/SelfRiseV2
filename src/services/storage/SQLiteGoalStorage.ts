@@ -187,6 +187,16 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
         targetChanged && updatedGoal.currentValue >= updatedGoal.targetValue;
       const justCompleted = targetChanged && nowReached && !wasCompleted;
       const justUncompleted = targetChanged && !nowReached && wasCompleted;
+      // Stays completed across the big-goal line: the paid reward follows the
+      // target, so a completed goal has always been paid exactly
+      // goalCompletionXP(its current target) — what every later reversal takes
+      // back. Without this, editing the target up and down earned the
+      // difference over and over.
+      const rewardDelta =
+        targetChanged && nowReached && wasCompleted
+          ? goalCompletionXP(updatedGoal.targetValue) -
+            goalCompletionXP(currentGoal.targetValue)
+          : 0;
       if (justCompleted) {
         updatedGoal.status = GoalStatus.COMPLETED;
         updatedGoal.completedDate = today();
@@ -256,6 +266,18 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
         await GamificationService.subtractXP(goalCompletionXP(currentGoal.targetValue), {
           source: XPSourceType.GOAL_COMPLETION,
           description: `📉 Goal target raised above progress: ${updatedGoal.title}`,
+          sourceId: id
+        });
+      } else if (rewardDelta > 0) {
+        await GamificationService.addXP(rewardDelta, {
+          source: XPSourceType.GOAL_COMPLETION,
+          description: `🎉 Completed goal became a big goal: ${updatedGoal.title}`,
+          sourceId: id
+        });
+      } else if (rewardDelta < 0) {
+        await GamificationService.subtractXP(-rewardDelta, {
+          source: XPSourceType.GOAL_COMPLETION,
+          description: `📉 Completed goal is no longer a big goal: ${updatedGoal.title}`,
           sourceId: id
         });
       }

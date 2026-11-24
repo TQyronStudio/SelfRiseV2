@@ -663,7 +663,9 @@ Tři výpočty z Home karet žijí v testovaných čistých souborech v `src/com
 - **Celkový trend** (`habitTrendLogic.ts`, karta HabitTrendAnalysis): týdny jsou seřazené **od
   nejstaršího** (tento týden je poslední); porovnává průměr dvou posledních týdnů s dvěma
   předchozími, práh ±10 bodů. Dřív bral jako „nedávné" dva NEJSTARŠÍ týdny → zlepšení hlásil
-  jako zhoršení.
+  jako zhoršení. Týden bez čeho hodnotit (`null` – návyk ještě nebyl, celý týden pauza) se
+  do průměru **nepočítá**; chybí-li data v jedné polovině, trend je „stabilní" (jinak první týden
+  nového uživatele hlásil „zlepšení").
 - **Rok** (`yearlyOverviewLogic.ts`, YearlyHabitOverview): dostupná data, ale **nejvýš posledních
   365 dní**. Dřív celá historie — po roce používání „Rok" znamenal „od začátku".
 - **Týdenní průměr** (`habitPerformanceLogic.ts`, HabitPerformanceIndicators): jednotné pravidlo

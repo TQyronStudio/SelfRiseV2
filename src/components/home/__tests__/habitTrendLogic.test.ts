@@ -21,4 +21,13 @@ describe('overallTrend() — weeks oldest first, this week last', () => {
   it('treats missing weeks as 0', () => {
     expect(overallTrend([]).trend).toBe('stable');
   });
+
+  it('a first week is no trend — weeks without data are left out, not 0', () => {
+    expect(overallTrend([null, null, null, 80])).toEqual({ recent: 80, change: 0, trend: 'stable' });
+  });
+
+  it('compares the weeks that have data', () => {
+    expect(overallTrend([null, 40, 80, 90]).change).toBe(45);
+  });
 });
+

@@ -161,7 +161,7 @@ export const HabitTrendAnalysis: React.FC = () => {
 
     // Overall trend: `weeks` is oldest first (unshift) — this week is weeks[3]
     const { recent: recentAvg, change: overallTrendChange, trend: overallTrend } = overallTrendOf(
-      weeks.map(w => w.completionRate)
+      weeks.map(w => (w.possible > 0 ? w.completionRate : null)) // null = nothing to rate
     );
 
     // Individual habit analysis - using 4 weeks of data (preserving original time period)

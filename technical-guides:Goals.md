@@ -896,7 +896,10 @@ a jen u ACTIVE/COMPLETED:
   (tolik, kolik bylo vyplaceno),
 - target snížen pod progress → COMPLETED, `completedDate` = dnes, vyplatí se XP za **nový** target;
   `GoalsScreen` pak ukáže okno dokončení (stejný `celebrateCompletion` jako u progressu).
-- Stav se nemění → žádné XP. Hlídá `src/services/storage/__tests__/sqliteGoalStorage.targetEdit.test.ts`.
+- zůstává COMPLETED, ale target přejde hranici velkého cíle (10 000) → doplatí / odečte se **rozdíl**
+  350 − 250. Invariant: splněný cíl má vždy vyplaceno přesně `goalCompletionXP(aktuální target)` – to,
+  co pak každá reverze odečte. Bez toho šlo úpravami targetu nahoru a dolů opakovaně vydělat rozdíl.
+- Jinak se stav nemění → žádné XP. Hlídá `src/services/storage/__tests__/sqliteGoalStorage.targetEdit.test.ts`.
 
 #### Datum zápisu pokroku (2026-11-24)
 Pole data v `ProgressEntryForm` je volný text. `progressDateError` (`src/components/goals/progressEntryRules.ts`)

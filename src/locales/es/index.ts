@@ -923,7 +923,7 @@ const es: Partial<TranslationKeys> = {
       },
       resetFailed: {
         title: 'Reinicio fallido',
-        message: 'Tu racha no se reinició. No ha cambiado nada.',
+        message: 'Tu racha no se reinició. Inténtalo de nuevo.',
       },
       adDismissed: {
         title: 'Anuncio no completado',

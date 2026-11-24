@@ -923,7 +923,7 @@ const de: Partial<TranslationKeys> = {
       },
       resetFailed: {
         title: 'Zurücksetzen fehlgeschlagen',
-        message: 'Deine Serie wurde nicht zurückgesetzt. Es hat sich nichts geändert.',
+        message: 'Deine Serie wurde nicht zurückgesetzt. Versuch es bitte noch einmal.',
       },
       adDismissed: {
         title: 'Werbung nicht abgeschlossen',

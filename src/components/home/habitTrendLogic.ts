@@ -12,15 +12,24 @@ export type Trend = 'improving' | 'declining' | 'stable';
 /** A change of more than this many percentage points counts as a trend. */
 export const TREND_THRESHOLD = 10;
 
-export function overallTrend(weeklyRatesOldestFirst: number[]): {
-  /** Average of the two most recent weeks. */
+export function overallTrend(weeklyRatesOldestFirst: (number | null)[]): {
+  /** Average of the recent weeks that had something to rate. */
   recent: number;
   change: number;
   trend: Trend;
 } {
-  const rate = (i: number) => weeklyRatesOldestFirst[i] ?? 0;
-  const earlier = (rate(0) + rate(1)) / 2;
-  const recent = (rate(2) + rate(3)) / 2;
+  // null = a week with nothing to rate (no habit yet, or paused all week). It
+  // is left out — counted as 0 it made a first week read "improving".
+  const avg = (rates: (number | null | undefined)[]) => {
+    const known = rates.filter((r): r is number => typeof r === 'number');
+    return known.length ? known.reduce((a, b) => a + b, 0) / known.length : null;
+  };
+  const w = weeklyRatesOldestFirst;
+  const earlier = avg([w[0], w[1]]);
+  const recent = avg([w[2], w[3]]);
+  if (earlier === null || recent === null) {
+    return { recent: recent ?? 0, change: 0, trend: 'stable' };
+  }
   const change = recent - earlier;
   const trend: Trend =
     change > TREND_THRESHOLD

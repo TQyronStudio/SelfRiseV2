@@ -921,7 +921,7 @@ const en: TranslationKeys = {
       },
       resetFailed: {
         title: 'Reset Failed',
-        message: 'Your streak wasn’t reset. Nothing has changed.',
+        message: 'Your streak wasn’t reset. Please try again.',
       },
       adDismissed: {
         title: 'Ad Not Completed',
