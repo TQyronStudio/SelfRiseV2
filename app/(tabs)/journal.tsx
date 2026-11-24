@@ -108,8 +108,10 @@ export default function JournalScreen() {
 
       // Check for streak milestones after completing daily requirement
       setTimeout(async () => {
-        await actions.refreshStats();
-        const currentStreak = state.streakInfo?.currentStreak || 0;
+        // The streak AFTER today's entry — not state.streakInfo, which this
+        // callback captured before the save (the window came a day late)
+        const fresh = await actions.refreshStats();
+        const currentStreak = fresh?.currentStreak || 0;
         if (isJournalStreakMilestone(currentStreak)) {
           enqueueModal({
             type: 'celebration_streak_milestone',
@@ -146,7 +148,7 @@ export default function JournalScreen() {
         }, 500);
       }
     }
-  }, [currentCount, t, enqueueModal, actions, state.streakInfo]);
+  }, [currentCount, enqueueModal, actions]);
 
   // Styles inside component to access theme colors
   const styles = StyleSheet.create({

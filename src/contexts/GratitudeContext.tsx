@@ -24,7 +24,11 @@ export interface GratitudeContextType {
     deleteGratitude: (id: string) => Promise<void>;
     getGratitudesByDate: (date: DateString) => Gratitude[];
     searchGratitudes: (searchTerm: string) => Promise<Gratitude[]>;
-    refreshStats: () => Promise<void>;
+    /** Recalculates the streak and stats — and returns the fresh streak, because a
+     *  callback that read `state.streakInfo` right after would still hold the
+     *  value from its own render (the streak window came a day late until
+     *  2026-11-24). */
+    refreshStats: () => Promise<GratitudeStreak | null>;
     incrementMilestoneCounter: (milestoneType: number) => Promise<void>;
     clearError: () => void;
     forceRefresh: () => Promise<void>;
@@ -201,7 +205,7 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
       });
   };
 
-  const refreshStats = async (): Promise<void> => {
+  const refreshStats = async (): Promise<GratitudeStreak | null> => {
     try {
       const [streakInfo, stats] = await Promise.all([
         gratitudeStorage.calculateAndUpdateStreak(), // Force recalculation to trigger auto-reset if needed
@@ -210,8 +214,10 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
       
       dispatch({ type: 'SET_STREAK_INFO', payload: streakInfo });
       dispatch({ type: 'SET_STATS', payload: stats });
+      return streakInfo;
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to refresh stats');
+      return null;
     }
   };
 

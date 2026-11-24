@@ -557,6 +557,19 @@ Journal celebrations represent immediate user actions and MUST have highest prio
    - Level celebrations caused by journal XP
 ```
 
+### ⏱️ Okno série se rozhoduje podle série PO dnešním zápisu (2026-11-24)
+
+```typescript
+// ✅ CORRECT (app/(tabs)/journal.tsx): refreshStats() vrací čerstvou sérii
+const fresh = await actions.refreshStats();
+const currentStreak = fresh?.currentStreak || 0;
+// ❌ WRONG: callback drží state ze svého renderu — sérii z doby PŘED uložením
+await actions.refreshStats();
+const currentStreak = state.streakInfo?.currentStreak || 0;
+```
+**Proč**: se starým čtením se okno 7. dne ukázalo až 8. den (se „7"). Hlídá
+`src/contexts/__tests__/gratitudeRefreshStats.test.tsx`.
+
 ### 🏆 Milníky série deníku — JEDNO místo pro dny i texty (říjen 2026)
 
 `src/utils/journalStreakMilestones.ts`: `JOURNAL_STREAK_MILESTONES` (kdy se slaví —
