@@ -5,6 +5,7 @@ import { View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { RoundButton, TopRow } from '@/src/components/ui/TopRow';
 import { HabitsListView } from '@/src/components/habits/list/HabitsListView';
+import { HabitsReorderView } from '@/src/components/habits/list/HabitsReorderView';
 import { HabitDetail } from '@/src/components/habits/detail/HabitDetail';
 import { HabitComposer } from '@/src/components/habits/composer/HabitComposer';
 import { DetailRect } from '@/src/components/ui';
@@ -12,7 +13,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Habit, CreateHabitInput, UpdateHabitInput } from '@/src/types/habit';
-import { HabitListWithCompletion } from '@/src/components/habits';
 import { useHabitsData } from '@/src/hooks/useHabitsData';
 // useEnhancedGamification removed - XP handled by habitStorage
 import { useDesign } from '@/src/contexts/ThemeContext';
@@ -26,7 +26,7 @@ const BANNER_ROOM = 60;
 export function HabitsScreen() {
   const { t } = useI18n();
   const { c } = useDesign();
-  const { habits, completions, isLoading, actions } = useHabitsData();
+  const { habits, completions, actions } = useHabitsData();
   // addXP/subtractXP removed - XP handled by habitStorage
   const params = useLocalSearchParams();
 
@@ -35,10 +35,6 @@ export function HabitsScreen() {
     container: {
       flex: 1,
       backgroundColor: c.canvas,
-    },
-    listContainer: {
-      flex: 1, // Klíčová oprava - seznam zabere pouze zbývající místo
-      paddingBottom: 60, // Extra padding for banner
     },
     bannerContainer: {
       position: 'absolute',
@@ -254,21 +250,12 @@ export function HabitsScreen() {
       </TopRow>
 
       {isEditMode ? (
-        // Reordering keeps the proven drag list until its own stage (E6).
-        <View style={styles.listContainer}>
-          <HabitListWithCompletion
-            habits={habits}
-            completions={completions}
-            isLoading={isLoading}
-            isEditMode
-            onEditHabit={handleEditHabit}
-            onDeleteHabit={handleDeleteHabit}
-            onToggleActive={handleToggleActive}
-            onToggleCompletion={handleToggleCompletion}
-            onReorderHabits={handleReorderHabits}
-            onViewHabitStats={handleViewHabitStats}
-          />
-        </View>
+        // New look (E6 point 3); the drag rules are ReorderableList's, unchanged.
+        <HabitsReorderView
+          habits={habits}
+          bottomInset={BANNER_ROOM}
+          onReorder={handleReorderHabits}
+        />
       ) : (
         <HabitsListView
           bottomInset={BANNER_ROOM}

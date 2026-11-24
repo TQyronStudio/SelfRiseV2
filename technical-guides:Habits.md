@@ -377,7 +377,10 @@ návyku (uživatel si může vybrat i žlutou a červenou – R-11):
 - „⋯“ (R-4c) nahrazuje čtyři tlačítka řádku: kalendář a statistiky, upravit, pozastavit / obnovit,
   smazat (s potvrzením `ConfirmSheet`). Karta je `React.memo` – odškrtnutí překreslí jen svou kartu.
 - Pulz úvodu: obrazovka 3 úvodu, jen pojmenovaný návyk (jinak všechny neodškrtnuté) – stejně jako dřív.
-- Režim řazení zůstává do bodu 3 E6 postaru.
+- **Režim řazení (E6 bod 3, 2026-11-24)** – `src/components/habits/list/HabitsReorderView.tsx`: nový vzhled řádků
+  (číslo pořadí, které se po puštění přeroluje, ikona, jméno, rozvrh / „Paused“, úchyt). **Pravidla řazení jsou
+  dál `ReorderableList`** (oddíl „Řazení“ níže) – beze změny. „Hotovo“ je tlačítko horní řady. Starý
+  `HabitListWithCompletion` už Návyky nepoužívají (zaniká v E26).
 
 **Tvorba a úprava návyku (migrace E6 bod 2, 2026-11-24)** – `src/components/habits/composer/HabitComposer.tsx`:
 - **Jeden sheet pro tvorbu i úpravu** (nahrazuje `HabitModal` na obrazovce Návyky; soubor zaniká v E26).
