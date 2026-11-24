@@ -116,36 +116,36 @@ const de: Partial<TranslationKeys> = {
           action: 'Zeitplan anpassen',
         },
         levelUp: {
-          title: 'Level Up',
+          title: 'Eine Stufe höher',
           description: 'Du rockst {{habitName}} mit {{completionRate}}%! Bereit für eine neue Herausforderung?',
           action: 'Herausforderung hinzufügen',
         },
         addNewHabit: {
-          title: 'Neue Gewohnheit hinzufügen',
-          description: 'Du machst das großartig mit bestehenden Gewohnheiten! {{successfulDays}} sind deine stärksten Tage.',
-          action: 'Gewohnheit erstellen',
+          title: 'Neue Routine hinzufügen',
+          description: 'Du machst das großartig mit deinen Routinen! {{successfulDays}} sind deine stärksten Tage.',
+          action: 'Routine erstellen',
         },
       },
       journal: {
         buildStreak: {
-          title: 'Baue deinen Streak auf',
+          title: 'Bau deine Serie auf',
           description: 'Regelmäßiges Journaling fördert Achtsamkeit. Beginne heute mit nur 3 Einträgen.',
           prompt: 'Was hat dich heute zum Lächeln gebracht?',
         },
         onFire: {
-          title: 'Du bist on Fire!',
+          title: 'Du bist richtig in Fahrt!',
           description: 'Deine Journaling-Kontinuität ist beeindruckend. Halte den Schwung!',
           prompt: 'Reflektiere, wie das Journaling diese Woche deine Denkweise beeinflusst hat.',
         },
         trySelfPraise: {
-          title: 'Versuche Selbstlob',
+          title: 'Versuch es mit Selbstlob',
           description: 'Balance Dankbarkeit mit Selbstanerkennung. Was hast du heute gut gemacht?',
           prompt: 'Welche persönliche Eigenschaft hat dir heute zum Erfolg verholfen?',
         },
       },
       goals: {
         startProgress: {
-          title: 'Beginne mit Fortschritt',
+          title: 'Mach den ersten Schritt',
           description: '{{goalTitle}} braucht Aufmerksamkeit. Fange an, Fortschritte zu machen!',
           action: 'Fortschritt protokollieren',
         },
@@ -155,7 +155,7 @@ const de: Partial<TranslationKeys> = {
           action: 'Letzter Schub',
         },
         timelineCheck: {
-          title: 'Zeitplan-Check',
+          title: 'Termin prüfen',
           description_one: '{{goalTitle}} benötigt möglicherweise eine Zeitplananpassung. Noch {{count}} Tag.',
           description_other: '{{goalTitle}} benötigt möglicherweise eine Zeitplananpassung. Noch {{count}} Tage.',
           action: 'Zeitplan anpassen',
@@ -190,7 +190,7 @@ const de: Partial<TranslationKeys> = {
         habitStats: 'Statistik',
         habitPerformance: 'Leistung',
         habitTrends: 'Trends',
-        monthlyChallenges: 'Monatsziel',
+        monthlyChallenges: 'Monatliche Herausforderung',
       },
     },
     // Habit Performance Indicators
@@ -1296,7 +1296,7 @@ const de: Partial<TranslationKeys> = {
   // Monthly Challenge
   monthlyChallenge: {
     // Section title
-    title: 'Monatsziel',
+    title: 'Monatliche Herausforderung',
 
     // States
     loading: 'Lade...',

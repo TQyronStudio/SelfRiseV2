@@ -25,7 +25,7 @@ const es: Partial<TranslationKeys> = {
 
   // Home screen
   home: {
-    title: '¡Bienvenido de nuevo!',
+    title: '¡Hola de nuevo!',
     journalStreak: 'Mi Racha de Diario',
     habitStatistics: 'Estadísticas de Hábitos',
     weeklyProgress: 'Progreso Semanal',
@@ -3214,10 +3214,10 @@ const es: Partial<TranslationKeys> = {
         challengeReward: 'Recompensa de Desafío: {{multiplier}}x XP ({{hours}}h restantes)',
         achievementBonus: 'Bonus de Logro: {{multiplier}}x XP ({{hours}}h restantes)',
         specialEvent: 'Evento Especial: {{multiplier}}x XP ({{hours}}h restantes)',
-        welcomeBack: '¡Bienvenido de nuevo! {{multiplier}}x XP ({{hours}}h restantes)',
+        welcomeBack: '¡Hola de nuevo! {{multiplier}}x XP ({{hours}}h restantes)',
         default: 'Multiplicador {{multiplier}}x XP ({{hours}}h restantes)',
         harmonyActivated: '¡Racha de Armonía activada! {{hours}}h de 2x XP',
-        welcomeBackBoost: '¡Bienvenido de nuevo! 2x XP por {{hours}} horas',
+        welcomeBackBoost: '¡Hola de nuevo! 2x XP por {{hours}} horas',
         xpFor: '2x XP por {{hours}} horas',
         comebackBonus: 'Bonus de regreso: {{days}} días ausente',
         achievementComboActivated: '¡Combo de Logros! {{count}} logros desbloqueados - {{hours}}h de {{multiplier}}x XP',
