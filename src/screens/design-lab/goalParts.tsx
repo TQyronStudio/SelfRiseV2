@@ -855,9 +855,15 @@ export function UndoToast({
         toValue: 0,
         duration: 180,
         useNativeDriver: true,
-      }).start(() => gone.current());
+      }).start(({ finished }) => {
+        // A fade cut short by a newer message is not "gone": the new toast stays.
+        if (finished) gone.current();
+      });
     }, 4200);
-    return () => clearTimeout(id);
+    return () => {
+      clearTimeout(id);
+      p.stopAnimation();
+    };
   }, [message, p]);
   const translateY = useMemo(
     () => p.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }),

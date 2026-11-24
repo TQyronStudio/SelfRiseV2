@@ -36,6 +36,21 @@ const CONVERTED: readonly string[] = [
   'src/components/ui/tabBarLogic.ts',
   'src/components/ui/TopRow.tsx',
   'app/(tabs)/_layout.tsx',
+  // E4 – shared parts: sheets, details, drag to close, overlays, windows
+  'src/components/ui/overlayRegistry.ts',
+  'src/components/ui/dragToClose.tsx',
+  'src/components/ui/dragToCloseLogic.ts',
+  'src/components/ui/sheets.tsx',
+  'src/components/ui/DetailFrame.tsx',
+  'src/components/ui/windowFrame.tsx',
+  // E5 – the Habits list (pilot)
+  'src/screens/habits/HabitsScreen.tsx',
+  'src/screens/habits/habitListLogic.ts',
+  'src/components/habits/list/HabitsListView.tsx',
+  'src/components/habits/list/HabitCard.tsx',
+  'src/components/habits/list/PausedHabitCard.tsx',
+  'src/components/habits/list/WeekStrip.tsx',
+  'src/components/habits/list/HabitActionsSheet.tsx',
   'src/constants/feel.ts',
   'src/services/feelService.ts',
 ];

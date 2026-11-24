@@ -507,6 +507,28 @@ const de: Partial<TranslationKeys> = {
 
   // Habits screen
   habits: {
+    // New look (migration E5)
+    list: {
+      subline: 'Kleine Schritte, die bleiben.',
+      week: 'Diese Woche',
+      doneOf_one: '{{count}} von {{total}} erledigt',
+      doneOf_other: '{{count}} von {{total}} erledigt',
+      bonusSection: 'Bonus – heute nicht geplant',
+      bonusHint: 'Abhaken bringt Bonus-XP – oder holt einen verpassten Tag dieser Woche nach.',
+      pausedFor_zero: 'Heute pausiert – zählt nie als verpasst',
+      pausedFor_one: 'Seit {{count}} Tag pausiert – zählt nie als verpasst',
+      pausedFor_other: 'Seit {{count}} Tagen pausiert – zählt nie als verpasst',
+      resume: 'Fortsetzen',
+      makeupCovers: 'Nachgeholt · ersetzt {{day}}',
+      more: 'Mehr',
+    },
+    schedule: {
+      everyDay: 'Jeden Tag',
+    },
+    actions: {
+      calendarStats: 'Kalender & Statistik',
+      pause: 'Pausieren',
+    },
     title: 'Meine Routine',
     addHabit: 'Neue Routine',
     editHabit: 'Bearbeiten',
@@ -552,8 +574,8 @@ const de: Partial<TranslationKeys> = {
       },
     },
     emptyStateWithCompletion: {
-      title: 'Noch keine Gewohnheiten erstellt',
-      subtitle: 'Tippe auf "Gewohnheit hinzufügen", um loszulegen!',
+      title: 'Noch keine Routinen erstellt',
+      subtitle: 'Tippe auf +, um deine erste Routine anzulegen.',
     },
     emptyStateTracker: {
       title: 'Keine aktiven Gewohnheiten',

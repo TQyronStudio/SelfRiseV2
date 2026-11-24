@@ -2228,6 +2228,25 @@ export class GamificationService {
   }
 
   /**
+   * XP earned today from habits only (scheduled + bonus checks, net of XP taken
+   * back), for display only — the "+N XP" chip on the Habits screen's "Today"
+   * card (migration E5, Petr 2026-11-23: option a). Reads the same daily record as
+   * getTodayXP(); every source that starts with "habit_" counts.
+   */
+  static async getTodayHabitXP(): Promise<number> {
+    try {
+      const daily = await this.getDailyXPData();
+      const habitXP = Object.entries(daily.xpBySource)
+        .filter(([source]) => source.startsWith('habit_'))
+        .reduce((sum, [, xp]) => sum + (xp || 0), 0);
+      return Math.max(0, Math.round(habitXP));
+    } catch (error) {
+      console.error('GamificationService.getTodayHabitXP error:', error);
+      return 0;
+    }
+  }
+
+  /**
    * Get today's XP tracking data
    */
   private static async getDailyXPData(): Promise<DailyXPData> {

@@ -363,3 +363,21 @@ export const GAMIFICATION_CONSTANTS = {
 export type XPRewardValues = typeof XP_REWARDS;
 export type DailyXPLimits = typeof DAILY_XP_LIMITS;
 export type XPSourceDefinitions = typeof XP_SOURCES;
+// ========================================
+// GOAL COMPLETION XP — one rule for storage and screens
+// ========================================
+
+/** From this target value up, completing a goal pays the big reward. */
+export const BIG_GOAL_TARGET = 10000;
+
+/**
+ * XP for completing a goal (before any running multiplier). The storage pays it
+ * (SQLiteGoalStorage) and the completion window shows it — both read this, so
+ * they can never disagree again (the window showed 250 for a big goal until
+ * 2026-11-23).
+ */
+export function goalCompletionXP(targetValue: number): number {
+  return targetValue >= BIG_GOAL_TARGET
+    ? XP_REWARDS.GOALS.BIG_GOAL_COMPLETION
+    : XP_REWARDS.GOALS.GOAL_COMPLETION;
+}

@@ -5,7 +5,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { Fonts } from '../../constants/fonts';
 import { Layout } from '../../constants/dimensions';
 import { useI18n } from '../../hooks/useI18n';
-import { XP_REWARDS } from '../../constants/gamification';
+import { goalCompletionXP } from '../../constants/gamification';
 import { getModalWidth } from '@/src/utils/layout';
 
 interface GoalCompletionModalProps {
@@ -202,7 +202,7 @@ export function GoalCompletionModal({ visible, goal, onClose }: GoalCompletionMo
 
           {/* XP Reward Display */}
           <View style={styles.xpRewardContainer}>
-            <Text style={styles.xpRewardText}>+{XP_REWARDS.GOALS.GOAL_COMPLETION} XP</Text>
+            <Text style={styles.xpRewardText}>+{goalCompletionXP(goal.targetValue)} XP</Text>
             <Text style={styles.xpRewardLabel}>{t('goals.completion.bonus')}</Text>
           </View>
           

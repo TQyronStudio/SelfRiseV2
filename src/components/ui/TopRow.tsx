@@ -45,8 +45,11 @@ export function RoundButton({
   icon?: React.ComponentProps<typeof Ionicons>['name'];
   /** Draw this signature icon instead of the Ionicon. */
   signature?: SignatureName;
-  /** 'reward' = the gold of the trophy room, 'plain' = a quiet surface button. */
-  tone?: 'plain' | 'reward';
+  /**
+   * 'plain' = a quiet surface button, 'primary' = the screen's main action
+   * (add), 'reward' = the gold of the trophy room.
+   */
+  tone?: 'plain' | 'primary' | 'reward';
   label: string;
   onPress: () => void;
 }) {
@@ -59,7 +62,12 @@ export function RoundButton({
       style={[
         styles.round,
         {
-          backgroundColor: tone === 'reward' ? c.rewardSoft : c.surface,
+          backgroundColor:
+            tone === 'reward'
+              ? c.rewardSoft
+              : tone === 'primary'
+                ? c.primarySoft
+                : c.surface,
           borderColor: c.border,
         },
       ]}
@@ -67,7 +75,11 @@ export function RoundButton({
       {signature ? (
         <SignatureIcon name={signature} size={22} />
       ) : icon ? (
-        <Ionicons name={icon} size={20} color={c.textMuted} />
+        <Ionicons
+          name={icon}
+          size={20}
+          color={tone === 'primary' ? c.primary : c.textMuted}
+        />
       ) : null}
     </PressableScale>
   );

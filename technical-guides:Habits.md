@@ -349,13 +349,38 @@ Final: 2/5 scheduled days completed via conversion
 ```
 
 ### UI Display Rules
-```typescript
-// Calendar/Chart Color Coding after conversion:
-Green: Scheduled completion OR makeup completion (isConverted = true)
-Gold: Real bonus (isBonus = true, isConverted = false)
-Red: Missed scheduled day (no conversion available)
-Blue dot: Covered missed day (isCovered = true) - shows underlying schedule
-```
+
+**Nový vzhled – seznam Návyků (migrace E5, 2026-11-23):** stav dne nese **TVAR**, barva je jen identita
+návyku (uživatel si může vybrat i žlutou a červenou – R-11):
+
+| Stav | Tvar | Z dat appky |
+|---|---|---|
+| splněno | ● plná tečka v barvě návyku | záznam `completed`, `!isBonus` |
+| den navíc, který zachránil vynechaný den | ● plná tečka + závorka **pod** tečkami k zachráněnému dni | `isConverted` + `convertedFromDate` |
+| zachráněný (vynechaný) den | ○ kroužek v barvě návyku + závorka | `isCovered` (pár se dohledá přes `convertedFromDate`) |
+| bonus | ★ hvězda (dnešní se jednou zavlní zlatě) | `completed` + `isBonus`, nic nezachránil |
+| vynechaný den | × červený křížek (`missed`) | minulý plánovaný den bez záznamu |
+| pauza | ━ šedá čárka | `isHabitPausedOnDate()` |
+| plánováno / dnes ještě otevřené | tenký neutrální kroužek | `wasScheduledOnDate()` |
+
+- Pravidla jsou čistá funkce `src/screens/habits/habitListLogic.ts` (s testem): **nic nepočítá po svém**,
+  jen čte výsledek `getHabitCompletionsWithConversion()` a historii rozvrhu a pauz.
+- Překrývající se páry mají každý vlastní dráhu závorek (P22); pod tečkami písmeno dne (P23).
+- Týden nahoře = podíl splněného plánu za den (zachráněný den se počítá jako splněný, bonus mimo plán),
+  sedm kroužků v **jednom** plátně.
+- Karta „Dnes“: počet splněných plánovaných a **„+N XP“ jen za návyky** – `GamificationService.getTodayHabitXP()`
+  (denní záznam, zdroje `habit_*`; obnovuje se při `xpGained`).
+- Sekce: Dnes (plánované), **Bonus** (aktivní, dnes neplánované), **Pozastavené** („Pozastaveno N dní –
+  nikdy se nepočítá jako vynechané“; pauza od dneška = „dnes“; i pozastavený má „⋯“).
+- **Série návyku se na kartě nekreslí:** `calculateCurrentStreak` počítá kalendářní dny za sebou, takže
+  návyk Po·St·Pá by měl nejvýš 1 a ráno 0 (laboratoř ukazovala jiná čísla; rozhodnuto 2026-11-23).
+- „⋯“ (R-4c) nahrazuje čtyři tlačítka řádku: kalendář a statistiky, upravit, pozastavit / obnovit,
+  smazat (s potvrzením `ConfirmSheet`). Karta je `React.memo` – odškrtnutí překreslí jen svou kartu.
+- Pulz úvodu: obrazovka 3 úvodu, jen pojmenovaný návyk (jinak všechny neodškrtnuté) – stejně jako dřív.
+- Režim řazení, tvorba a úprava a ťuk na kartu (stará trasa statistik) zůstávají do E6 postaru.
+
+**Staré obrazovky (kalendář a grafy do jejich etapy):** zelená = splněno nebo den navíc (`isConverted`),
+zlatá = skutečný bonus, červená = vynechaný den, modrá tečka = zachráněný den (`isCovered`).
 
 ---
 

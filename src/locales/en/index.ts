@@ -497,6 +497,28 @@ const en: TranslationKeys = {
 
   // Habits screen
   habits: {
+    // New look (migration E5)
+    list: {
+      subline: 'Small steps, kept.',
+      week: 'This week',
+      doneOf_one: '{{count}} of {{total}} done',
+      doneOf_other: '{{count}} of {{total}} done',
+      bonusSection: 'Bonus — not on today’s plan',
+      bonusHint: 'Check one for bonus XP — or to make up a missed day this week.',
+      pausedFor_zero: 'Paused today — never counted as missed',
+      pausedFor_one: 'Paused for {{count}} day — never counted as missed',
+      pausedFor_other: 'Paused for {{count}} days — never counted as missed',
+      resume: 'Resume',
+      makeupCovers: 'Make-up · covers {{day}}',
+      more: 'More',
+    },
+    schedule: {
+      everyDay: 'Every day',
+    },
+    actions: {
+      calendarStats: 'Calendar & stats',
+      pause: 'Pause',
+    },
     title: 'My Habits',
     addHabit: 'Add Habit',
     editHabit: 'Edit Habit',
@@ -543,7 +565,7 @@ const en: TranslationKeys = {
     },
     emptyStateWithCompletion: {
       title: 'No habits created yet',
-      subtitle: 'Tap "Add New Habit" to get started!',
+      subtitle: 'Tap + to add your first habit.',
     },
     emptyStateTracker: {
       title: 'No active habits',

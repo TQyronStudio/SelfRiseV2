@@ -311,6 +311,27 @@ export interface TranslationKeys {
 
   // Habits screen
   habits: {
+    list: {
+      subline: string;
+      week: string;
+      doneOf_one: string;
+      doneOf_other: string;
+      bonusSection: string;
+      bonusHint: string;
+      pausedFor_zero: string;
+      pausedFor_one: string;
+      pausedFor_other: string;
+      resume: string;
+      makeupCovers: string;
+      more: string;
+    };
+    schedule: {
+      everyDay: string;
+    };
+    actions: {
+      calendarStats: string;
+      pause: string;
+    };
     title: string;
     addHabit: string;
     editHabit: string;

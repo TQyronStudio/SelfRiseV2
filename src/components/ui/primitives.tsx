@@ -231,6 +231,16 @@ interface PressableScaleProps {
   accessibilityLabel?: string;
   accessibilityRole?: 'button' | 'checkbox' | 'tab' | 'link';
   accessibilityState?: { checked?: boolean; selected?: boolean };
+  /**
+   * Extra actions for a screen reader on a pressable that holds other buttons
+   * (on iOS an accessible parent hides its children): e.g. a card's check.
+   */
+  accessibilityActions?: React.ComponentProps<
+    typeof Pressable
+  >['accessibilityActions'];
+  onAccessibilityAction?: React.ComponentProps<
+    typeof Pressable
+  >['onAccessibilityAction'];
   onLayout?: React.ComponentProps<typeof Pressable>['onLayout'];
   /**
    * Ms before the press-in shrink starts. A big card in a scroll list uses it, so
@@ -248,6 +258,8 @@ export function PressableScale({
   accessibilityLabel,
   accessibilityRole = 'button',
   accessibilityState,
+  accessibilityActions,
+  onAccessibilityAction,
   onLayout,
   pressDelay,
 }: PressableScaleProps) {
@@ -267,6 +279,9 @@ export function PressableScale({
       accessibilityRole={accessibilityRole}
       accessibilityLabel={accessibilityLabel}
       accessibilityState={accessibilityState}
+      {...(accessibilityActions
+        ? { accessibilityActions, onAccessibilityAction }
+        : null)}
       onLayout={onLayout}
       {...(pressDelay ? { unstable_pressDelay: pressDelay } : null)}
       onPressIn={() => springTo(pressScale)}

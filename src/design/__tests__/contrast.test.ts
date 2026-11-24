@@ -92,11 +92,13 @@ describe.each(MODES)('contrast in %s mode', mode => {
     expect(on(c.ice, c.iceSoft)).toBeGreaterThanOrEqual(TEXT);
   });
 
-  it('white reads on both stops of the primary button and on missed', () => {
+  it('text reads on the primary button, missed and danger fills', () => {
     for (const stop of c.primaryGradient) {
       expect(contrast(c.onPrimary, stop)).toBeGreaterThanOrEqual(TEXT);
     }
     expect(contrast(c.onMissed, c.missed)).toBeGreaterThanOrEqual(TEXT);
+    // The confirm button (delete, start fresh).
+    expect(contrast(c.onDanger, c.danger)).toBeGreaterThanOrEqual(TEXT);
   });
 
   it.each(Object.keys(c.habit) as HabitColorName[])(

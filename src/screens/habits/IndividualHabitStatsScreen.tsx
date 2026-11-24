@@ -15,8 +15,12 @@ export function IndividualHabitStatsScreen() {
   const { habitId } = useLocalSearchParams<{ habitId?: string }>();
 
   // Filter to show only active habits first, then inactive
-  const activeHabits = habits.filter(habit => habit.isActive).sort((a, b) => a.order - b.order);
-  const inactiveHabits = habits.filter(habit => !habit.isActive).sort((a, b) => a.order - b.order);
+  const activeHabits = habits
+    .filter(habit => habit.isActive)
+    .sort((a, b) => a.order - b.order);
+  const inactiveHabits = habits
+    .filter(habit => !habit.isActive)
+    .sort((a, b) => a.order - b.order);
 
   const styles = StyleSheet.create({
     container: {
@@ -57,44 +61,54 @@ export function IndividualHabitStatsScreen() {
   });
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ ...contentColumn, paddingBottom: 60 }} showsVerticalScrollIndicator={true}>
-        {/* Active Habits Section */}
-        {activeHabits.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('screens.habitStats.activeHabits')}</Text>
-            {activeHabits.map((habit) => (
-              <HabitStatsAccordionItem
-                key={habit.id}
-                habit={habit}
-                initiallyExpanded={habit.id === habitId}
-              />
-            ))}
-          </View>
-        )}
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ ...contentColumn, paddingBottom: 60 }}
+      showsVerticalScrollIndicator={true}
+    >
+      {/* Active Habits Section */}
+      {activeHabits.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {t('screens.habitStats.activeHabits')}
+          </Text>
+          {activeHabits.map(habit => (
+            <HabitStatsAccordionItem
+              key={habit.id}
+              habit={habit}
+              initiallyExpanded={habit.id === habitId}
+            />
+          ))}
+        </View>
+      )}
 
-        {/* Inactive Habits Section */}
-        {inactiveHabits.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>{t('screens.habitStats.inactiveHabits')}</Text>
-            {inactiveHabits.map((habit) => (
-              <HabitStatsAccordionItem
-                key={habit.id}
-                habit={habit}
-                initiallyExpanded={habit.id === habitId}
-              />
-            ))}
-          </View>
-        )}
+      {/* Inactive Habits Section */}
+      {inactiveHabits.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {t('screens.habitStats.inactiveHabits')}
+          </Text>
+          {inactiveHabits.map(habit => (
+            <HabitStatsAccordionItem
+              key={habit.id}
+              habit={habit}
+              initiallyExpanded={habit.id === habitId}
+            />
+          ))}
+        </View>
+      )}
 
-        {/* Empty State */}
-        {habits.length === 0 && (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyStateText}>{t('screens.habitStats.noHabitsFound')}</Text>
-            <Text style={styles.emptyStateSubtext}>
-              {t('screens.habitStats.noHabitsSubtext')}
-            </Text>
-          </View>
-        )}
-      </ScrollView>
+      {/* Empty State */}
+      {habits.length === 0 && (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>
+            {t('screens.habitStats.noHabitsFound')}
+          </Text>
+          <Text style={styles.emptyStateSubtext}>
+            {t('screens.habitStats.noHabitsSubtext')}
+          </Text>
+        </View>
+      )}
+    </ScrollView>
   );
 }

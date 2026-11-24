@@ -842,6 +842,12 @@ XP_REWARDS = {
 };
 ```
 
+**Jedno pravidlo pro 250 / 350 XP (2026-11-23):** `goalCompletionXP(targetValue)` a `BIG_GOAL_TARGET`
+v `src/constants/gamification.ts`. Čte ho `SQLiteGoalStorage` (vyplacení i odečtení při návratu do
+ACTIVE) **i** `GoalCompletionModal` (zobrazená odměna). Okno dřív ukazovalo vždy 250, i když velký cíl
+připsal 350. Nikde jinde nepsat vlastní `>= 10000` ani pevné `GOALS.GOAL_COMPLETION` – hlídá to
+`src/constants/__tests__/goalCompletionXP.test.ts`. (Zobrazená částka je před případným násobičem.)
+
 ### 🎉 Goal Completion Celebration System
 
 #### Completion Detection & XP Awarding

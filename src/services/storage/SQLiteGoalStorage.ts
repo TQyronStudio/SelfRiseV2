@@ -10,7 +10,11 @@ import { DateString } from '../../types/common';
 import { today, formatDateToString } from '../../utils/date';
 import { GamificationService } from '../gamificationService';
 import { XPSourceType } from '../../types/gamification';
-import { XP_REWARDS } from '../../constants/gamification';
+import {
+  BIG_GOAL_TARGET,
+  goalCompletionXP,
+  XP_REWARDS,
+} from '../../constants/gamification';
 import { getDatabase } from '../database/init';
 import { calculateTimelineStatus } from '../../utils/goalCalculations';
 
@@ -564,14 +568,14 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
       console.log(`   New: ${newCompletionPercentage}% (${updatedGoal.currentValue}/${goal.targetValue})`);
       console.log(`   Status: ${goal.status} → ${updatedGoal.status}`);
 
-      const completionXPAmount = goal.targetValue >= 10000 ? XP_REWARDS.GOALS.BIG_GOAL_COMPLETION : XP_REWARDS.GOALS.GOAL_COMPLETION;
+      const completionXPAmount = goalCompletionXP(goal.targetValue);
       if (justCompleted) {
         await GamificationService.addXP(completionXPAmount, {
           source: XPSourceType.GOAL_COMPLETION,
           description: `🎉 Goal completed: ${goal.title}`,
           sourceId: goal.id
         });
-        console.log(`🏆 Goal completed: ${goal.title} (+${completionXPAmount} XP${goal.targetValue >= 10000 ? ' BIG GOAL' : ''})`);
+        console.log(`🏆 Goal completed: ${goal.title} (+${completionXPAmount} XP${goal.targetValue >= BIG_GOAL_TARGET ? ' BIG GOAL' : ''})`);
       } else if (justUncompleted) {
         await GamificationService.subtractXP(completionXPAmount, {
           source: XPSourceType.GOAL_COMPLETION,
@@ -775,7 +779,7 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
       }
 
       // Handle XP for goal completion status changes
-      const completionXP = goal.targetValue >= 10000 ? XP_REWARDS.GOALS.BIG_GOAL_COMPLETION : XP_REWARDS.GOALS.GOAL_COMPLETION;
+      const completionXP = goalCompletionXP(goal.targetValue);
       if (shouldBeCompleted) {
         await GamificationService.addXP(completionXP, {
           source: XPSourceType.GOAL_COMPLETION,
@@ -987,7 +991,7 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
       const totalGoalsCreated = allGoals.length;
       const completedGoals = allGoals.filter(g => g.status === GoalStatus.COMPLETED);
       const totalGoalsCompleted = completedGoals.length;
-      const bigGoalsCompleted = completedGoals.filter(g => g.targetValue >= 10000).length;
+      const bigGoalsCompleted = completedGoals.filter(g => g.targetValue >= BIG_GOAL_TARGET).length;
 
       const averageGoalValue = totalGoalsCreated > 0
         ? allGoals.reduce((sum, g) => sum + g.targetValue, 0) / totalGoalsCreated

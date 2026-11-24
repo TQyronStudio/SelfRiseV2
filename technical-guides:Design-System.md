@@ -131,10 +131,10 @@ které v laboratoři nikdo neviděl (P80). Text ≥ 4,5 : 1, velký text a znač
 
 | Skupina | Co v ní je |
 |---|---|
-| `palettes.light` / `.dark` (`Palette`) | plocha, povrch, text, tlumený / slabý text, hlavní, odměna, plamen, úspěch, nebezpečí, led, barvy návyků, grafy |
+| `palettes.light` / `.dark` (`Palette`) | plocha, povrch, text, tlumený / slabý text, hlavní, odměna, plamen, úspěch, nebezpečí (+ `onDanger`), led, barvy návyků, grafy |
 | `fixed` | barvy stejné v obou režimech: bílá, černá (závoj), inkoust, zlato, jiskra |
 | `type` (`TypeVariant`) | `display`, `title`, `titleSm`, `number`, `numberMd`, `numberSm`, `body`, `bodyStrong`, `label`, `caption`, `overline` |
-| `space`, `radius`, `motion` | mřížka 4/8; 12 / 16 / 24 / pilulka; časy a pružiny |
+| `space`, `radius`, `motion` | mřížka 4/8; 12 / 16 / 24 / 28 (spodní okna a okna oslav) / pilulka; časy a pružiny |
 | `rarity`, `tier` | barvy vzácnosti trofejí a šesti stupňů úrovní |
 | `sky`, `sun`, `skyGold`, `getDaypart()` | nebe a slunce hrdiny podle denní doby |
 | `signatureTones` | dvě barvy každé podpisové ikony |
@@ -163,6 +163,11 @@ V komponentě: `const { c, mode } = useDesign();` (`src/contexts/ThemeContext.ts
 | `ScrollCard`, `usePageScrollFrame`, `useCardSeen`, `useScrollRest` | choreografie posunu a klid při posunu |
 | `TabBar` (+ `tabBarLogic.ts`) | spodní lišta (E3): vlastní ikony, klouzavá pilulka; `tabPress` vždy, přepnutí jen nezaměřené záložky; ikona pro každou trasu `app/(tabs)` (test) |
 | `TopRow`, `RoundButton` | horní řádek záložky (E3): `insets.top` + 48 pt, vlevo místo pro odznak (E7), tlačítka vpravo; kulaté tlačítko 44 pt |
+| `BottomSheet`, `useKeyboardLift`, `ConfirmSheet`, `UndoToast`, `PageTopBar` (`sheets.tsx`) | spodní okno (nad klávesnicí, zavírá závoj / zpět / tažení – ne s textovým polem), potvrzení smazání (místo `Alert`, O-14; tlačítko `onDanger`), krátké oznámení s vrácením, horní řádek karty s křížkem (E4) |
+| `DetailFrame` | detail rostoucí z karty a zpět do ní – jeden díl pro deník, návyk i výzvu; obsah přes `children(close, p)` (E4) |
+| `useDragToClose`, `DetailScroll` (+ `dragToCloseLogic.ts`) | zavírání tažením: po puštění zavřít, nebo vrátit celé (E4) |
+| `useOverlayCover`, `useOverlayCovered`, `useOverlayBack` (`overlayRegistry.ts`) | „něco je otevřeno“ pro panel úrovně; Android zpět jen na zaměřené obrazovce (E4) |
+| `useWindowMotion`, `PrimaryButton`, `windowStyles` (`windowFrame.tsx`) | rám oken oslav: příjezd, oznámení čtečce, odchod vždy ohlášený (E4; okna E8, E10, E18) |
 
 ## Slovník pocitů
 

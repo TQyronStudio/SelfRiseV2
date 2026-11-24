@@ -135,6 +135,8 @@ export interface Palette {
   successText: string;
   /** Destructive actions and "you will lose this" (delete, lost stars). */
   danger: string;
+  /** Text on a danger fill (the confirm button): white in light, ink in dark. */
+  onDanger: string;
   /** A frozen streak — the one cold colour of the app. */
   ice: string;
   iceSoft: string;
@@ -188,6 +190,7 @@ const light: Palette = {
   successSoft: '#E7F6EE',
   successText: '#12703E',
   danger: '#C8344A',
+  onDanger: '#FFFFFF',
   ice: '#216DB3',
   iceSoft: '#E4F1FC',
   iceRing: '#7DB9EC',
@@ -242,6 +245,8 @@ const dark: Palette = {
   successSoft: 'rgba(60, 203, 127, 0.14)',
   successText: '#3CCB7F',
   danger: '#FF8A97',
+  // White on this pink-red is 2.25:1 (E4, 2026-11-23); ink is 7.07:1.
+  onDanger: '#1A2233',
   ice: '#8FD0FF',
   iceSoft: 'rgba(143, 208, 255, 0.13)',
   iceRing: '#5FA9DF',
@@ -580,6 +585,7 @@ export type TypeVariant =
   | 'bodyStrong'
   | 'label'
   | 'caption'
+  | 'micro'
   | 'overline';
 
 export const type: Record<TypeVariant, TypeStyle> = {
@@ -657,6 +663,14 @@ export const type: Record<TypeVariant, TypeStyle> = {
     letterSpacing: 0.1,
     maxScale: 1.5,
   },
+  /** The day letters under a habit's mini week (fixed 14 pt columns). */
+  micro: {
+    fontFamily: fonts.medium,
+    fontSize: 9,
+    lineHeight: 12,
+    letterSpacing: 0.1,
+    maxScale: 1.3,
+  },
   overline: {
     fontFamily: fonts.semibold,
     fontSize: 12,
@@ -682,8 +696,17 @@ export const space = {
   xxxl: 32,
 } as const;
 
-/** Cards 24, buttons and chips a pill, small elements 12. */
-export const radius = { sm: 12, md: 16, lg: 24, pill: 999 } as const;
+/** Cards 24, sheets and windows 28, buttons and chips a pill, small elements 12. */
+export const radius = {
+  /** The smallest corners: make-up brackets, tiny tags. */
+  xs: 3,
+  sm: 12,
+  md: 16,
+  lg: 24,
+  /** Bottom sheets (top corners) and celebration windows. */
+  xl: 28,
+  pill: 999,
+} as const;
 
 /**
  * Motion language. Reanimated's default ReduceMotion.System makes every

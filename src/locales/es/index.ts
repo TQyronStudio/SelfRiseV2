@@ -507,6 +507,28 @@ const es: Partial<TranslationKeys> = {
 
   // Habits screen
   habits: {
+    // New look (migration E5)
+    list: {
+      subline: 'Pequeños pasos que perduran.',
+      week: 'Esta semana',
+      doneOf_one: '{{count}} de {{total}} completado',
+      doneOf_other: '{{count}} de {{total}} completados',
+      bonusSection: 'Bonificación — fuera del plan de hoy',
+      bonusHint: 'Marca uno para ganar XP de bonificación — o para recuperar un día perdido esta semana.',
+      pausedFor_zero: 'En pausa desde hoy — nunca cuenta como perdido',
+      pausedFor_one: 'En pausa desde hace {{count}} día — nunca cuenta como perdido',
+      pausedFor_other: 'En pausa desde hace {{count}} días — nunca cuenta como perdido',
+      resume: 'Reanudar',
+      makeupCovers: 'Recuperación · cubre el {{day}}',
+      more: 'Más opciones',
+    },
+    schedule: {
+      everyDay: 'Todos los días',
+    },
+    actions: {
+      calendarStats: 'Calendario y estadísticas',
+      pause: 'Pausar',
+    },
     title: 'Mis Hábitos',
     addHabit: 'Añadir Hábito',
     editHabit: 'Editar Hábito',
@@ -553,7 +575,7 @@ const es: Partial<TranslationKeys> = {
     },
     emptyStateWithCompletion: {
       title: 'Aún no se han creado hábitos',
-      subtitle: '¡Toca "Añadir Nuevo Hábito" para comenzar!',
+      subtitle: 'Toca + para añadir tu primer hábito.',
     },
     emptyStateTracker: {
       title: 'No hay hábitos activos',

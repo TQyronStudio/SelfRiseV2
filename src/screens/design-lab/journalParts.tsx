@@ -324,12 +324,19 @@ export function BottomSheet({
     });
   }, [p]);
 
+  // The action to run once closed (a confirmed delete). Kept until the sheet is
+  // really closed: a second dismiss (back, scrim, a drag) while the first is
+  // closing must not lose it.
+  const pendingAfter = useRef<(() => void) | undefined>(undefined);
   const dismiss = useCallback<Dismiss>(
     after => {
+      if (after) pendingAfter.current = after;
       Keyboard.dismiss();
       const finish = () => {
         onClosed();
-        after?.();
+        const run = pendingAfter.current;
+        pendingAfter.current = undefined;
+        run?.();
       };
       p.value = withTiming(0, { duration: 210 }, finished => {
         if (finished) scheduleOnRN(finish);
@@ -828,7 +835,11 @@ export function ConfirmSheet({
               }}
               style={[styles.pillButton, { backgroundColor: danger, flex: 1 }]}
             >
-              <LabText variant="bodyStrong" style={{ color: '#FFFFFF' }}>
+              <LabText
+                variant="bodyStrong"
+                // Ink in dark mode: white on #FF8A97 is 2.25:1 (E4, onDanger).
+                style={{ color: mode === 'light' ? '#FFFFFF' : '#1A2233' }}
+              >
                 {confirm}
               </LabText>
             </PressableScale>
