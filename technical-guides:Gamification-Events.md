@@ -169,7 +169,7 @@ useEffect(() => {
 > **Poznamka:** Typy nize NEJSOU TypeScript interfaces v kodu. Jsou to popisy toho, co kod skutecne posila. Handlery pouzivaji `(eventData: any)` a rucne kontroluji pritomnost poli.
 
 ### xpGained
-Emituje: `gamificationService.triggerXPAnimation()`, `achievementService` (foreground + background)
+Emituje: `gamificationService.triggerXPAnimation()`, `achievementService` (foreground + background), `trophyCollectionService`
 ```typescript
 {
   amount: number;              // XP castka (kladna i zaporna)
@@ -180,6 +180,20 @@ Emituje: `gamificationService.triggerXPAnimation()`, `achievementService` (foreg
   timestamp: number;           // Cas vytvoreni
 }
 ```
+**Od migrace E7 (2026-11-24) nesou `sourceId` a `metadata` i trofeje a sbirky:** `achievementService`
+posila `sourceId` = prvni odemcena trofej a `metadata.achievementIds`; `trophyCollectionService` posila
+`sourceId` = `trophy_collection:<id>` a `metadata.trophyCollectionIds`. Nic se neodebralo (posloucha
+i `monthlyProgressIntegration`).
+
+**Zobrazeni XP nove podoby (E7, `src/services/xpDisplay/`, zatim nezapojene – zapoji ho odznak):**
+- `xpLedger.ts` – ucetnictvi ZOBRAZENEHO XP: zobrazene + ve vzduchu + pridrzene = skutecne. Pridrzi
+  se XP trofeje, dokonceni vyzvy (ne milnik: `metadata.type === 'monthly_challenge_milestone'`),
+  dokonceni cile, odmeny za serii deniku a milnikove casti ⭐🔥👑 (podil `milestoneXp` z pripsane castky);
+  uvolni se potvrzenim momentu, pojistka: bez momentu do 2 s leti ze stredu. Zaporne XP nic neposila.
+- `xpOriginRegistry.ts` – bod puvodu jiskry: obrazovka zaregistruje bod tesne PRED akci, vrstva jisker
+  si ho vezme jednou podle `sourceId` (nebo druhu zdroje do 3 s); jinak stred. `position` v udalosti
+  (vychozi 50/130) se pro jiskry nepouziva.
+- `multiplierDisplay.ts` – znacka nasobice na odznaku (`badgeMark`, `formatFactor`).
 
 ### xpSmartNotification
 Emituje: `gamificationService.triggerXPAnimation()` (vzdy spolu s xpGained)

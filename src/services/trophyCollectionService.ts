@@ -43,6 +43,7 @@ async function payOnce(unlockedAchievements: string[]): Promise<number> {
   );
 
   let total = 0;
+  const paidIds: string[] = [];
   let firstLevel: number | undefined;
   let lastLevel: number | undefined;
   for (const collection of due) {
@@ -56,6 +57,7 @@ async function payOnce(unlockedAchievements: string[]): Promise<number> {
     });
     if (!result.success) continue;
     total += result.xpGained;
+    paidIds.push(collection.id);
     if (result.leveledUp) {
       firstLevel ??= result.previousLevel;
       lastLevel = result.newLevel;
@@ -66,6 +68,9 @@ async function payOnce(unlockedAchievements: string[]): Promise<number> {
     DeviceEventEmitter.emit('xpGained', {
       amount: total,
       source: XPSourceType.ACHIEVEMENT_UNLOCK,
+      // Which collections paid it — the XP display holds it for the moment (E7).
+      sourceId: `${SOURCE_PREFIX}${paidIds[0]}`,
+      metadata: { trophyCollectionIds: paidIds },
       timestamp: Date.now(),
     });
   }

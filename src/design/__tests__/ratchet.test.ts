@@ -51,6 +51,10 @@ const CONVERTED: readonly string[] = [
   'src/components/habits/list/PausedHabitCard.tsx',
   'src/components/habits/list/WeekStrip.tsx',
   'src/components/habits/list/HabitActionsSheet.tsx',
+  // E7 (part 1) – the XP display: books, origins, multiplier mark rules
+  'src/services/xpDisplay/xpLedger.ts',
+  'src/services/xpDisplay/xpOriginRegistry.ts',
+  'src/services/xpDisplay/multiplierDisplay.ts',
   'src/constants/feel.ts',
   'src/services/feelService.ts',
 ];

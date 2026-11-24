@@ -620,6 +620,9 @@ export class AchievementService {
           DeviceEventEmitter.emit('xpGained', {
             amount: actualXPAwarded,
             source: XPSourceType.ACHIEVEMENT_UNLOCK,
+            // Which trophies paid it — the XP display holds it for their moment (E7).
+            sourceId: newlyUnlocked[0]?.id,
+            metadata: { achievementIds: newlyUnlocked.map(a => a.id) },
             timestamp: Date.now(),
           });
         }
@@ -873,6 +876,9 @@ export class AchievementService {
             DeviceEventEmitter.emit('xpGained', {
               amount: actualXPAwarded,
               source: XPSourceType.ACHIEVEMENT_UNLOCK,
+              // Which trophies paid it — the XP display holds it for their moment (E7).
+              sourceId: newlyUnlocked[0]?.id,
+              metadata: { achievementIds: newlyUnlocked.map(a => a.id) },
               timestamp: Date.now(),
             });
           }
