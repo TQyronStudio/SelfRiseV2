@@ -14,14 +14,14 @@ const strings = (value: unknown): string[] =>
       : [];
 
 it('German recommendation cards speak German', () => {
-  const cards = strings(de.home.recommendationCards).join('\n');
+  const cards = strings(de.home?.recommendationCards).join('\n');
   expect(cards).not.toMatch(/on Fire|Streak|Level Up|Check\b/);
   expect(cards).not.toMatch(/Gewohnheit/);
 });
 
 it('German never calls the monthly challenge a goal', () => {
-  expect(de.monthlyChallenge.title).not.toMatch(/ziel/i);
-  expect(de.home.customization.componentNames.monthlyChallenges).not.toMatch(/ziel/i);
+  expect(de.monthlyChallenge?.title).not.toMatch(/ziel/i);
+  expect(de.home?.customization?.componentNames?.monthlyChallenges).not.toMatch(/ziel/i);
 });
 
 it('Spanish greets without a gendered "Bienvenido de nuevo"', () => {
