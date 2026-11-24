@@ -530,6 +530,11 @@ se rozpadne v 5–12 jisker (podle částky) po obloucích do kroužku; každý 
 odskok. Nová úroveň = kroužek se uzavře, záblesk, číslo se přeroluje, štítek `gamification.badge.levelUpTag`
 (DE „LEVEL UP“, ES „NUEVO NIVEL“). Staré okno nové úrovně (fronta) zatím zůstává – sloučí ho E8/E10.
 
+**Značka násobiče (6a):** `src/components/xp/useBadgeMark.ts` – zlatý štítek s faktorem, který opravdu běží
+(`getActiveMultiplier`), tichá tečka, když je násobič harmonie připravený (`calculateHarmonyStreak().canActivateMultiplier`
+bez běžícího); čtečka `gamification.badge.levelWithMark`. Znovu se čte po zisku XP, po zapnutí násobiče, po návratu
+do appky a když běžící násobič skončí.
+
 ### ⚠️ NEBEZPEČNÉ ZÓNY
 - Přidat `xpGained` do nového místa → zdvojí se počítání měsíční výzvy (`monthlyProgressIntegration`).
 - Měřit odznak jinde než jeho 48 × 48 → jiskry minou kroužek (P12); souřadnice vždy přepočítat do vrstvy jisker (P13).

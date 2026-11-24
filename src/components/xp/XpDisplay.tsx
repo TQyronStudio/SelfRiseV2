@@ -96,6 +96,7 @@ import { takeXpOrigin, XpOriginPoint } from '@/src/services/xpDisplay/xpOriginRe
 import { pendingHoldKinds, releasedKind } from '@/src/services/xpDisplay/heldMoments';
 import { PressableScale, typeStyle, useOverlayCovered, RollingNumber } from '@/src/components/ui';
 import { TOP_ROW_HEIGHT } from '@/src/components/ui/TopRow';
+import { useBadgeMark } from './useBadgeMark';
 
 // ---------------------------------------------------------------------------
 // Tunables (the lab's, kolo 9–27)
@@ -636,7 +637,8 @@ const BADGE_CANVAS = 76;
  * while onboarding runs and not while a sheet or detail covers the screen
  * (their tops would collide with it); flights wait until it is back.
  */
-export function LevelBadgeLayer({ mark = null }: { mark?: BadgeMark }) {
+export function LevelBadgeLayer() {
+  const mark = useBadgeMark();
   const insets = useSafeAreaInsets();
   const segments = useSegments();
   const { state: tutorial } = useTutorial();
