@@ -348,8 +348,9 @@ Vše, co je postavené v laboratoři, je rozhodnuté (4.2). Zbývá jen tohle:
    databázi u stávajících uživatelů.
 
 **Opakovaně v každé etapě**
-6. **Texty EN/DE/ES:** laboratoř má jen angličtinu a němčinu; španělštinu doplní převod a Petr texty
-   jednou za etapu schválí (0.2 krok 2).
+6. ~~**Texty EN/DE/ES** schvaluje Petr po etapách~~ – **od 2026-11-24 drobnosti a texty rozhoduje Claude** (cíl TOP 5 %),
+   zapisuje je do `design-migration-texts.md` („Rozhodnutí otázek“); Petr je vidí na telefonu a může zvrátit.
+   Otázka na Petra jen u zásadních věcí (data uživatelů, peníze, nový koncept).
 7. **Vyzkoušet etapu na telefonu** a říct „ok“ – bez toho se nejde dál (0.1 bod 1).
 
 **Podklady pro E5–E10 (připraveno 2026-11-23, čeká na Petra)**
@@ -365,7 +366,8 @@ Vše, co je postavené v laboratoři, je rozhodnuté (4.2). Zbývá jen tohle:
     `src/constants/gamification.ts` čte ukládání i okno, s testem (`goalCompletionXP.test.ts`).
 
 **Podklady pro E11–E16 (připraveno 2026-11-24, čeká na Petra)**
-11. **Texty E11–E16:** `design-migration-texts.md` – dohromady E5–E16 266 nových textů, 167 převzatých, 92 existujících
+11. ✅ **Všech 34 otázek k textům rozhodnuto 2026-11-24** (E5/E6 Petr, ostatní Claude – `design-migration-texts.md`,
+    oddíl „Rozhodnutí otázek“; tamtéž zastavení z mapy dat). **Texty E11–E16:** `design-migration-texts.md` – dohromady E5–E16 266 nových textů, 167 převzatých, 92 existujících
     klíčů s opravenou hodnotou (tabulka C: Title Case, emoji, „Gewohnheit“, „1 days“) a 34 otázek s doporučením.
     Schvaluje se po etapách.
 12. **Mapa dat E11–E16:** `design-migration-datamaps.md`. **Zastavení:** E14 ikona a barva cíle podle kategorie

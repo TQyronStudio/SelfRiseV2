@@ -1,7 +1,7 @@
 # Soupis textů převodu – etapy E5 až E16
 
 Tenhle dokument je krok 2 postupu etapy (`design-migration-plan.md`, kap. 0.2 a 7.1): ke každé etapě E5–E16 vypisuje texty, které převedená obrazovka ukáže, ve třech jazycích EN / DE / ES.
-**Petr schvaluje po etapách** – teprve schválené texty jdou do `src/locales/{en,de,es}/index.ts` a `src/types/i18n.ts`. Tabulka A = nové klíče, tabulka B = laboratoř použije klíč, který appka už má (ověřeno ve všech třech jazycích); kulisy laboratoře (její lišta, scénáře „Lab ·“, přepínače situací, `MOCK_STATS`, ukázková jména) se nepřevádějí a nejsou tu.
+**Od 2026-11-24 rozhoduje drobnosti Claude** (Petr: „rozhodni sám s vědomím, že cílíš na TOP 5 %“) – texty jdou do `src/locales/{en,de,es}/index.ts` a `src/types/i18n.ts` v etapě, která je ukáže; Petr je vidí na telefonu a může cokoliv zvrátit. Všechna rozhodnutí otázek jsou v oddílu **Rozhodnutí otázek** níže. Tabulka A = nové klíče, tabulka B = laboratoř použije klíč, který appka už má (ověřeno ve všech třech jazycích); kulisy laboratoře (její lišta, scénáře „Lab ·“, přepínače situací, `MOCK_STATS`, ukázková jména) se nepřevádějí a nejsou tu.
 EN a DE jsou opsané doslova z `src/screens/design-lab/mockCopy.ts` (nebo z textu natvrdo v souboru laboratoře); ES chybí v laboratoři všude, takže je celé můj návrh (tykání, slovník appky: Hábitos, Mi Diario, Metas, racha, hito, desafío, logro/trofeo, Nivel, En pausa, Recuperado).
 Legenda: ***návrh*** = text navrhuji já, laboratoř ho v tom jazyce nemá · ***odvozeno*** = tvar jednotného čísla dopočítaný k textu laboratoře kvůli pravidlu `_one`/`_other` · ⚠ DE = německý text výrazně delší než EN (hlídat zalomení).
 
@@ -12,6 +12,68 @@ Legenda: ***návrh*** = text navrhuji já, laboratoř ho v tom jazyce nemá · *
 - Datum, dny v týdnu a měsíc tiskne `toLocaleDateString` s jazykem z existujícího klíče `common.locale` (en-US / de-DE / es-ES) – bez vlastních klíčů.
 - Čísla s oddělovačem tisíců („4 205“) dělá formátování čísla, ne text.
 - Texty, které laboratoř skládá z několika kusů jen pro čtečku obrazovky (např. „Level 16. Ember. 237 XP to Level 17“), nemají vlastní klíč – skládají se v kódu z klíčů níže.
+
+---
+
+## Rozhodnutí otázek (2026-11-24)
+
+E5 a E6 rozhodl Petr (2026-11-23/24), E7–E16 Claude podle pravidla „drobnosti rozhoduj sám, cíl TOP 5 %“.
+Každé rozhodnutí lze zvrátit – stačí říct.
+
+**E5 (Petr):** 1 „Routine(n)“ všude v DE · 2 větný styl v EN v převáděných místech · 3 tvar `_zero` („Paused today“) ·
+4 „⋯“ i u pozastaveného návyku, řádek ukáže „Resume“ · 5 čip = XP za návyky dnes (`getTodayHabitXP()`) · 6 jen přepsat větu.
+
+**E6 (Petr):** 1 nápověda podle nového značení (kroužek + závorka) – i živá `help.habits.makeupFunction` („zlatá fajfka“ pryč) ·
+2 jen jedna karta pravidla · 3 jedno slovo „Scheduled“ · 4 jména 8 barev hned · 5 „Edit habit“ / „Save“ · 6 DE „Neu ordnen“.
+
+**E7.** 1 DE zůstává „LEVEL UP“ (appka říká „Level“), ES „NUEVO NIVEL · 16“ – „LEVEL UP“ ve španělské appce nikde není.
+
+**E8.** 1 DE všude **„Trophäenhalle“** (= laboratoř, kterou Petr schválil); záložka zůstává krátká „Trophäen“.
+2 Nadpisy `rarity_*` přepsat na trofej („Epic trophy!“ / „Epische Trophäe!“ / „¡Trofeo épico!“) – jedno slovo pro jednu věc
+v oznámení i v okně.
+
+**E9.** 1 **Přeložit** hodnosti – je jich jen 20 (×5 římských číslic), ne 100. Nové klíče `levels.rank.<id>`:
+Novice/Novize/Novato · Beginner/Anfänger/Principiante · Learner/Lernender/Estudiante · Apprentice/Lehrling/Aprendiz ·
+Adept/Adept/Adepto · Seeker/Sucher/Buscador · Adventurer/Abenteurer/Aventurero · Practitioner/Praktiker/Practicante ·
+Pathfinder/Pfadfinder/Explorador · Specialist/Spezialist/Especialista · Veteran/Veteran/Veterano · Expert/Experte/Experto ·
+Guardian/Wächter/Guardián · Warden/Hüter/Custodio · Challenger/Herausforderer/Retador · Master/Meister/Maestro ·
+Elite/Elite/Élite · Champion/Champion/Campeón · Grandmaster/Großmeister/Gran maestro · Mythic/Mythos/Mítico.
+Římská číslice se přidá v kódu; `getLevelInfo().title` zůstane anglicky jako interní klíč. Proč: TOP appky lokalizují vše,
+co uživatel vidí, a anglické hodnosti v DE/ES jsou nejviditelnější místo celé gamifikace.
+2 Ano, vlastní krátké „Habits / Journal / Goals“ (DE „Routinen / Tagebuch / Ziele“, ES „Hábitos / Diario / Metas“).
+3 Faktor **číslem** z `XP_MULTIPLIERS` přes `formatFactor` – text nesmí lhát po změně konstanty.
+4 ES neutrálně: „¡Hola de nuevo!“ místo „¡Bienvenido de nuevo!“ – i v `home.title` a `welcomeBack*`, ať je appka jednotná – mužský rod vynechává polovinu uživatelů.
+5 Sjednotit: `{{factor}}` = vždy hotový faktor se znakem z `formatFactor`.
+
+**E10.** 1 Sjednotit na „Weiter“ (`ui.continue`). 2 Tiché oznámení nese jen „Journal streak“ + počet dní (= laboratoř:
+oznámení je tiché, titulek milníku patří oknu). 3 Den 30 vlastní texty ✅ **hotovo 2026-11-24** (3cd593a), „传奇“ ✅ odstraněno
+tamtéž. 4 Emoji z nadpisů ⭐🔥👑 i milníků série **odstranit v locales** (ikona je komponenta, PREVOD) – v E10.
+
+**E11.** 1 Pozdrav: vlastní hranice 5 / 12 / 18 h, tři pozdravy, `home.greeting.night` pryč (večer 18–5 = „Good evening“);
+nebe dál podle `getDaypart`. 2 (a) `home.hero.nothingPlanned` místo „0 / 0“ a pochvaly za nic, (b) čip `home.startToday`
+u série 0, (c) karta statistik skrytá do prvního naplánovaného dne. 3 DE rychlé akce celými slovy (laboratoř).
+4 Sekce sheetu přizpůsobení = nadpis své karty. 5 Řádek trendu jen při růstu, období z výpočtu („Last 30 days“), „this month“
+z vět pryč. 6 Okna úspěchu záchrany série zrušit – potvrzením je plamen; chyby do pruhu (4 věty z C); technické větve bez okna.
+
+**E12.** 1 Klidné věty: „Today’s three are done — your streak grows.“ / „Die drei für heute sind geschafft – deine Serie wächst.“ /
+„Las tres de hoy, hechas: tu racha crece.“; bonus „Every extra entry is a bonus.“ / „Jeder weitere Eintrag ist ein Bonus.“ /
+„Cada entrada extra es una bonificación.“
+
+**E13.** 1 Při nejdelší sérii 0 existující `journal.stats.startToday` místo „Best: 0 days“.
+
+**E14.** 1 Čip „Deadline passed“ (`goals.pace.overdue`) v teplé barvě, řádek „days left“ zmizí, nic se nepočítá dál; nové
+datum přes „⋯ → Edit goal“.
+
+**E15.** 1 Stejný vzor jako návyk: „New goal / Neues Ziel / Nueva meta“ a „Create goal / Ziel erstellen / Crear meta“.
+
+**Zastavení z mapy dat (`design-migration-datamaps.md`):**
+- E10/E14 ikona a barva cíle podle kategorie → převést mapu z kulis do konstant (`src/constants`), s testem, že každá
+  kategorie má ikonu i barvu s kontrastem.
+- E14 rychlé částky → `suggestQuick(target)` jako čistá funkce s testem.
+- E14 „+35 XP / milník / dnes už bez XP“ (D-4) → platí rozhodnutí z plánu 4.5: odvodit z událostí `xpGained` podle
+  `sourceId`, úložiště se nemění; obrazovka ukáže jen to, co se opravdu připsalo.
+- E15 XP u zápisu v historii → číst z `xp_transactions` podle `sourceId`; kde vazba není (staré zápisy), číslo se neukáže
+  (nikdy odhad).
 
 ---
 
@@ -57,7 +119,7 @@ Obrazovka Návyky: týden nahoře, karta „Dnes“ s dílky, karty návyků s m
 | prázdný stav (laboratoř ho nemá) | `habits.emptyStateWithCompletion.title` / `.subtitle` | No habits created yet / Tap "Add New Habit"… | viz otázka 6 |
 | řádek data nad nadpisem | `common.locale` | en-US / de-DE / es-ES | jen jazyk pro `toLocaleDateString` |
 
-### Otázky pro Petra
+### Otázky (rozhodnuto – viz „Rozhodnutí otázek“ nahoře)
 
 1. **Němčina: „Routine“ × „Gewohnheit“.** Appka i laboratoř to míchají: záložka „Routine“ (jednotné číslo), nadpis laboratoře „Routinen“, formulář appky „Gewohnheitsname“, panel úrovně v laboratoři „Gewohnheiten“. Navrhuji na obrazovce Návyky všude „Routine(n)“ a ve větách o pravidlech taky – nebo naopak. Které slovo?
 2. **Velká písmena v angličtině.** Existující klíče jsou v Title Case („Add Habit“, „Harmony Streak“, „Goal Completed!“), laboratoř píše větou („Add habit“). Tam, kde text jde jen do čtečky, je to jedno. Tam, kde je vidět (např. nadpisy v E6, E9, E10), bude nový vzhled míchat obojí. Chceš existující EN hodnoty v převedených místech přepsat na větný styl?
@@ -126,7 +188,7 @@ Detail návyku vyroste z karty (kalendář s tvary dnů, vysvětlení dne, legen
 | pozastavený řádek v řazení „⏸ Paused“ | `habits.calendar.legendPaused` | Paused / Pausiert / En pausa | emoji ⏸ nahradit ikonou `pause` jako na kartě (E5) |
 | měsíc a rok nad kalendářem, „Wed 22“ | `common.locale` | en-US / de-DE / es-ES | `toLocaleDateString` |
 
-### Otázky pro Petra
+### Otázky (rozhodnuto – viz „Rozhodnutí otázek“ nahoře)
 
 1. **„Zlatá fajfka“ v textu pravidla (P28).** Text nápovědy z laboratoře (`howItWorks.makeUp`) říká „A golden check marks the day it saved.“ Kalendář detailu přitom podle R-11 kreslí zachráněný den jako **kroužek v barvě návyku se spojnicí** a zlatou barvu má jen bonus ★. Plán u E5 sám žádá opravit „zlatou fajfku“ v nápovědě. Mám poslední větu přepsat, třeba na „A ring and a line mark the day it saved.“? Text pak doplním ve všech třech jazycích.
 2. **Stejné pravidlo dvakrát.** Detail má kartu „How make-up works“ a hned vedle legendy „i“, které otevře okno se stejným pravidlem jinými slovy. Necháme obojí, nebo jen jedno?
@@ -161,7 +223,7 @@ Odznak úrovně vlevo nahoře na každé obrazovce: kroužek postupu, jiskry XP,
 
 *Souhrnná lišta (`XpNotification`) a staré bubliny (`XpPopupAnimation`) se v E7 odpojí. Jejich klíče (`gamification.xp.xpNotification.*`, `gamification.xp.popup.*`) se smažou až v E26.*
 
-### Otázky pro Petra
+### Otázky (rozhodnuto – viz „Rozhodnutí otázek“ nahoře)
 
 1. **„LEVEL UP“ v němčině a španělštině.** Laboratoř nechává „LEVEL UP“ anglicky i v DE (podobně jako vzácnosti trofejí). DE appka říká „Level“, takže „LEVEL UP“ tam sedí. Pro ES navrhuji „NUEVO NIVEL · 16“, protože „LEVEL UP“ ve španělské appce nikde není. Souhlas, nebo nechat všude anglicky?
 
@@ -195,7 +257,7 @@ Trofeje jedné akce jdou jako jeden moment: běžné a vzácné jako tiché ozn�
 | „+N XP“ v oznámení a v okně | `achievements.card.xpReward` | +{{xp}} XP | |
 | štítek vzácnosti v okně („EPIC“, „LEGENDARY“) | **bez klíče – zůstává anglicky** | COMMON / RARE / EPIC / LEGENDARY | pravidlo `technical-guides.md`; existující `achievements.rarity.*` (přeložené) se tu nepoužije |
 
-### Otázky pro Petra
+### Otázky (rozhodnuto – viz „Rozhodnutí otázek“ nahoře)
 
 1. **Název Síně trofejí v DE.** Laboratoř: „Trophäenhalle“. Appka: nadpis `screens.trophyRoom.title` = „Trophäenzimmer“, záložka a obrazovka = „Trophäen“. Které jméno má být všude? ES „Sala de Trofeos“ je v appce jednotné.
 2. **„Achievement“ × „trophy“.** Nové texty laboratoře říkají „trophy / Trophäe / trofeo“, existující nadpisy okna (které laboratoř přebírá) „Achievement / Erfolg / Logro“. V jednom oznámení tak může stát „2 trophies unlocked“ a ve velkém okně „Epic Achievement!“. Přepsat nadpisy `rarity_*` na „trofej“, nebo to nechat?
@@ -266,7 +328,7 @@ Trofeje jedné akce jdou jako jeden moment: běžné a vzácné jako tiché ozn�
 | názvy kapitol (Beginner, Growing, Rare, Epic, Legendary, Mythic) | `gamification.levels.overview.rarity.*` | Beginner… / Start… / Principiante… | laboratoř je bere přes `getFixedT` |
 | křížek přehledu úrovní (čtečka) | `common.close` | Close / Schließen / Cerrar | |
 
-### Otázky pro Petra
+### Otázky (rozhodnuto – viz „Rozhodnutí otázek“ nahoře)
 
 1. **Názvy úrovní jsou jen anglicky (P61–P62).** Panel, přehled i okno kapitoly ukazují název úrovně z `getLevelInfo(level).title` („Apprentice I“…), který je jen v kódu, anglicky. Přeložit všech 100 názvů (nová sada klíčů), nebo je nechat anglicky jako vzácnosti?
 2. **Dílky panelu.** Navrhuji vlastní krátké „Habits / Journal / Goals“ místo názvů záložek (EN záložka „My Journal“, DE „Routine“). Souhlas?
@@ -313,7 +375,7 @@ Zbylá okna v novém jazyce: „Nová kapitola“ (jen při vstupu do nového st
 | okno ⭐🔥👑: nadpis a věta | `journal.bonusMilestone1_title`/`_text`, `bonusMilestone5_*`, `bonusMilestone10_*` | First Bonus Entry! ⭐ … | viz otázka 4 (emoji) |
 | okno ⭐🔥👑: tlačítko | `achievements.celebration.continue_button` | Continue / Fortfahren / Continuar | viz otázka 1 |
 
-### Otázky pro Petra
+### Otázky (rozhodnuto – viz „Rozhodnutí otázek“ nahoře)
 
 1. **DE „Weiter“ × „Fortfahren“.** Okno trofeje a okno ⭐🔥👑 mají tlačítko z `achievements.celebration.continue_button` = „Fortfahren“, okno kapitoly, série a cíle „Weiter“. Všechna okna oslav vypadají nově stejně, tak by asi mělo stejné být i tlačítko. Sjednotit na „Weiter“ (= `ui.continue`)?
 2. **Tiché oznámení série (R-40).** Laboratoř v tichém oznámení ukazuje jen „Journal streak“ + „14 days in a row“, nic z textů `journalStreakMilestones.ts` (ty má jen okno). Je to tak myšlené („nese jen titulek“), nebo má oznámení nést titulek milníku (např. „Two Weeks Strong!“)?
@@ -486,7 +548,7 @@ Hrdina dne (oblouk se sluncem, pozdrav, „+XP dnes“, povzbuzení), rychlé ak
 | `home.recommendationCards.goals.setNewGoal.title` | Set a new goal | = | Establecer nueva meta | Title Case |
 | `home.recommendationCards.goals.setNewGoal.action` | Create goal | = | Crear meta | Title Case |
 
-### Otázky pro Petra
+### Otázky (rozhodnuto – viz „Rozhodnutí otázek“ nahoře)
 
 1. **Pozdrav v noci.** Laboratoř říká 0–5 h „Good night / Gute Nacht“ – v EN i DE je to ale rozloučení („dobrou noc“), ne pozdrav. Hranice hodin pozdravu (5 / 12 / 18) se navíc liší od `getDaypart` (barvy nebe: 5 / 11 / 17 / 22).
    **Doporučuji:** pozdrav má vlastní hranice podle řeči (odpoledne začíná v poledne), nebe zůstane na `getDaypart`. Mezi 18 a 5 h jeden večerní pozdrav („Good evening / Guten Abend / Buenas noches“) a klíč `home.greeting.night` vypustit – zbudou tři.
@@ -588,7 +650,7 @@ Karta „Dnes“ (počet, tři dílky, plamen, bonusová cesta ⭐🔥👑), dv�
 | `journal.input.minLengthError` | Write at least {{min}} characters. | Schreib mindestens {{min}} Zeichen. | Escribe al menos {{min}} caracteres. | dnes „Gratitude must be at least 3 characters long“; `{{min}}` = 3 z validace (žádné opsané číslo) |
 | `common.errors.gratitude.failedToSave` | Your entry wasn’t saved. What you wrote is still there. | Dein Eintrag wurde nicht gespeichert. Was du geschrieben hast, ist noch da. | Tu entrada no se guardó. Lo que escribiste sigue ahí. | pruh místo `ErrorModal` (7.9); sheet zůstane otevřený s textem; věta podle laboratoře `system.saveFailed`; ⚠ DE +36 % |
 
-### Otázky pro Petra
+### Otázky (rozhodnuto – viz „Rozhodnutí otázek“ nahoře)
 
 1. **Věty pod počtem dne.** „Daily journal complete! Keep your streak alive!“ a „Amazing! You've added bonus entries!“ – dva vykřičníky na řádek, zatímco celý Deník v novém vzhledu mluví klidně a oslavu dne dělá zezelenání dílků (R-13). Tabulka C zatím jen odebírá emoji.
    **Doporučuji** klidnější věty: „Today’s three are done — your streak grows.“ / „Die drei für heute sind geschafft – deine Serie wächst.“ / „Las tres de hoy, hechas: tu racha crece.“ a pro bonus „Every extra entry is a bonus.“ / „Jeder weitere Eintrag ist ein Bonus.“ / „Cada entrada extra es una bonificación.“
@@ -662,7 +724,7 @@ Historie jako měsíční kalendář (tvar dne, stuha série, ❄ dny zachráně
 | `journal.errors.searchFailed` | Search didn’t work this time. | Die Suche hat diesmal nicht geklappt. | La búsqueda no funcionó esta vez. | *návrh*; pruh + „Try again“ (7.9 „Hledání se nepovedlo“) |
 | `journal.errors.deleteFailed` | The entry wasn’t deleted. It’s still in your journal. | Der Eintrag wurde nicht gelöscht. Er ist noch in deinem Tagebuch. | La entrada no se eliminó. Sigue en tu diario. | *návrh*; pruh bez „Try again“ (7.9 „Záznam se nesmazal. Je pořád v deníku.“); použije i Deník (E12), když smazání selže |
 
-### Otázky pro Petra
+### Otázky (rozhodnuto – viz „Rozhodnutí otázek“ nahoře)
 
 1. **Statistiky bez jakékoli série.** Laboratoř pod nulou ukáže „Best: 0 days“. Dnešní obrazovka má pro tenhle případ vlastní větu.
    **Doporučuji** existující `journal.stats.startToday` („Start your streak today! / Starte heute deine Serie! / ¡Comienza tu racha hoy!“), když je nejdelší série 0.
@@ -737,7 +799,7 @@ Přehled (aktivní / v plánu / splněné) s čárou termínů, karta cíle s pr
 | `goals.progress.form.types.set` | Set to | = | Establecer en | Title Case |
 | `goals.progress.form.submit` | Add progress | = | Añadir progreso | Title Case |
 
-### Otázky pro Petra
+### Otázky (rozhodnuto – viz „Rozhodnutí otázek“ nahoře)
 
 1. **Cíl po termínu – laboratoř ho nemá.** Termín uplynul a cíl není splněný: laboratoř ukáže „0 days left“ a čip „x days behind“, který každým dnem roste. Test funkce tempa „po termínu“ přitom plán chce.
    **Doporučuji:** čip „Deadline passed“ v teplé barvě (A, `goals.pace.overdue`), řádek „days left“ zmizí, nic se nepočítá dál. Nové datum si uživatel dá přes „⋯ → Edit goal“ – žádné další tlačítko na kartě.
@@ -811,7 +873,7 @@ Jedno okno tvorby i úpravy s živým náhledem, nápady ze šablon uvnitř, ter
 | `goals.progress.progressHistory` | Progress history | = | Historial de progreso | Title Case |
 | `goals.progress.confirmDelete` | Delete progress entry | = | Eliminar entrada de progreso | Title Case |
 
-### Otázky pro Petra
+### Otázky (rozhodnuto – viz „Rozhodnutí otázek“ nahoře)
 
 1. **Okno tvorby cíle jako okno tvorby návyku.** Laboratoř má nadpis z `goals.addGoal` („Add Goal“) a tlačítko z `common.create`, které je v DE jen „Neu“. Okno návyku (E6) má „New habit / Create habit“.
    **Doporučuji** stejný vzor: nadpis „New goal / Neues Ziel / Nueva meta“ a tlačítko „Create goal / Ziel erstellen / Crear meta“ (dva klíče v A). „Add goal“ zůstane jen čtečce u „+“.
@@ -849,7 +911,7 @@ Volba druhu cíle v okně tvorby („Hochzählen“ = přičítá se, „Messen�
 | čip tempa, „days left“, fakta detailu | `goals.pace.*`, `goals.detail.*` | (nové z E14, E15) | fungují oběma směry beze změny textu |
 | okno dokončení „84,6 → 78 kg · reached in 42 days“ | `goals.completion.doneIn_*` | (nový z E10) | |
 
-### Otázky pro Petra
+### Otázky (rozhodnuto – viz „Rozhodnutí otázek“ nahoře)
 
 Žádné – texty jsou z laboratoře, rozhoduje se o datech (plán migrace zvlášť).
 
