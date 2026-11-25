@@ -102,8 +102,10 @@ import {
   usePageScrollFrame,
   useScrollRest,
 } from '@/src/components/ui';
+import { ForYouCard } from './ForYouCard';
 import { HabitStatsCard } from './HabitStatsCard';
 import { HomeCustomizeSheet } from './HomeCustomizeSheet';
+import { InsightsCard } from './InsightsCard';
 import { JournalStreakCard } from './JournalStreakCard';
 import { QuickActions } from './QuickActions';
 import { TodayHabitItem, TodayHabits } from './TodayHabits';
@@ -124,6 +126,8 @@ const OWN_SECTIONS = new Set([
   'todayHabits',
   'journalStreak',
   'habitStats',
+  'insights',
+  'recommendations',
 ]);
 
 interface HomePageProps {
@@ -407,6 +411,8 @@ function HomeContent({
         />
       );
     if (id === 'habitStats') return <HabitStatsCard />;
+    if (id === 'insights') return <InsightsCard />;
+    if (id === 'recommendations') return <ForYouCard />;
     if (id === 'todayHabits')
       return (
         <TodayHabits

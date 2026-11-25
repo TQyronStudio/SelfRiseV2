@@ -671,20 +671,16 @@ Jedna karta se třemi obdobími (7 dní / 30 dní / Rok) nahradila `HabitStatsDa
   jinak by nový uživatel četl „o 8 bodů lépe“ ze srovnání měsíce s jedním dnem.
 - **Rok** = dostupná data, nejvýš posledních 365 dní (`yearWindow`); počítá se až po přepnutí na Rok.
 
-### Domovské přehledy návyků — čistá pravidla (opraveno 2026-11-24)
-Tři výpočty z Home karet žijí v testovaných čistých souborech v `src/components/home/`:
-- **Celkový trend** (`habitTrendLogic.ts`, karta HabitTrendAnalysis): týdny jsou seřazené **od
-  nejstaršího** (tento týden je poslední); porovnává průměr dvou posledních týdnů s dvěma
-  předchozími, práh ±10 bodů. Dřív bral jako „nedávné" dva NEJSTARŠÍ týdny → zlepšení hlásil
-  jako zhoršení. Týden bez čeho hodnotit (`null` – návyk ještě nebyl, celý týden pauza) se
-  do průměru **nepočítá**; chybí-li data v jedné polovině, trend je „stabilní" (jinak první týden
-  nového uživatele hlásil „zlepšení").
-- **Rok** (`yearlyOverviewLogic.ts`, dnes `HabitStatsCard`, dřív YearlyHabitOverview): dostupná data, ale **nejvýš posledních
-  365 dní**. Dřív celá historie — po roce používání „Rok" znamenal „od začátku".
-- **Týdenní průměr** (`habitPerformanceLogic.ts`, HabitPerformanceIndicators): jednotné pravidlo
-  aplikace — všechna splnění (vč. bonusů) / naplánované dny, sečteno přes všechny návyky, **jen dny
-  do dneška** a od založení návyku, pauza není naplánovaný den. Dřív dělil všemi 7 dny (i
-  budoucími) × všemi návyky bez ohledu na rozvrh → dokonalé pondělí ukázalo ~14 %.
+### Domovské přehledy návyků — čistá pravidla (opraveno 2026-11-24, karta Přehledy od E11e)
+Karty `HabitTrendAnalysis` a `HabitPerformanceIndicators` nahradila v E11e jedna karta **Přehledy**
+(`src/components/home/InsightsCard.tsx`, podrobně `technical-guides:Home.md`). Pravidla:
+- **Celkový trend** (`habitTrendLogic.ts`, data z `weeklyRates` v `src/screens/home/homeInsightsLogic.ts`):
+  týdny seřazené **od nejstaršího** (tento týden je poslední); porovnává průměr dvou posledních týdnů
+  s dvěma předchozími, práh ±10 bodů. Dřív bral jako „nedávné" dva NEJSTARŠÍ týdny → zlepšení hlásil
+  jako zhoršení. Týden bez čeho hodnotit (`null`) se do průměru **nepočítá**. Přehledy ukážou trend
+  **jen při růstu** (rozhodnutí E11/5).
+- **Rok** (`yearlyOverviewLogic.ts`, `HabitStatsCard`): dostupná data, ale **nejvýš posledních 365 dní**.
+- Starý **týdenní průměr** karty Performance (`habitPerformanceLogic.ts`) zanikl s kartou (E11e).
 
 ---
 

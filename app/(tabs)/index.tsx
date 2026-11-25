@@ -2,9 +2,6 @@ import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, DeviceEventEmitter, EmitterSubscription } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useDesign } from '@/src/contexts/ThemeContext';
-import { HabitPerformanceIndicators } from '@/src/components/home/HabitPerformanceIndicators';
-import { HabitTrendAnalysis } from '@/src/components/home/HabitTrendAnalysis';
-import { PersonalizedRecommendations } from '@/src/components/home/PersonalizedRecommendations';
 import {
   MonthlyChallengeSection,
   MonthlyChallengeDetailModal
@@ -207,16 +204,6 @@ export default function HomeScreen() {
             onChallengePress={handleChallengePress}
             onViewAllPress={handleViewAllChallenges}
           />
-        );
-      case 'recommendations':
-        return <PersonalizedRecommendations key={componentId} />;
-      case 'insights':
-        // E11e part 2 replaces these two with the Insights card.
-        return (
-          <>
-            <HabitPerformanceIndicators />
-            <HabitTrendAnalysis />
-          </>
         );
       default:
         return null;

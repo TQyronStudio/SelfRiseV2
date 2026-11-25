@@ -8,6 +8,7 @@
 - **Rychlé akce** a jejich odkazy `?quickAction=…`
 - **Karta série deníku se záchranou** zamrzlé série přímo na Home (plamen, vločky → slunce, pruh chyb)
 - **Statistiky návyků** (7 dní / 30 dní / Rok) a odkud berou čísla
+- **Přehledy** (fakta posledních 4 týdnů) a **Pro tebe** (jedno doporučení naráz)
 - **Pořadí sekcí** (uživatelovo, `HomeCustomizationContext`)
 - **Nebezpečné zóny**: jak si Home rozbít
 
@@ -19,9 +20,9 @@
 
 *Stav: převod designu E11 běží po krocích. **E11b hotová** (2026-11-25): hrdina, pozdrav,
 kompaktní hlavička, rychlé akce, dnešní návyky. **E11c hotová** (2026-11-25): karta série se
-záchranou. **E11d hotová** (2026-11-25): statistiky návyků. **E11e část 1** (2026-11-25): sedm sekcí,
-převod uloženého rozložení, nový sheet přizpůsobení. Karty Přehledy a Pro tebe (E11e část 2) zatím
-ve staré podobě.*
+záchranou. **E11d hotová** (2026-11-25): statistiky návyků. **E11e** (2026-11-25): sedm sekcí, převod
+uloženého rozložení, nový sheet přizpůsobení, Přehledy a Pro tebe. Ve staré podobě zbývá jen karta
+výzvy měsíce (přijde v E17).*
 
 ---
 
@@ -178,6 +179,23 @@ snímky rolování.
 - **Barvy grafu** jsou paleta `chart` v tokenech (ověřená pro obě plochy) – ne UI zlatá.
 - Karta se **skryje**, dokud v posledních 30 dnech není žádný naplánovaný den (rozhodnutí E11/2c).
 
+### Přehledy (E11e)
+`src/components/home/InsightsCard.tsx`, fakta `src/screens/home/homeInsightsLogic.ts` (test) – stejné
+výpočty jako dřív `HabitTrendAnalysis` (týdenní míry, míra návyku za 28 dní přes
+`calculateHabitCompletionRate`). Nejvýš tři řádky, **každý jen když jeho fakt existuje**, bez faktů
+karta zmizí:
+- **trend jen při růstu** (opravený `overallTrend`, práh 10 bodů) – pokles pokryje laskavý řádek níž;
+- **nejsilnější návyk**: zavedený (14+ dní), nejvyšší míra, aspoň 50 %;
+- **stojí za pohled**: zavedený návyk s nejnižší mírou pod 50 % – teplou barvou, nikdy červeně.
+  Nový návyk se nehodnotí. Období v záhlaví („Posledních 4 týdnů“) je to, které výpočet opravdu bere.
+
+### Pro tebe (E11e)
+`src/components/home/ForYouCard.tsx` nad `RecommendationEngine.generateRecommendations` (nejvýš 4,
+podle priority, texty z klíčů enginu). **Jedno doporučení naráz**, „Další návrh“ jde dokola.
+Tlačítko **udělá akci** (`actionRoute`): nový návyk / cíl otevře tvorbu, deník otevře psaní (pochvala
+u „zkus pochvalu“), ostatní otevře záložku. Konkrétní návyk / cíl otevřít zatím nejde (není trasa).
+Bez doporučení karta zmizí.
+
 ### Chybový pruh (`ProblemNote`, vrstva 2b)
 `src/components/ui/ProblemNote.tsx`: `ProblemNoteProvider` kolem navigátoru, `<ProblemNoteLayer />`
 v `app/_layout.tsx` mezi odznakem a úvodem. `useProblemNote().showProblem({ message, retry? })`:
@@ -229,6 +247,7 @@ ignoruje – úložiště čte a pak píše, dva zápisy naráz by mohly dát XP
 12. **Rok počítaný při každém vykreslení** → 365 dní × návyky při každém odškrtnutí; jen po přepnutí.
 13. **Druhý filtr rozložení vedle `mergeHomeComponents`** → dvě pravidla se rozejdou; vždy jen to jedno.
 14. **Přetažení, které pošle jen viditelné sekce** → skryté se vrátí jako nové a viditelné.
+15. **Řádek Přehledů bez faktu** (např. „zlepšení“ při poklesu, „nejslabší“ návyk na 100 %) → laskavost a pravda jdou první.
 
 ---
 
@@ -245,6 +264,8 @@ PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH" npx jest src/screens/home src
 - `src/hooks/__tests__/useStreakWarmUp.test.tsx` – reklama = den, obnova po platbě, tichá oprava, pruhy.
 - `src/hooks/__tests__/useJournalFlame.test.ts` – led / zahřátí jednou / oheň.
 - `src/screens/home/__tests__/homeChartsLogic.test.ts` – míra, srovnání, počítání dne, poctivé srovnání.
+- `src/screens/home/__tests__/homeInsightsLogic.test.ts` – trend jen při růstu, nejsilnější, stojí za pohled.
+- `src/utils/__tests__/homeComponents.test.ts` + `src/screens/home/__tests__/homeLayoutLogic.test.ts` – převod rozložení.
 - `src/design/__tests__/ratchet.test.ts` – nové soubory Home jen s tokeny.
 
 ---
@@ -274,6 +295,8 @@ PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH" npx jest src/screens/home src
    slunce; poslední den → led praskne a chytne jednou; při dalším otevření Home už jen oheň.
 8. **Zavři reklamu dřív** → pruh „Reklama nedoběhla…“ se „Zkusit znovu“, série dál zamrzlá.
 9. **Začít znovu** → potvrzení → série 0, čip „Začni dnes“.
+11. **Přizpůsobení:** skryj sekci, přetáhni jinou, zavři a otevři appku → zůstalo; „Obnovit výchozí“.
+12. **Pro tebe:** „Další návrh“ a tlačítko akce (otevře správné okno v záložce).
 10. **Statistiky:** přepni 7 / 30 / Rok; ťukni na sloupec; odškrtni návyk a vrať se – dnešní sloupec vyrostl.
     Nový uživatel (pár dní dat) → žádné „o X bodů lépe“, jen „X z Y“.
 

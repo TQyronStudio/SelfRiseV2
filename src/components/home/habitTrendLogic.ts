@@ -1,9 +1,10 @@
 /**
- * The overall habit trend on Home (HabitTrendAnalysis) — pure, tested in
- * __tests__/habitTrendLogic.test.ts.
+ * The overall habit trend on Home (the Insights card since E11e, via
+ * src/screens/home/homeInsightsLogic.ts; until then HabitTrendAnalysis) — pure,
+ * tested in __tests__/habitTrendLogic.test.ts.
  *
- * Takes the last four weekly completion rates OLDEST FIRST (the way the card
- * builds them: this week is the last one) and compares the two recent weeks with
+ * Takes the last four weekly completion rates OLDEST FIRST (the way
+ * weeklyRates builds them: this week is the last one) and compares the two recent weeks with
  * the two before. Until 2026-11-24 the card averaged weeks [0] and [1] as
  * "recent" — the two OLDEST — so a user getting better read "declining".
  */

@@ -46,8 +46,9 @@ rozhodnutí navíc tam nepatří.
 
 Vyřazená témata **si bublinku ponechávají** — jen nestojí za odstavec na
 stránce, kterou si někdo vybral číst. Výjimka je převod designu (plán 7.10): když
-zaniká karta, která bublinu nesla, zaniká i bublina. Tak skončila
-`home.quickActions` (E11, 2026-11-25 – rychlé akce na Home mají jen popisky).
+zaniká karta, která bublinu nesla, zaniká i bublina. Tak skončily
+`home.quickActions` (E11b) a `home.recommendations` (E11e, 2026-11-25 – karta „Pro tebe“ vysvětluje
+sama sebe).
 
 **Proč ta laťka:** stránky „jak to funguje" bobtnají, dokud je nikdo nečte.
 Přesně tak umřel 25krokový tutoriál, který aplikace dřív měla.

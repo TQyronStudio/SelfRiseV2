@@ -52,7 +52,7 @@ co uživatel vidí, a anglické hodnosti v DE/ES jsou nejviditelnější místo 
 oznámení je tiché, titulek milníku patří oknu). 3 Den 30 vlastní texty ✅ **hotovo 2026-11-24** (3cd593a), „传奇“ ✅ odstraněno
 tamtéž. 4 Emoji z nadpisů ⭐🔥👑 i milníků série **odstranit v locales** (ikona je komponenta, PREVOD) – v E10.
 
-**E11** (✅ v locales 2026-11-25, test `homeCopy.test.ts`; `frozenMessage_*` a `resetFailed.message` vloženy s kartou série v E11c, `journal.warmUp.adsCount` zrušen; `timelineCheck.description_*` čeká na E11e). 1 Pozdrav: vlastní hranice 5 / 12 / 18 h, tři pozdravy, `home.greeting.night` pryč (večer 18–5 = „Good evening“);
+**E11** (✅ v locales 2026-11-25, test `homeCopy.test.ts`; `frozenMessage_*` a `resetFailed.message` vloženy s kartou série v E11c, `journal.warmUp.adsCount` zrušen; `timelineCheck.description_*` už od 0e2aba0; E11e: věty Přehledů bez „this month“ a trend „než dva týdny předtím“ – výpočet je 4 týdny, rozhodnutí 5). 1 Pozdrav: vlastní hranice 5 / 12 / 18 h, tři pozdravy, `home.greeting.night` pryč (večer 18–5 = „Good evening“);
 nebe dál podle `getDaypart`. 2 (a) `home.hero.nothingPlanned` místo „0 / 0“ a pochvaly za nic, (b) čip `home.startToday`
 u série 0, (c) karta statistik skrytá do prvního naplánovaného dne. 3 DE rychlé akce celými slovy (laboratoř).
 4 Sekce sheetu přizpůsobení = nadpis své karty. 5 Řádek trendu jen při růstu, období z výpočtu („Last 30 days“), „this month“
