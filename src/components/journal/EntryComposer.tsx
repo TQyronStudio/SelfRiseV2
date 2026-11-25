@@ -8,9 +8,12 @@
  *   that can be shuffled, "Bonus entry (optional)" after the daily three.
  * - Edit: the same sheet with the entry's text.
  * - A field left empty or too short shakes and says why, at the field.
- * - Saving is the caller's (`onSave` resolves true when stored). If it fails,
- *   the sheet STAYS OPEN with the text and the caller shows a calm note (7.9) —
- *   nothing typed is lost. XP is the storage's; the sheet only tells the XP
+ * - Valid text closes the sheet AT ONCE and the save runs after the close
+ *   animation (`onSave`): the keyboard and the sheet leave smoothly instead of
+ *   waiting on the database, XP and the streak recount while the page
+ *   re-renders under them (Petr 2026-11-25: "trhavé"). If the save fails, the
+ *   caller reopens the sheet with the text (`mode.text`) and a calm note (7.9)
+ *   — nothing typed is lost. XP is the storage's; the sheet only tells the XP
  *   layer where the sparks start (the Add button).
  * Lengths as before: a new entry up to 200 characters, an edit up to 500.
  */
@@ -50,7 +53,8 @@ const MAX_NEW = 200;
 const MAX_EDIT = 500;
 
 export type ComposerMode =
-  | { kind: 'new'; type: EntryType }
+  /** `text`: a draft to start from (a save that failed comes back with it). */
+  | { kind: 'new'; type: EntryType; text?: string }
   | { kind: 'edit'; id: string; type: EntryType; text: string };
 
 function usePrompts(type: EntryType) {
@@ -80,16 +84,15 @@ export function EntryComposer({
   nextPosition: number;
   bottomInset: number;
   onClosed: () => void;
-  /** Resolves true when stored; false keeps the sheet open with the text. */
-  onSave: (type: EntryType, text: string) => Promise<boolean>;
+  /** Called after the sheet has closed; the caller stores (and reopens on failure). */
+  onSave: (type: EntryType, text: string) => void;
 }) {
   const { c } = useDesign();
   const { t } = useI18n();
   const isNew = mode.kind === 'new';
   const [type, setType] = useState<EntryType>(mode.type);
-  const [text, setText] = useState(mode.kind === 'edit' ? mode.text : '');
+  const [text, setText] = useState(mode.text ?? '');
   const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
   const prompts = usePrompts(type);
   const [promptIndex, setPromptIndex] = useState(() =>
     Math.floor(Math.random() * 1000)
@@ -126,7 +129,6 @@ export function EntryComposer({
     >
       {dismiss => {
         const save = () => {
-          if (saving) return;
           const trimmed = text.trim();
           const message = !trimmed
             ? t('journal.input.emptyError')
@@ -149,11 +151,8 @@ export function EntryComposer({
               registerXpOrigin({ source: 'journal' }, { x: x + w / 2, y: y + h / 2 })
             );
           }
-          setSaving(true);
-          void onSave(type, trimmed).then(ok => {
-            setSaving(false);
-            if (ok) dismiss();
-          });
+          // Close first (smooth, on the UI thread), store once it is gone.
+          dismiss(() => onSave(type, trimmed));
         };
 
         return (
@@ -297,7 +296,7 @@ export function EntryComposer({
                   onPress={save}
                   feel={null}
                   accessibilityLabel={isNew ? t('common.add') : t('common.save')}
-                  style={[styles.saveButton, saving && styles.saving]}
+                  style={styles.saveButton}
                 >
                   <LinearGradient
                     colors={
@@ -404,9 +403,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-  },
-  saving: {
-    opacity: 0.6,
   },
   pill: {
     borderRadius: radius.pill,

@@ -43,6 +43,7 @@ import { Gratitude } from '@/src/types/gratitude';
 import { parseDate, today as todayString } from '@/src/utils/date';
 import { contentColumn } from '@/src/utils/layout';
 import { blockingDebtDays } from '@/src/screens/journal/journalWritingGate';
+import { JOURNAL_DAILY_GOAL } from '@/src/utils/journalXp';
 import {
   AppText,
   ConfirmSheet,
@@ -136,12 +137,15 @@ function JournalContent({ bottomInset, openWrite, onAdded }: JournalPageProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openWrite?.key]);
 
-  // A new or edited entry: bring its card into view once it is there.
+  // A new or edited entry: bring its card into view once it is there — except
+  // the day's third entry: then the Today card at the top completes the day
+  // (R-13), and scrolling away would hide that moment.
+  const scrollToFresh = useRef(true);
   const scrollRef = useRef<ScrollView>(null);
   const pageRef = useRef<View>(null);
   const entryRefs = useRef(new Map<string, View | null>());
   useEffect(() => {
-    if (!freshId) return undefined;
+    if (!freshId || !scrollToFresh.current) return undefined;
     const id = setTimeout(() => {
       const root = pageRef.current;
       const card = entryRefs.current.get(freshId);
@@ -160,32 +164,35 @@ function JournalContent({ bottomInset, openWrite, onAdded }: JournalPageProps) {
     return () => clearTimeout(id);
   }, [freshId, bottomInset, frame]);
 
+  // Runs after the sheet has closed. A failure reopens it with the text.
   const save = async (mode: ComposerMode, type: EntryType, text: string) => {
+    const reopen = (message: string) => {
+      showProblem({ message });
+      setComposer(
+        mode.kind === 'edit' ? { ...mode, text } : { kind: 'new', type, text }
+      );
+    };
     try {
       if (mode.kind === 'edit') {
         await actions.updateGratitude(mode.id, { content: text });
+        scrollToFresh.current = true;
         setFreshId(null);
         setTimeout(() => setFreshId(mode.id), 0);
-        return true;
+        return;
       }
       // The authoritative gate (the tiles are only UX on top of it).
       if ((await blockingDebtDays()) > 0) {
         showProblem({ message: t('journal.writingLocked') });
         await actions.refreshStats();
-        return false;
+        return;
       }
-      const entry = await actions.createGratitude({
-        content: text,
-        date: today,
-        type,
-      });
+      const entry = await actions.createGratitude({ content: text, date: today, type });
+      scrollToFresh.current = count + 1 !== JOURNAL_DAILY_GOAL;
       setFreshId(entry.id);
       onAdded(count + 1);
-      return true;
     } catch (error) {
       console.error('Journal entry not saved:', error);
-      showProblem({ message: t('common.errors.gratitude.failedToSave') });
-      return false;
+      reopen(t('common.errors.gratitude.failedToSave'));
     }
   };
 
@@ -422,7 +429,7 @@ function JournalContent({ bottomInset, openWrite, onAdded }: JournalPageProps) {
               nextPosition={count + 1}
               bottomInset={bottomInset}
               onClosed={() => setComposer(null)}
-              onSave={(type, text) => save(composer, type, text)}
+              onSave={(type, text) => void save(composer, type, text)}
             />
           )}
           {actionsFor && (

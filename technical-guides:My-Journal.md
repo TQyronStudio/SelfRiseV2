@@ -562,13 +562,17 @@ Journal celebrations represent immediate user actions and MUST have highest prio
 Statistiky – jen tam, P35) → nadpis → karta **Dnes** (`TodayCard`: počet / 3, tři dílky, plamen a série,
 bonusová cesta ⭐ 4 · 🔥 8 · 👑 13, nejdelší série, ⭐🔥👑 → statistiky) → dvě **dlaždice zápisu** (co další
 záznam přinese) → **citát dne (vždy nad dnešními záznamy)** → dnešní záznamy 1..N s „⋯“ (upravit / smazat).
-- **Psaní i úprava = jeden sheet** nad klávesnicí (`EntryComposer`): typ, otázka, „+N XP“. Neúspěšné uložení
-  → sheet zůstane otevřený s textem + pruh `ProblemNote` (`common.errors.gratitude.failedToSave`).
+- **Psaní i úprava = jeden sheet** nad klávesnicí (`EntryComposer`): typ, otázka, „+N XP“. **Platný text sheet
+  zavře HNED a ukládá se až po dojezdu jeho animace** (Petr 2026-11-25: čekání na databázi, XP a přepočet série
+  při otevřeném sheetu bylo „trhavé“). Neúspěšné uložení → sheet se znovu otevře s textem + pruh `ProblemNote`
+  (`common.errors.gratitude.failedToSave`).
 - **XP podle pořadí = jedno pravidlo** `src/utils/journalXp.ts` (úložiště podle něj připisuje i vrací;
   dlaždice a sheet ho jen ukazují). Smazání: úložiště vrátí XP poslední pozice dne, záznamy se přečíslují.
 - **R-13:** třetí záznam = oslava na místě (zezelenání, jedno rozzáření, `feel('dayDone')`) – jen skutečný
   třetí záznam na viditelné obrazovce (`completedTheDay`, test), nikdy načtení záznamů po startu. Okno
   `celebration_daily_complete` i `CelebrationModal` zanikly. Okno série a okno ⭐🔥👑 zůstávají (E10).
+  Po třetím záznamu stránka **nedoroluje** k novému záznamu (jinak by oslava na kartě Dnes proběhla mimo
+  obrazovku – Petr 2026-11-25 „nic nevyskočilo“); u ostatních záznamů ano.
 - **R-14:** zamrzlá série zamkne dlaždice **dřív, než uživatel začne psát**; zahřátí je přímo v Deníku
   (`WarmUpControls` + `useStreakWarmUp`, stejné jako Home). **Pojistka v ukládání zůstává**
   (`src/screens/journal/journalWritingGate.ts`, beze změny přenesená z `GratitudeInput`): dluh → nic se
