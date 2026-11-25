@@ -71,6 +71,9 @@ const CONVERTED: readonly string[] = [
   'src/components/xp/useMultiplierState.ts',
   'src/services/levels/rankTitle.ts',
   'src/screens/levels/LevelsJourneyScreen.tsx',
+  // E10 – the other celebration windows
+  'src/components/moments/MomentWindows.tsx',
+  'src/services/moments/chapterShown.ts',
   // E7 (part 1) – the XP display: books, origins, multiplier mark rules
   'src/services/xpDisplay/xpLedger.ts',
   'src/services/xpDisplay/xpOriginRegistry.ts',

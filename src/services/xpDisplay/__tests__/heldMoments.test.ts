@@ -8,7 +8,9 @@ describe('heldMoments', () => {
     expect(holdKindOfModal('celebration_streak_milestone')).toBe('streak');
     expect(holdKindOfModal('celebration_bonus_milestone')).toBe('bonusEntry');
     expect(holdKindOfModal('monthly_challenge_completion')).toBe('challenge');
-    expect(holdKindOfModal('level_up')).toBeNull();
+    // A chapter window may carry the trophies of its action (E10, L-8).
+    expect(holdKindOfModal('level_up')).toBe('trophy');
+    expect(holdKindOfModal('star_level_change')).toBeNull();
   });
 
   it('keeps a kind pending while its window is anywhere in the queue', () => {

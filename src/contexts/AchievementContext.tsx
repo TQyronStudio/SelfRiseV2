@@ -16,6 +16,9 @@ import { useModalQueue, ModalPriority } from './ModalQueueContext';
 import { postTrophyNote } from '../services/moments/noteBus';
 import { XPSourceType } from '../types/gamification';
 import { routeTrophyBatch } from '../services/moments/trophyBatch';
+import { chapterOfAction } from '../services/moments/momentRules';
+import { markChapterShown } from '../services/moments/chapterShown';
+import { GamificationService } from '../services/gamificationService';
 import i18n from '../config/i18n';
 
 /** The trophies of one action arrive within this window (one loop in the service). */
@@ -373,6 +376,22 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
     // The number shown is what was really CREDITED (caps, a running multiplier),
     // not the catalogue — the same XP that flies into the badge.
     const xp = credited > 0 ? credited : shown.reduce((sum, item) => sum + item.xp, 0);
+    // L-8: the trophies' XP opened a new chapter — ONE window, the chapter, with
+    // the trophies inside (their XP flies from its button). The level-up event
+    // of the same XP skips this chapter once (chapterShown).
+    if (!onboarding && credited > 0) {
+      const total = await GamificationService.getTotalXP();
+      const chapter = chapterOfAction(total - credited, credited);
+      if (chapter) {
+        markChapterShown(chapter.level);
+        enqueueModalRef.current({
+          type: 'level_up',
+          priority: ModalPriority.LEVEL_UP,
+          props: { level: chapter.level, tier: chapter.tier, also: shown.map(item => item.achievement), xp },
+        });
+        return;
+      }
+    }
     if (moment.kind === 'big') {
       enqueueModalRef.current({
         type: 'achievement',

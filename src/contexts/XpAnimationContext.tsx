@@ -4,6 +4,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { impact as hapticImpact, ImpactFeedbackStyle } from '../services/hapticsService';
 import { XPSourceType } from '../types/gamification';
 import { useModalQueue, ModalPriority } from './ModalQueueContext';
+import { tierEntered } from '../services/moments/momentRules';
+import { takeChapterShown } from '../services/moments/chapterShown';
+
+/** The trophy batch collector (400 ms) decides first whether it shows the chapter. */
+const CHAPTER_WAIT_MS = 700;
 
 // Tutorial storage keys — shared, dependency-free module (no circular import with
 // TutorialContext). Duplicating these literals silently broke level-up modal
@@ -225,19 +230,21 @@ export const XpAnimationProvider: React.FC<XpAnimationProviderProps> = ({ childr
             return;
           }
 
-          console.log(`🎉 Level-up → ModalQueue: Level ${eventData.newLevel} (${eventData.levelTitle})`);
-
-          // Enqueue to centralized modal queue - it handles priority and ordering
-          enqueueModalRef.current({
-            type: 'level_up',
-            priority: ModalPriority.LEVEL_UP,
-            props: {
-              newLevel: eventData.newLevel,
-              levelTitle: eventData.levelTitle,
-              levelDescription: eventData.levelDescription,
-              isMilestone: eventData.isMilestone || false,
-            },
-          });
+          // E10 (R-39): a window only when a NEW TIER begins (11/21/41/61/81) —
+          // every other level-up is the badge's own burst and LEVEL UP tag.
+          const level: number = eventData.newLevel;
+          const tier = tierEntered(eventData.previousLevel ?? level - 1, level);
+          if (!tier) return;
+          // The trophies of the same action may have shown this chapter already
+          // (their XP opened it — AchievementContext): give them time, skip once.
+          setTimeout(() => {
+            if (takeChapterShown(level)) return;
+            enqueueModalRef.current({
+              type: 'level_up',
+              priority: ModalPriority.LEVEL_UP,
+              props: { level, tier },
+            });
+          }, CHAPTER_WAIT_MS);
         } else {
           console.warn(`⚠️ Invalid level-up event data received:`, eventData);
         }

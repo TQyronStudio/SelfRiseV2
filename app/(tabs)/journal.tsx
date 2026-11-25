@@ -5,7 +5,9 @@ import { TopRow } from '@/src/components/ui/TopRow';
 import { AdBanner } from '@/src/components/ads/AdBanner';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useI18n } from '@/src/hooks/useI18n';
-import { isJournalStreakMilestone } from '@/src/utils/journalStreakMilestones';
+import { getJournalStreakReward } from '@/src/utils/journalStreakMilestones';
+import { streakMomentSize } from '@/src/services/moments/momentRules';
+import { useMomentNotes } from '@/src/components/xp/XpDisplay';
 import { useGratitude } from '@/src/contexts/GratitudeContext';
 // useOptimizedGamification removed - components use GamificationService directly
 import { GamificationService } from '@/src/services/gamificationService';
@@ -30,6 +32,7 @@ export default function JournalScreen() {
   const params = useLocalSearchParams();
   const { state, actions } = useGratitude();
   const { enqueue: enqueueModal } = useModalQueue();
+  const { showPlainNote } = useMomentNotes();
   const scrollViewRef = useRef<ScrollView>(null);
   const inputRef = useRef<View>(null);
   const [showInput, setShowInput] = useState(false);
@@ -112,16 +115,22 @@ export default function JournalScreen() {
         // callback captured before the save (the window came a day late)
         const fresh = await actions.refreshStats();
         const currentStreak = fresh?.currentStreak || 0;
-        if (isJournalStreakMilestone(currentStreak)) {
+        // E10 (R-40): a window for 7/30/100/365/1000 days, the other lengths a
+        // quiet note at the level badge carrying only the length (its XP, if
+        // any, is already paid by the app — getJournalStreakReward).
+        const size = streakMomentSize(currentStreak);
+        if (size === 'window') {
           enqueueModal({
             type: 'celebration_streak_milestone',
             priority: ModalPriority.ACTIVITY_CELEBRATION,
-            // Texts are chosen by CelebrationModal (own texts or the generic
-            // ones) — passing t() results here can't fall back: t() returns
-            // the KEY for a missing text, which is truthy, so `||` never fired
-            props: {
-              streakDays: currentStreak,
-            },
+            props: { streakDays: currentStreak },
+          });
+        } else if (size === 'quiet') {
+          showPlainNote({
+            icon: 'flame',
+            overline: t('journal.streakMoment.overline'),
+            title: t('journal.streakMoment.days', { count: currentStreak }),
+            xp: getJournalStreakReward(currentStreak),
           });
         }
       }, 1000);
@@ -148,7 +157,7 @@ export default function JournalScreen() {
         }, 500);
       }
     }
-  }, [currentCount, enqueueModal, actions]);
+  }, [currentCount, enqueueModal, actions, showPlainNote, t]);
 
   // Styles inside component to access theme colors
   const styles = StyleSheet.create({

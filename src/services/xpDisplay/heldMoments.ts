@@ -9,6 +9,8 @@ import { HoldKind } from './xpLedger';
 export function holdKindOfModal(type: ModalType): HoldKind | null {
   switch (type) {
     case 'achievement':
+    // A new chapter may carry the trophies of its action (L-8).
+    case 'level_up':
       return 'trophy';
     case 'goal_completion':
       return 'goal';

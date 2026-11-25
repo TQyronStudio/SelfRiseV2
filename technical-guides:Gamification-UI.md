@@ -217,6 +217,19 @@ jsou odstraněné; hlídá to `src/services/__tests__/levelMilestonePromises.tes
 
 ## Centralized Modal Queue System (ModalQueueContext)
 
+**Okna oslav v novém vzhledu (E10, 2026-11-25)** – `src/components/moments/MomentWindows.tsx`, `View` ve vrstvě oken:
+- **Nová kapitola** (`level_up`) jen při vstupu do nového stupně (`tierEntered`: 11/21/41/61/81) – ostatní úrovně okno
+  nemají (odznak + štítek LEVEL UP). **Spojení s trofejemi (L-8):** když XP dávky trofejí otevře kapitolu
+  (`chapterOfAction`), `AchievementContext` zařadí JEDNO okno kapitoly s trofejemi uvnitř a označí ji
+  (`chapterShown`); posluchač `levelUp` v `XpAnimationContext` čeká 700 ms a tutéž kapitolu **jednou** přeskočí.
+  Potlačení během úvodu zůstává.
+- **Série deníku:** okno jen pro 7/30/100/365/1000 dní (`streakMomentSize`), ostatní délky tiché oznámení s titulkem
+  (journal → `showPlainNote`). Texty `getJournalStreakMilestoneTexts`, emoji z nadpisů pryč.
+- **Násobič harmonie** – nové okno (čísla z `XP_MULTIPLIERS`, žádná dlaždice bonusu); násobič výzvy dál staré okno do E18.
+- **Splněný cíl** a **⭐🔥👑** – jedno okno, XP po „Continue“.
+- Okno s přidrženým XP zaregistruje bod svého tlačítka (`registerMomentOrigin`), XP odtud vyletí; `level_up` uvolňuje
+  přidržené XP trofejí (`heldMoments`).
+
 **Vrstva oken (E8, 2026-11-24):** frontu kreslí `<ModalQueueOutlet/>` v `app/_layout.tsx` (vrstva 4 – nad úvodem,
 pod jiskrami XP), ne sám `ModalQueueProvider`. Okno trofeje je `View` (`TrophyWindow`); ostatní okna jsou zatím RN
 `<Modal>` a převádí je E10. Kontext navíc vydává `queuedTypes` (typy ve frontě) pro přidržení XP momentů.

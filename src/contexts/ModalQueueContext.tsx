@@ -24,7 +24,14 @@ import { DeviceEventEmitter, View, StyleSheet, Platform } from 'react-native';
 import { WINDOW_LAYER_Z } from './windowLayer';
 import CelebrationModal from '../components/gratitude/CelebrationModal';
 import { TrophyWindow } from '../components/achievements/TrophyWindow';
-import { GoalCompletionModal } from '../components/goals/GoalCompletionModal';
+import {
+  BonusEntryWindow,
+  ChapterWindow,
+  GoalDoneWindow,
+  MultiplierWindow,
+  StreakWindow,
+} from '../components/moments/MomentWindows';
+import { goalCompletionXP } from '../constants/gamification';
 import MonthlyChallengeCompletionModal from '../components/challenges/MonthlyChallengeCompletionModal';
 import MonthlyChallengeFailureModal from '../components/challenges/MonthlyChallengeFailureModal';
 import MonthlyChallengeMilestoneModal from '../components/challenges/MonthlyChallengeMilestoneModal';
@@ -245,61 +252,33 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
         />
       );
 
+    // E10: the windows below are views in the window layer (MomentWindows).
     case 'celebration_streak_milestone':
-      return (
-        <CelebrationModal
-          key={id}
-          visible={true}
-          onClose={onClose}
-          type="streak_milestone"
-          streakDays={props.streakDays}
-          title={props.title}
-          message={props.message}
-          disableXpAnimations={false}
-        />
-      );
+      return <StreakWindow key={id} days={props.streakDays} onClose={onClose} />;
 
     case 'celebration_bonus_milestone':
       return (
-        <CelebrationModal
-          key={id}
-          visible={true}
-          onClose={onClose}
-          type="bonus_milestone"
-          bonusCount={props.bonusCount}
-          xpAmount={props.xpAmount}
-          disableXpAnimations={false}
-        />
+        <BonusEntryWindow key={id} bonusCount={props.bonusCount} xp={props.xpAmount ?? 0} onClose={onClose} />
       );
 
-    // --- Level-up ---
+    // --- New chapter (a tier begins; may carry the trophies of its action) ---
     case 'level_up':
+      if (!props.tier) return null;
       return (
-        <CelebrationModal
+        <ChapterWindow
           key={id}
-          visible={true}
+          level={props.level}
+          tierId={props.tier}
+          also={props.also ?? []}
+          xp={props.xp ?? 0}
           onClose={onClose}
-          type="level_up"
-          levelUpData={{
-            previousLevel: props.newLevel - 1,
-            newLevel: props.newLevel,
-            levelTitle: props.levelTitle,
-            ...(props.levelDescription && { levelDescription: props.levelDescription }),
-            isMilestone: props.isMilestone || false,
-          }}
-          disableXpAnimations={false}
         />
       );
 
     // --- Goal completion ---
     case 'goal_completion':
       return (
-        <GoalCompletionModal
-          key={id}
-          visible={true}
-          goal={props.goal}
-          onClose={onClose}
-        />
+        <GoalDoneWindow key={id} goal={props.goal} xp={goalCompletionXP(props.goal.targetValue)} onClose={onClose} />
       );
 
     // --- Monthly challenge ---
@@ -350,6 +329,11 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
 
     // --- Multiplier activation ---
     case 'multiplier_activation':
+      // The harmony multiplier has its new window; the challenge's keeps the old
+      // one until E18 tells it inside the challenge window.
+      if (props.multiplier?.source === 'harmony_streak') {
+        return <MultiplierWindow key={id} onClose={onClose} />;
+      }
       return (
         <MultiplierActivationModal
           key={id}
