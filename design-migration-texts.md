@@ -48,7 +48,7 @@ co uživatel vidí, a anglické hodnosti v DE/ES jsou nejviditelnější místo 
 4 ES neutrálně: „¡Hola de nuevo!“ místo „¡Bienvenido de nuevo!“ – i v `home.title` a `welcomeBack*`, ať je appka jednotná – mužský rod vynechává polovinu uživatelů.
 5 Sjednotit: `{{factor}}` = vždy hotový faktor se znakem z `formatFactor`.
 
-**E10.** 1 Sjednotit na „Weiter“ (`ui.continue`). 2 Tiché oznámení nese jen „Journal streak“ + počet dní (= laboratoř:
+**E10** (✅ v locales 2026-11-25, test `windowsCopy.test.ts`; `activatedLine` s faktorem číslem, emoji z nadpisů milníků pryč). 1 Sjednotit na „Weiter“ (`ui.continue`). 2 Tiché oznámení nese jen „Journal streak“ + počet dní (= laboratoř:
 oznámení je tiché, titulek milníku patří oknu). 3 Den 30 vlastní texty ✅ **hotovo 2026-11-24** (3cd593a), „传奇“ ✅ odstraněno
 tamtéž. 4 Emoji z nadpisů ⭐🔥👑 i milníků série **odstranit v locales** (ikona je komponenta, PREVOD) – v E10.
 

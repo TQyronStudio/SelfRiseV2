@@ -451,6 +451,11 @@ export interface TranslationKeys {
 
   // Journal screen
   journal: {
+    streakMoment: {
+      overline: string;
+      days_one: string;
+      days_other: string;
+    };
     title: string;
     addGratitude: string;
     addGratitudeButton: string;
@@ -1023,6 +1028,8 @@ export interface TranslationKeys {
       copyError: string;
     };
     completion: {
+      doneIn_one: string;
+      doneIn_other: string;
       continue: string;
       title: string;
       bonus: string;
@@ -2048,6 +2055,10 @@ export interface TranslationKeys {
 
   // Gamification System
   gamification: {
+    chapter: {
+      overline: string;
+      line: string;
+    };
     levelPanel: {
       close: string;
       allLevels: string;
@@ -2325,6 +2336,7 @@ export interface TranslationKeys {
       };
     };
     multiplier: {
+      activatedLine: string;
       harmonyOverline_one: string;
       harmonyOverline_other: string;
       boostTitle_one: string;

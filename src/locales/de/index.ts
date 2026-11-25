@@ -650,6 +650,11 @@ const de: Partial<TranslationKeys> = {
 
   // Journal screen
   journal: {
+    streakMoment: {
+      overline: 'Tagebuch-Serie',
+      days_one: '{{count}} Tag in Folge',
+      days_other: '{{count}} Tage in Folge',
+    },
     title: 'Tagebuch',
     addGratitude: '+ Dankbarkeit',
     addGratitudeButton: '+ Dank',
@@ -676,26 +681,26 @@ const de: Partial<TranslationKeys> = {
       entriesNeeded_other: '{{count}} weitere Einträge erforderlich',
     },
     // --- BONUS MILESTONE SYSTEM ---
-    bonusMilestone1_title: 'Erster Bonus-Eintrag! ⭐',
+    bonusMilestone1_title: 'Erster Bonus-Eintrag!',
     bonusMilestone1_text: 'Fantastisch! Du hast heute deinen ersten Bonus-Eintrag geschrieben! Mach weiter so!',
-    bonusMilestone5_title: 'Fünfter Bonus-Eintrag! 🔥',
+    bonusMilestone5_title: 'Fünfter Bonus-Eintrag!',
     bonusMilestone5_text: 'Unglaublich! Du hast heute 5 Bonus-Einträge geschrieben. Du brennst!',
-    bonusMilestone10_title: 'Zehnter Bonus-Eintrag! 👑',
+    bonusMilestone10_title: 'Zehnter Bonus-Eintrag!',
     bonusMilestone10_text: 'Legendär! Du hast heute 10 Bonus-Einträge geschrieben. Du bist ein Tagebuch-Champion!',
     // Pro hlavní 'SelfRise Streak'
-    streakMilestone_generic_title: 'Weiterer Meilenstein! 🎯',
+    streakMilestone_generic_title: 'Weiterer Meilenstein!',
     streakMilestone_generic_text: 'Herzlichen Glückwunsch zu {{days}} Tagen in Folge!',
-    streakMilestone7_title: 'Eine Woche stark! 🔥',
+    streakMilestone7_title: 'Eine Woche stark!',
     streakMilestone7_text: '7 Tage in Folge! Du baust Schwung auf und bildest eine kraftvolle Gewohnheit. Mach weiter!',
-    streakMilestone14_title: 'Zwei Wochen stark! 💪',
+    streakMilestone14_title: 'Zwei Wochen stark!',
     streakMilestone14_text: '14 Tage Hingabe! Du beweist dir selbst, dass Beständigkeit möglich ist. Halte die Dynamik aufrecht!',
-    streakMilestone21_title: 'Eine Gewohnheit entsteht! 🌱',
+    streakMilestone21_title: 'Eine Gewohnheit entsteht!',
     streakMilestone21_text: '21 Tage in Folge! Du baust eine starke Gewohnheit positiver Selbstreflexion auf. Mach weiter!',
-    streakMilestone30_title: 'Ein Monat stark! 🗓️',
+    streakMilestone30_title: 'Ein Monat stark!',
     streakMilestone30_text: '30 Tage in Folge! Ein ganzer Monat, in dem du das Gute in deinem Leben bemerkst. Das ist echte Hingabe.',
-    streakMilestone100_title: 'Willkommen im 100er-Club! 💯',
+    streakMilestone100_title: 'Willkommen im 100er-Club!',
     streakMilestone100_text: 'Einhundert Tage Beständigkeit. Das ist jetzt ein Lebensstil. Du bist eine große Inspiration!',
-    streakMilestone365_title: 'Ein Jahr Selbstwachstum! 🎉',
+    streakMilestone365_title: 'Ein Jahr Selbstwachstum!',
     streakMilestone365_text: 'Unglaublich. Ein ganzes Jahr Disziplin und positives Denken. Schau zurück auf die riesige Reise, die du zurückgelegt hast.',
     streakMilestone1000_title: 'LEGENDÄR!',
     streakMilestone1000_text: '1000 Tage. Du hast ein Ziel erreicht, das unglaubliche Willenskraft beweist. Du bist eine SelfRise-Legende.',
@@ -1310,6 +1315,8 @@ const de: Partial<TranslationKeys> = {
 
     // Goal Completion Modal
     completion: {
+      doneIn_one: 'erreicht in {{count}} Tag',
+      doneIn_other: 'erreicht in {{count}} Tagen',
       continue: 'Weiter',
       title: 'Ziel Erreicht!',
       bonus: 'Zielabschluss-Bonus',
@@ -3031,6 +3038,10 @@ const de: Partial<TranslationKeys> = {
 
   // Gamification System
   gamification: {
+    chapter: {
+      overline: 'Neues Kapitel',
+      line: 'Level {{from}}–{{to}} liegen vor dir.',
+    },
     levelPanel: {
       close: 'Level-Details schließen',
       allLevels: 'Alle Level',
@@ -3274,6 +3285,7 @@ const de: Partial<TranslationKeys> = {
 
     // XP Multiplier
     multiplier: {
+      activatedLine: 'Du hast Routinen, Tagebuch und Ziele jeden Tag genutzt. Alles, was du jetzt verdienst, zählt {{factor}}.',
       harmonyOverline_one: 'Harmonie-Serie · {{count}} Tag',
       harmonyOverline_other: 'Harmonie-Serie · {{count}} Tage',
       boostTitle_one: '{{factor}}× XP für {{count}} Stunde',

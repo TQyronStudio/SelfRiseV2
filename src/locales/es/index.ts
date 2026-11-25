@@ -650,6 +650,11 @@ const es: Partial<TranslationKeys> = {
 
   // Journal screen
   journal: {
+    streakMoment: {
+      overline: 'Racha del diario',
+      days_one: '{{count}} día seguido',
+      days_other: '{{count}} días seguidos',
+    },
     title: 'Mi Diario',
     addGratitude: 'Añadir Gratitud',
     addGratitudeButton: '+ Añadir Gratitud',
@@ -676,26 +681,26 @@ const es: Partial<TranslationKeys> = {
       entriesNeeded_other: '{{count}} entradas más requeridas',
     },
     // --- BONUS MILESTONE SYSTEM ---
-    bonusMilestone1_title: '¡Primera Entrada Bonus! ⭐',
+    bonusMilestone1_title: '¡Primera Entrada Bonus!',
     bonusMilestone1_text: '¡Increíble! ¡Has escrito tu primera entrada bonus hoy! ¡Sigue así!',
-    bonusMilestone5_title: '¡Quinta Entrada Bonus! 🔥',
+    bonusMilestone5_title: '¡Quinta Entrada Bonus!',
     bonusMilestone5_text: '¡Increíble! Has escrito 5 entradas bonus hoy. ¡Estás en llamas!',
-    bonusMilestone10_title: '¡Décima Entrada Bonus! 👑',
+    bonusMilestone10_title: '¡Décima Entrada Bonus!',
     bonusMilestone10_text: '¡Legendario! Has escrito 10 entradas bonus hoy. ¡Eres un campeón del diario!',
     // Pro hlavní 'SelfRise Streak'
-    streakMilestone_generic_title: '¡Otro Hito! 🎯',
+    streakMilestone_generic_title: '¡Otro Hito!',
     streakMilestone_generic_text: '¡Felicidades por alcanzar {{days}} días seguidos!',
-    streakMilestone7_title: '¡Una Semana Fuerte! 🔥',
+    streakMilestone7_title: '¡Una Semana Fuerte!',
     streakMilestone7_text: '¡7 días seguidos! Estás construyendo impulso y formando un hábito poderoso. ¡Sigue adelante!',
-    streakMilestone14_title: '¡Dos Semanas Fuerte! 💪',
+    streakMilestone14_title: '¡Dos Semanas Fuerte!',
     streakMilestone14_text: '¡14 días de dedicación! Te estás demostrando a ti mismo que la consistencia es posible. ¡Mantén el impulso!',
-    streakMilestone21_title: '¡Se Está Formando un Hábito! 🌱',
+    streakMilestone21_title: '¡Se Está Formando un Hábito!',
     streakMilestone21_text: '¡21 días seguidos! Estás construyendo un hábito fuerte de autorreflexión positiva. ¡Sigue adelante!',
-    streakMilestone30_title: '¡Un mes entero! 🗓️',
+    streakMilestone30_title: '¡Un mes entero!',
     streakMilestone30_text: '¡30 días seguidos! Un mes entero fijándote en lo bueno de tu vida. Eso es compromiso de verdad.',
-    streakMilestone100_title: '¡Bienvenido al Club de los 100! 💯',
+    streakMilestone100_title: '¡Bienvenido al Club de los 100!',
     streakMilestone100_text: 'Cien días de consistencia. Esto ya es un estilo de vida. ¡Eres una gran inspiración!',
-    streakMilestone365_title: '¡Un Año de Autocrecimiento! 🎉',
+    streakMilestone365_title: '¡Un Año de Autocrecimiento!',
     streakMilestone365_text: 'Increíble. Un año completo de disciplina y pensamiento positivo. Mira hacia atrás el enorme viaje que has recorrido.',
     streakMilestone1000_title: '¡LEGENDARIO!',
     streakMilestone1000_text: '1000 días. Has alcanzado una meta que demuestra una fuerza de voluntad increíble. Eres una leyenda de SelfRise.',
@@ -1310,6 +1315,8 @@ const es: Partial<TranslationKeys> = {
 
     // Goal Completion Modal
     completion: {
+      doneIn_one: 'alcanzada en {{count}} día',
+      doneIn_other: 'alcanzada en {{count}} días',
       continue: 'Continuar',
       title: '¡Meta Completada!',
       bonus: 'Bonus de Meta Completada',
@@ -3031,6 +3038,10 @@ const es: Partial<TranslationKeys> = {
 
   // Gamification System
   gamification: {
+    chapter: {
+      overline: 'Nuevo capítulo',
+      line: 'Tienes por delante los niveles {{from}}–{{to}}.',
+    },
     levelPanel: {
       close: 'Cerrar detalles del nivel',
       allLevels: 'Todos los niveles',
@@ -3274,6 +3285,7 @@ const es: Partial<TranslationKeys> = {
 
     // XP Multiplier
     multiplier: {
+      activatedLine: 'Usaste hábitos, diario y metas todos los días. Todo lo que ganes ahora cuenta {{factor}}.',
       harmonyOverline_one: 'Racha de armonía · {{count}} día',
       harmonyOverline_other: 'Racha de armonía · {{count}} días',
       boostTitle_one: '{{factor}}× XP durante {{count}} hora',

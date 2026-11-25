@@ -640,6 +640,11 @@ const en: TranslationKeys = {
 
   // Journal screen
   journal: {
+    streakMoment: {
+      overline: 'Journal streak',
+      days_one: '{{count}} day in a row',
+      days_other: '{{count}} days in a row',
+    },
     title: 'My Journal',
     addGratitude: 'Add Gratitude',
     addGratitudeButton: '+ Add Gratitude',
@@ -671,26 +676,26 @@ const en: TranslationKeys = {
     },
     // --- BONUS MILESTONE SYSTEM ---
     // Bonus count milestones: 1st, 5th, 10th bonus entries
-    bonusMilestone1_title: 'First Bonus Entry! ⭐',
+    bonusMilestone1_title: 'First Bonus Entry!',
     bonusMilestone1_text: 'Amazing! You\'ve written your first bonus entry today! Keep going!',
-    bonusMilestone5_title: 'Fifth Bonus Entry! 🔥',
+    bonusMilestone5_title: 'Fifth Bonus Entry!',
     bonusMilestone5_text: 'Incredible! You\'ve written 5 bonus entries today. You\'re on fire!',
-    bonusMilestone10_title: 'Tenth Bonus Entry! 👑',
+    bonusMilestone10_title: 'Tenth Bonus Entry!',
     bonusMilestone10_text: 'Legendary! You\'ve written 10 bonus entries today. You are a journaling champion!',
     // Pro hlavní 'SelfRise Streak'
-    streakMilestone_generic_title: 'Another Milestone! 🎯',
+    streakMilestone_generic_title: 'Another Milestone!',
     streakMilestone_generic_text: 'Congratulations on reaching {{days}} days in a row!',
-    streakMilestone7_title: 'One Week Strong! 🔥',
+    streakMilestone7_title: 'One Week Strong!',
     streakMilestone7_text: '7 days in a row! You\'re building momentum and forming a powerful habit. Keep it going!',
-    streakMilestone14_title: 'Two Weeks Strong! 💪',
+    streakMilestone14_title: 'Two Weeks Strong!',
     streakMilestone14_text: '14 days of dedication! You\'re proving to yourself that consistency is possible. Keep the momentum going!',
-    streakMilestone21_title: 'A Habit is Forming! 🌱',
+    streakMilestone21_title: 'A Habit is Forming!',
     streakMilestone21_text: '21 days in a row! You\'re building a strong habit of positive self-reflection. Keep going!',
-    streakMilestone30_title: 'One Month Strong! 🗓️',
+    streakMilestone30_title: 'One Month Strong!',
     streakMilestone30_text: '30 days in a row! A whole month of noticing the good in your life. That is real commitment.',
-    streakMilestone100_title: 'Welcome to the 100 Club! 💯',
+    streakMilestone100_title: 'Welcome to the 100 Club!',
     streakMilestone100_text: 'One hundred days of consistency. This is a lifestyle now. You are a huge inspiration!',
-    streakMilestone365_title: 'One Year of Self-Growth! 🎉',
+    streakMilestone365_title: 'One Year of Self-Growth!',
     streakMilestone365_text: 'Incredible. A whole year of discipline and positive thinking. Look back at the huge journey you\'ve traveled.',
     streakMilestone1000_title: 'LEGENDARY!',
     streakMilestone1000_text: '1000 days. You have reached a goal that proves incredible willpower. You are a SelfRise legend.',
@@ -1334,6 +1339,8 @@ const en: TranslationKeys = {
 
     // Goal Completion Modal
     completion: {
+      doneIn_one: 'reached in {{count}} day',
+      doneIn_other: 'reached in {{count}} days',
       continue: 'Continue',
       title: 'Goal Completed!',
       bonus: 'Goal Completion Bonus',
@@ -3020,6 +3027,10 @@ const en: TranslationKeys = {
 
   // Gamification System
   gamification: {
+    chapter: {
+      overline: 'New chapter',
+      line: 'Levels {{from}}–{{to}} lie ahead of you.',
+    },
     levelPanel: {
       close: 'Close level details',
       allLevels: 'All levels',
@@ -3270,6 +3281,7 @@ const en: TranslationKeys = {
 
     // XP Multiplier
     multiplier: {
+      activatedLine: 'You used habits, journal and goals every day. Everything you earn now counts {{factor}}.',
       harmonyOverline_one: 'Harmony streak · {{count}} day',
       harmonyOverline_other: 'Harmony streak · {{count}} days',
       boostTitle_one: '{{factor}}× XP for {{count}} hour',
