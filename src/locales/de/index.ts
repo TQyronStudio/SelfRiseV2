@@ -724,6 +724,18 @@ const de: Partial<TranslationKeys> = {
 
   // Journal screen
   journal: {
+    calendar: {
+      legendComplete: '{{goal}}+ Einträge',
+      legendBonus: 'Bonustag',
+      legendPartial: 'Begonnen',
+      legendPaid: 'Mit Werbung gerettet',
+      paidDay: 'Eingefrorener Tag – mit Werbung gerettet, die Serie lief weiter',
+    },
+    historyPage: {
+      previousDay: 'Vorheriger Tag',
+      nextDay: 'Nächster Tag',
+      clearSearch: 'Suche löschen',
+    },
     subline: 'Drei gute Dinge am Tag.',
     write: {
       gratitudeHint: 'Etwas Gutes heute',
@@ -867,8 +879,8 @@ const de: Partial<TranslationKeys> = {
     },
 
     errors: {
-      searchFailed: 'Suche in Tagebucheinträgen fehlgeschlagen',
-      deleteFailed: 'Tagebucheintrag konnte nicht gelöscht werden',
+      searchFailed: 'Die Suche hat diesmal nicht geklappt.',
+      deleteFailed: 'Der Eintrag wurde nicht gelöscht. Er ist noch in deinem Tagebuch.',
     },
 
     // Journal UI text
@@ -893,6 +905,15 @@ const de: Partial<TranslationKeys> = {
 
     // Journal stats
     stats: {
+      milestoneStar: '4. Eintrag eines Tages',
+      milestoneFlame: '8. Eintrag eines Tages',
+      milestoneCrown: '13. Eintrag eines Tages',
+      lastDays_one: 'Letzter {{count}} Tag',
+      lastDays_other: 'Letzte {{count}} Tage',
+      chartAtGoal: 'von {{total}} Tagen mit Tagesziel',
+      chartAvg: 'Ø {{avg}} Einträge pro Tag',
+      chartHint: 'Tippe oder streiche über die Balken',
+      dailyGoal: 'Tagesziel',
       title: 'Tagebuch-Statistiken',
       totalEntries: 'Gesamteinträge',
       allTime: 'Aller Zeiten',
@@ -906,13 +927,13 @@ const de: Partial<TranslationKeys> = {
       bestStreak_one: 'Beste Serie: {{count}} Tag',
       bestStreak_other: 'Beste Serie: {{count}} Tage',
       startToday: 'Starte heute deine Serie!',
-      personalBest: 'Persönliche Bestleistung! 🎉',
+      personalBest: 'Persönliche Bestleistung!',
       best_one: 'Beste: {{count}} Tag',
       best_other: 'Beste: {{count}} Tage',
       motivationTitle: 'Weiter so!',
       motivationNoStreak: "Jede Reise beginnt mit einem einzigen Schritt. Starte heute deine Tagebuch-Serie!",
       motivationDay1: "Toller Start! Ein Tag geschafft, viele weitere folgen. Bleib dran!",
-      motivationDays: "Fantastische {{days}}-Tage-Serie! Du baust eine starke Gewohnheit auf.",
+      motivationDays: 'Fantastische {{days}}-Tage-Serie! Du baust eine starke Routine auf.',
       entryTypes: 'Eintragstypen',
     },
 

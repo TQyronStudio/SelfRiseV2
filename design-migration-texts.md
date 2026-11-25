@@ -62,7 +62,7 @@ z vět pryč. 6 Okna úspěchu záchrany série zrušit – potvrzením je plame
 „Las tres de hoy, hechas: tu racha crece.“; bonus „Every extra entry is a bonus.“ / „Jeder weitere Eintrag ist ein Bonus.“ /
 „Cada entrada extra es una bonificación.“
 
-**E13.** 1 Při nejdelší sérii 0 existující `journal.stats.startToday` místo „Best: 0 days“.
+**E13** (✅ v locales 2026-11-25, test `journalHistoryCopy.test.ts`; `journal.history.previousDay/nextDay/clearSearch` založeny jako `journal.historyPage.*` – `journal.history` je text „History“, pod něj nejde vnořit; `journal.stats.best_*` už od 0e2aba0). 1 Při nejdelší sérii 0 existující `journal.stats.startToday` místo „Best: 0 days“.
 
 **E14.** 1 Čip „Deadline passed“ (`goals.pace.overdue`) v teplé barvě, řádek „days left“ zmizí, nic se nepočítá dál; nové
 datum přes „⋯ → Edit goal“.

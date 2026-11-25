@@ -714,6 +714,18 @@ const en: TranslationKeys = {
 
   // Journal screen
   journal: {
+    calendar: {
+      legendComplete: '{{goal}}+ entries',
+      legendBonus: 'Bonus day',
+      legendPartial: 'Started',
+      legendPaid: 'Saved with an ad',
+      paidDay: 'Frozen day — saved with an ad, the streak went on',
+    },
+    historyPage: {
+      previousDay: 'Previous day',
+      nextDay: 'Next day',
+      clearSearch: 'Clear search',
+    },
     subline: 'Three good things a day.',
     write: {
       gratitudeHint: 'Something good today',
@@ -865,14 +877,14 @@ const en: TranslationKeys = {
 
     // Error messages
     errors: {
-      searchFailed: 'Failed to search journal entries',
-      deleteFailed: 'Failed to delete journal entry',
+      searchFailed: 'Search didn’t work this time.',
+      deleteFailed: 'The entry wasn’t deleted. It’s still in your journal.',
     },
 
     // Journal UI text
     searchPlaceholder: 'Search journal entries...',
     editPlaceholder: 'Edit your journal entry...',
-    historyTitle: 'Journal History',
+    historyTitle: 'Journal history',
     today: 'Today',
     searchResults_one: 'Found {{count}} result for "{{term}}"',
     searchResults_other: 'Found {{count}} results for "{{term}}"',
@@ -891,27 +903,36 @@ const en: TranslationKeys = {
 
     // Journal stats
     stats: {
-      title: 'Journal Statistics',
-      totalEntries: 'Total Entries',
+      milestoneStar: '4th entry of a day',
+      milestoneFlame: '8th entry of a day',
+      milestoneCrown: '13th entry of a day',
+      lastDays_one: 'Last {{count}} day',
+      lastDays_other: 'Last {{count}} days',
+      chartAtGoal: 'of {{total}} days at the daily goal',
+      chartAvg: '{{avg}} entries a day on average',
+      chartHint: 'Tap or slide across the bars',
+      dailyGoal: 'Daily goal',
+      title: 'Journal statistics',
+      totalEntries: 'Total entries',
       allTime: 'All time',
-      activeDays: 'Active Days',
+      activeDays: 'Active days',
       daysWithEntries_one: '{{count}} day with entries',
       daysWithEntries_other: '{{count}} days with entries',
-      currentStreak: 'Current Streak',
-      dailyAverage: 'Daily Average',
+      currentStreak: 'Current streak',
+      dailyAverage: 'Daily average',
       entriesPerDay: 'entries per active day',
       milestoneBadges: 'Milestone badges',
       bestStreak_one: 'Best streak: {{count}} day',
       bestStreak_other: 'Best streak: {{count}} days',
       startToday: 'Start your streak today!',
-      personalBest: 'Personal best! 🎉',
+      personalBest: 'Personal best!',
       best_one: 'Best: {{count}} day',
       best_other: 'Best: {{count}} days',
-      motivationTitle: 'Keep Going!',
+      motivationTitle: 'Keep going!',
       motivationNoStreak: "Every journey begins with a single step. Start your journaling streak today!",
       motivationDay1: "Great start! One day down, many more to go. Keep up the momentum!",
       motivationDays: "Amazing {{days}}-day streak! You're building a powerful habit.",
-      entryTypes: 'Entry Types',
+      entryTypes: 'Entry types',
     },
 
     // Gratitude Input Component

@@ -525,6 +525,18 @@ export interface TranslationKeys {
 
   // Journal screen
   journal: {
+    calendar: {
+      legendComplete: string;
+      legendBonus: string;
+      legendPartial: string;
+      legendPaid: string;
+      paidDay: string;
+    };
+    historyPage: {
+      previousDay: string;
+      nextDay: string;
+      clearSearch: string;
+    };
     subline: string;
     write: {
       gratitudeHint: string;
@@ -684,6 +696,15 @@ export interface TranslationKeys {
       selfPraise: string;
     };
     stats: {
+      milestoneStar: string;
+      milestoneFlame: string;
+      milestoneCrown: string;
+      lastDays_one: string;
+      lastDays_other: string;
+      chartAtGoal: string;
+      chartAvg: string;
+      chartHint: string;
+      dailyGoal: string;
       title: string;
       totalEntries: string;
       allTime: string;

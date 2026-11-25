@@ -724,6 +724,18 @@ const es: Partial<TranslationKeys> = {
 
   // Journal screen
   journal: {
+    calendar: {
+      legendComplete: '{{goal}}+ entradas',
+      legendBonus: 'Día de bonificación',
+      legendPartial: 'Empezado',
+      legendPaid: 'Salvado con un anuncio',
+      paidDay: 'Día congelado: salvado con un anuncio, la racha siguió',
+    },
+    historyPage: {
+      previousDay: 'Día anterior',
+      nextDay: 'Día siguiente',
+      clearSearch: 'Borrar búsqueda',
+    },
     subline: 'Tres cosas buenas al día.',
     write: {
       gratitudeHint: 'Algo bueno de hoy',
@@ -867,8 +879,8 @@ const es: Partial<TranslationKeys> = {
     },
 
     errors: {
-      searchFailed: 'No se pudo buscar en las entradas del diario',
-      deleteFailed: 'No se pudo eliminar la entrada del diario',
+      searchFailed: 'La búsqueda no funcionó esta vez.',
+      deleteFailed: 'La entrada no se eliminó. Sigue en tu diario.',
     },
 
     // Journal UI text
@@ -893,6 +905,15 @@ const es: Partial<TranslationKeys> = {
 
     // Journal stats
     stats: {
+      milestoneStar: '4.ª entrada del día',
+      milestoneFlame: '8.ª entrada del día',
+      milestoneCrown: '13.ª entrada del día',
+      lastDays_one: 'Último {{count}} día',
+      lastDays_other: 'Últimos {{count}} días',
+      chartAtGoal: 'de {{total}} días con el objetivo diario',
+      chartAvg: '{{avg}} entradas al día en promedio',
+      chartHint: 'Toca o desliza sobre las barras',
+      dailyGoal: 'Objetivo diario',
       title: 'Estadísticas del diario',
       totalEntries: 'Total de entradas',
       allTime: 'De todos los tiempos',
@@ -906,14 +927,14 @@ const es: Partial<TranslationKeys> = {
       bestStreak_one: 'Mejor racha: {{count}} día',
       bestStreak_other: 'Mejor racha: {{count}} días',
       startToday: '¡Comienza tu racha hoy!',
-      personalBest: '¡Mejor marca personal! 🎉',
+      personalBest: '¡Mejor marca personal!',
       best_one: 'Mejor: {{count}} día',
       best_other: 'Mejor: {{count}} días',
       motivationTitle: '¡Sigue así!',
       motivationNoStreak: "Todo viaje comienza con un solo paso. ¡Comienza tu racha de diario hoy!",
       motivationDay1: "¡Buen comienzo! Un día completado, muchos más por venir. ¡Mantén el impulso!",
       motivationDays: "¡Increíble racha de {{days}} días! Estás construyendo un hábito poderoso.",
-      entryTypes: 'Tipos de Entradas',
+      entryTypes: 'Tipos de entradas',
     },
 
     // Gratitude Input Component
