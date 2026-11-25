@@ -25,6 +25,77 @@ const de: Partial<TranslationKeys> = {
 
   // Home screen
   home: {
+    forYou: {
+      title: 'Für dich',
+      write: 'Aufschreiben',
+      another: 'Anderer Vorschlag',
+      position: '{{index}} von {{count}}',
+    },
+    insights: {
+      title: 'Einblicke',
+      period_one: 'Letzte Woche',
+      period_other: 'Letzte {{count}} Wochen',
+      trendUp_one: '{{count}} Punkt besser',
+      trendUp_other: '{{count}} Punkte besser',
+      trendUpText: 'Du schaffst mehr von dem, was du planst, als vor einem Monat.',
+      strongest: 'Stärkste Routine',
+      strongestText: '{{name}} – {{rate}} % in diesem Monat.',
+      focus: 'Einen Blick wert',
+      focusText: '{{name}} liegt bei {{rate}} % in diesem Monat. Ein leichterer Plan könnte helfen.',
+    },
+    stats: {
+      title: 'Deine Routinen',
+      periodDays_one: '{{count}} Tag',
+      periodDays_other: '{{count}} Tage',
+      periodYear: 'Jahr',
+      sameAsWeek: 'Wie die Woche davor',
+      betterThanWeek_one: '{{count}} Punkt besser als die Woche davor',
+      betterThanWeek_other: '{{count}} Punkte besser als die Woche davor',
+      lowerThanWeek_one: '{{count}} Punkt schlechter als die Woche davor',
+      lowerThanWeek_other: '{{count}} Punkte schlechter als die Woche davor',
+      sameAsDays: 'Wie die {{days}} Tage davor',
+      betterThanDays_one: '{{count}} Punkt besser als die {{days}} Tage davor',
+      betterThanDays_other: '{{count}} Punkte besser als die {{days}} Tage davor',
+      lowerThanDays_one: '{{count}} Punkt schlechter als die {{days}} Tage davor',
+      lowerThanDays_other: '{{count}} Punkte schlechter als die {{days}} Tage davor',
+      completed: 'Erledigt',
+      ofPlanned: '{{done}} von {{planned}}',
+      bonusCount_one: '{{count}} Bonus',
+      bonusCount_other: '{{count}} Bonus',
+      restDay: 'Nichts geplant',
+      activeDays_one: '{{active}} von {{count}} Tag aktiv',
+      activeDays_other: '{{active}} von {{count}} Tagen aktiv',
+      less: 'Weniger',
+      more: 'Mehr',
+    },
+    journalCard: {
+      frozen: 'Serie eingefroren',
+      warming: 'Wird aufgewärmt…',
+      entriesToday: '{{count}} von {{goal}} Einträgen heute',
+      writeEntry: 'Eintrag schreiben',
+    },
+    hero: {
+      encouragement: {
+        allDone: 'Für heute alles erledigt. Sei stolz auf dich.',
+        freshStart: 'Ein neuer Anfang. Wähle einen kleinen Schritt.',
+        remaining_one: 'Noch eine. Du schaffst das.',
+        remaining_other: 'Noch {{count}}. Du schaffst das.',
+      },
+      habitsDone_one: '{{done}} von {{count}} Routine erledigt',
+      habitsDone_other: '{{done}} von {{count}} Routinen erledigt',
+      arcHint: 'Tippe oder streiche über den Bogen',
+      markerDone: 'Heute erledigt',
+      markerOpen: 'Noch offen',
+      xpToday: '+{{xp}} XP heute',
+      xpTodayLost: '−{{xp}} XP heute',
+      nothingPlanned: 'Heute ist nichts geplant. Genieß den freien Tag.',
+    },
+    subline: 'Ein kleiner Schritt pro Tag.',
+    greeting: {
+      morning: 'Guten Morgen',
+      afternoon: 'Guten Tag',
+      evening: 'Guten Abend',
+    },
     title: 'Willkommen!',
     journalStreak: 'Serie',
     habitStatistics: 'Statistik',
@@ -35,7 +106,7 @@ const de: Partial<TranslationKeys> = {
     day: 'Tag',
     days: 'Tage',
     frozen: 'eingefroren',
-    streakActive: 'Serie aktiv!',
+    streakActive: 'Serie aktiv',
     startToday: 'Heute beginnen',
     bestStreak: 'Beste',
     canRecover: 'Mit Werbung wiederherstellen',
@@ -89,7 +160,7 @@ const de: Partial<TranslationKeys> = {
     copiedToClipboard: 'In die Zwischenablage kopiert!',
     shareError: 'Teilen fehlgeschlagen. Bitte versuche es erneut.',
     copyError: 'Kopieren fehlgeschlagen. Bitte versuche es erneut.',
-    todayHabits: 'Heutige Gewohnheiten',
+    todayHabits: 'Heutige Routinen',
     // Daily Quote
     dailyQuote: 'Tägliche Inspiration',
     quoteCategories: {
@@ -147,7 +218,7 @@ const de: Partial<TranslationKeys> = {
         startProgress: {
           title: 'Mach den ersten Schritt',
           description: '{{goalTitle}} braucht Aufmerksamkeit. Fange an, Fortschritte zu machen!',
-          action: 'Fortschritt protokollieren',
+          action: 'Fortschritt eintragen',
         },
         almostThere: {
           title: 'Fast geschafft!',
@@ -158,7 +229,7 @@ const de: Partial<TranslationKeys> = {
           title: 'Termin prüfen',
           description_one: '{{goalTitle}} benötigt möglicherweise eine Zeitplananpassung. Noch {{count}} Tag.',
           description_other: '{{goalTitle}} benötigt möglicherweise eine Zeitplananpassung. Noch {{count}} Tage.',
-          action: 'Zeitplan anpassen',
+          action: 'Termin anpassen',
         },
         setNewGoal: {
           title: 'Neues Ziel setzen',
@@ -169,6 +240,7 @@ const de: Partial<TranslationKeys> = {
     },
     // Home Customization
     customization: {
+      hint: 'Ziehen, um die Reihenfolge zu ändern. Dein Tag bleibt immer oben.',
       title: 'Startseite anpassen',
       components: 'Startseiten-Komponenten',
       componentsDescription: 'Wähle, welche Abschnitte auf deiner Startseite angezeigt werden sollen',
@@ -178,13 +250,13 @@ const de: Partial<TranslationKeys> = {
       resetTitle: 'Startseiten-Layout zurücksetzen',
       resetMessage: 'Dies stellt das Standard-Startseiten-Layout wieder her. Bist du sicher?',
       errors: {
-        visibilityFailed: 'Sichtbarkeit der Komponente konnte nicht aktualisiert werden. Bitte versuche es erneut.',
+        visibilityFailed: 'Deine Änderung an der Startseite wurde nicht gespeichert.',
       },
       componentNames: {
         xpProgressBar: 'XP-Status',
         xpMultiplier: 'Multiplikator',
-        journalStreak: 'Serie',
-        quickActions: 'Aktionen',
+        journalStreak: 'Tagebuch-Serie',
+        quickActions: 'Schnellaktionen',
         recommendations: 'Tipps',
         streakHistory: 'Verlauf',
         habitStats: 'Statistik',
@@ -280,10 +352,10 @@ const de: Partial<TranslationKeys> = {
     // Quick Actions
     quickActionsTitle: 'Aktionen',
     quickActions: {
-      addHabit: '+ Routine',
-      gratitude: 'Dank',
-      selfPraise: 'Lob',
-      addGoal: '+ Ziel',
+      addHabit: 'Neue Routine',
+      gratitude: 'Dankbarkeit',
+      selfPraise: 'Selbstlob',
+      addGoal: 'Neues Ziel',
     },
     // Yearly Habit Overview
     yearlyOverview: {
@@ -391,7 +463,7 @@ const de: Partial<TranslationKeys> = {
     edit: 'Bearbeiten',
     delete: 'Löschen',
     retry: 'Nochmal',
-    tryAgain: 'Nochmal',
+    tryAgain: 'Erneut versuchen',
     add: '+ Neu',
     create: 'Neu',
     update: 'Update',
@@ -499,6 +571,8 @@ const de: Partial<TranslationKeys> = {
 
   // UI Labels
   ui: {
+    dismiss: 'Schließen',
+    retrying: 'Neuer Versuch…',
     continue: 'Weiter',
     next: 'Weiter',
     edit: 'Bearbeiten',
@@ -650,6 +724,8 @@ const de: Partial<TranslationKeys> = {
 
   // Journal screen
   journal: {
+    streakDaysUnit_one: 'Tag',
+    streakDaysUnit_other: 'Tage',
     streakMoment: {
       overline: 'Tagebuch-Serie',
       days_one: '{{count}} Tag in Folge',
@@ -867,6 +943,7 @@ const de: Partial<TranslationKeys> = {
 
     // Warm-up modals
     warmUp: {
+      frozenMessage_zero: 'Alle Werbungen angesehen – deine Serie wärmt sich auf.',
       title: 'Wärme deine Serie auf',
       frozenDays: 'Eingefrorene Tage',
       frozenMessage_one: 'Deine Serie ist seit {{count}} Tag eingefroren. Schau dir $t(journal.warmUp.adsCount, {"count": {{adsNeeded}} }) an, um sie aufzuwärmen und schreibe dann frei weiter! ❄️➡️🔥',
@@ -879,7 +956,7 @@ const de: Partial<TranslationKeys> = {
       warmingProgress: 'Aufwärm-Fortschritt',
       adsProgress: '{{watched}}/{{total}} Werbungen',
       loadingAd: 'Lade Werbung...',
-      warmUpComplete: 'Aufwärmen abgeschlossen! ✓',
+      warmUpComplete: 'Aufwärmen abgeschlossen',
       warmUpButton: 'Aufwärmen ({{current}}/{{total}})',
       infoText: 'Wärme zuerst deine eingefrorene Serie auf, indem du Werbungen ansiehst. Danach kannst du normal Tagebucheinträge schreiben, ohne weitere Werbungen anzusehen.',
 
@@ -904,7 +981,7 @@ const de: Partial<TranslationKeys> = {
 
       startFresh: {
         title: 'Neu beginnen?',
-        message: '⚠️ Dies setzt deine aktuelle Serie dauerhaft auf 0 zurück. Du kannst neu beginnen, ohne deine eingefrorene Serie aufzuwärmen. Diese Aktion kann nicht rückgängig gemacht werden.',
+        message: 'Dies setzt deine aktuelle Serie dauerhaft auf 0 zurück. Du kannst neu beginnen, ohne deine eingefrorene Serie aufzuwärmen. Diese Aktion kann nicht rückgängig gemacht werden.',
       },
 
       modals: {
@@ -976,15 +1053,15 @@ const de: Partial<TranslationKeys> = {
       },
       adDismissed: {
         title: 'Werbung nicht abgeschlossen',
-        message: 'Du musst die Werbung vollständig ansehen, um deinen Streak-Tag zu retten. Bitte versuche es erneut.',
+        message: 'Die Werbung lief nicht bis zum Ende – der Tag bleibt eingefroren.',
       },
       adLoadFailed: {
         title: 'Werbung nicht verfügbar',
-        message: 'Die Werbung konnte nicht geladen werden. Bitte überprüfe deine Internetverbindung und versuche es erneut.',
+        message: 'Gerade ist keine Werbung verfügbar. Deine Serie bleibt eingefroren und sicher.',
       },
       adError: {
         title: 'Werbungsfehler',
-        message: 'Beim Anzeigen der Werbung ist ein Fehler aufgetreten. Bitte versuche es erneut.',
+        message: 'Etwas hat die Werbung unterbrochen. Deine Serie bleibt eingefroren und sicher.',
       },
     },
 

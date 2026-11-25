@@ -13,6 +13,77 @@ const en: TranslationKeys = {
   
   // Home screen
   home: {
+    forYou: {
+      title: 'For you',
+      write: 'Write it down',
+      another: 'Another suggestion',
+      position: '{{index}} of {{count}}',
+    },
+    insights: {
+      title: 'Insights',
+      period_one: 'Last week',
+      period_other: 'Last {{count}} weeks',
+      trendUp_one: 'Up {{count}} point',
+      trendUp_other: 'Up {{count}} points',
+      trendUpText: 'You complete more of what you plan than a month ago.',
+      strongest: 'Strongest habit',
+      strongestText: '{{name}} — {{rate}} % this month.',
+      focus: 'Worth a look',
+      focusText: '{{name}} is at {{rate}} % this month. A lighter schedule might help.',
+    },
+    stats: {
+      title: 'Your habits',
+      periodDays_one: '{{count}} day',
+      periodDays_other: '{{count}} days',
+      periodYear: 'Year',
+      sameAsWeek: 'Same as the week before',
+      betterThanWeek_one: '{{count}} point better than the week before',
+      betterThanWeek_other: '{{count}} points better than the week before',
+      lowerThanWeek_one: '{{count}} point lower than the week before',
+      lowerThanWeek_other: '{{count}} points lower than the week before',
+      sameAsDays: 'Same as the {{days}} days before',
+      betterThanDays_one: '{{count}} point better than the {{days}} days before',
+      betterThanDays_other: '{{count}} points better than the {{days}} days before',
+      lowerThanDays_one: '{{count}} point lower than the {{days}} days before',
+      lowerThanDays_other: '{{count}} points lower than the {{days}} days before',
+      completed: 'Completed',
+      ofPlanned: '{{done}} of {{planned}}',
+      bonusCount_one: '{{count}} bonus',
+      bonusCount_other: '{{count}} bonus',
+      restDay: 'Nothing planned',
+      activeDays_one: '{{active}} of {{count}} day active',
+      activeDays_other: '{{active}} of {{count}} days active',
+      less: 'Less',
+      more: 'More',
+    },
+    journalCard: {
+      frozen: 'Streak frozen',
+      warming: 'Warming up…',
+      entriesToday: '{{count}} of {{goal}} entries today',
+      writeEntry: 'Write an entry',
+    },
+    hero: {
+      encouragement: {
+        allDone: 'All done for today. Be proud of yourself.',
+        freshStart: 'A fresh start. Pick one small step.',
+        remaining_one: 'One more to go. You’ve got this.',
+        remaining_other: '{{count}} more to go. You’ve got this.',
+      },
+      habitsDone_one: '{{done}} of {{count}} habit done',
+      habitsDone_other: '{{done}} of {{count}} habits done',
+      arcHint: 'Tap or slide along the arc',
+      markerDone: 'Done today',
+      markerOpen: 'Still to do',
+      xpToday: '+{{xp}} XP today',
+      xpTodayLost: '−{{xp}} XP today',
+      nothingPlanned: 'Nothing planned today. Enjoy the free day.',
+    },
+    subline: 'One small step a day.',
+    greeting: {
+      morning: 'Good morning',
+      afternoon: 'Good afternoon',
+      evening: 'Good evening',
+    },
     title: 'Welcome Back!',
     journalStreak: 'My Journal Streak',
     habitStatistics: 'Habit Statistics',
@@ -23,7 +94,7 @@ const en: TranslationKeys = {
     day: 'day',
     days: 'days',
     frozen: 'frozen',
-    streakActive: 'Streak active!',
+    streakActive: 'Streak active',
     startToday: 'Start today',
     bestStreak: 'Best',
     canRecover: 'Recover with ad',
@@ -53,7 +124,7 @@ const en: TranslationKeys = {
       completedToday: 'Completed Today',
       weeklyAverage: 'Weekly Average',
       monthlyAverage: 'Monthly Average',
-      bestDay: 'Best Day',
+      bestDay: 'Best day',
       improvingTrend: 'Improving trend',
       decliningTrend: 'Declining trend',
       steadyProgress: 'Steady progress',
@@ -149,10 +220,10 @@ const en: TranslationKeys = {
     // Quick Actions
     quickActionsTitle: 'Quick Actions',
     quickActions: {
-      addHabit: 'Add Habit',
+      addHabit: 'Add habit',
       gratitude: 'Gratitude',
-      selfPraise: 'Self-Praise',
-      addGoal: 'Add Goal',
+      selfPraise: 'Self-praise',
+      addGoal: 'Add goal',
     },
     // Yearly Habit Overview
     yearlyOverview: {
@@ -214,90 +285,91 @@ const en: TranslationKeys = {
     recommendationCards: {
       habits: {
         adjustSchedule: {
-          title: 'Adjust Schedule',
+          title: 'Adjust schedule',
           description: '{{habitName}} showing {{completionRate}}% completion. Consider reducing frequency.',
-          action: 'Adjust Schedule',
+          action: 'Adjust schedule',
         },
         levelUp: {
-          title: 'Level Up',
+          title: 'Level up',
           description: 'You\'re crushing {{habitName}} at {{completionRate}}%! Ready for a new challenge?',
-          action: 'Add Challenge',
+          action: 'Add a challenge',
         },
         addNewHabit: {
-          title: 'Add New Habit',
+          title: 'Add a new habit',
           description: 'You\'re doing great with existing habits! {{successfulDays}} are your strongest days.',
-          action: 'Create Habit',
+          action: 'Create habit',
         },
       },
       journal: {
         buildStreak: {
-          title: 'Build Your Streak',
+          title: 'Build your streak',
           description: 'Regular journaling builds mindfulness. Start with just 3 entries today.',
           prompt: 'What made you smile today?',
         },
         onFire: {
-          title: 'You\'re on Fire!',
+          title: 'You’re on fire!',
           description: 'Your journaling consistency is impressive. Keep the momentum!',
           prompt: 'Reflect on how journaling has impacted your mindset this week.',
         },
         trySelfPraise: {
-          title: 'Try Self-Praise',
+          title: 'Try self-praise',
           description: 'Balance gratitude with self-recognition. What did you do well today?',
           prompt: 'What personal quality helped you succeed today?',
         },
       },
       goals: {
         startProgress: {
-          title: 'Start Making Progress',
+          title: 'Start making progress',
           description: '{{goalTitle}} needs attention. Start making some progress!',
-          action: 'Log Progress',
+          action: 'Log progress',
         },
         almostThere: {
-          title: 'Almost There!',
+          title: 'Almost there!',
           description: '{{goalTitle}} is {{progressPercent}}% complete. Push to finish!',
-          action: 'Final Push',
+          action: 'Final push',
         },
         timelineCheck: {
-          title: 'Timeline Check',
+          title: 'Timeline check',
           description_one: '{{goalTitle}} may need timeline adjustment. {{count}} day remaining.',
           description_other: '{{goalTitle}} may need timeline adjustment. {{count}} days remaining.',
-          action: 'Adjust Timeline',
+          action: 'Adjust timeline',
         },
         setNewGoal: {
-          title: 'Set New Goal',
+          title: 'Set a new goal',
           description: 'Goals provide direction and motivation. What would you like to achieve?',
-          action: 'Create Goal',
+          action: 'Create goal',
         },
       },
     },
     // Home Customization
     customization: {
+      hint: 'Drag to change the order. Your day always stays on top.',
       title: 'Customize Home',
       components: 'Home Components',
       componentsDescription: 'Choose which sections to show on your home screen',
       order: 'Position {{order}}',
       actions: 'Actions',
-      resetToDefaults: 'Reset to Defaults',
+      resetToDefaults: 'Reset to defaults',
       resetTitle: 'Reset Home Layout',
       resetMessage: 'This will restore the default home screen layout. Are you sure?',
       errors: {
-        visibilityFailed: 'Failed to update component visibility. Please try again.',
+        visibilityFailed: 'Your change to Home wasn’t saved.',
       },
       componentNames: {
         xpProgressBar: 'XP Progress',
         xpMultiplier: 'XP Multiplier',
-        journalStreak: 'Journal Streak',
-        quickActions: 'Quick Actions',
+        journalStreak: 'Journal streak',
+        quickActions: 'Quick actions',
         recommendations: 'Recommendations',
         streakHistory: 'Streak History',
         habitStats: 'Habit Statistics',
         habitPerformance: 'Performance',
         habitTrends: 'Trends',
-        monthlyChallenges: 'Monthly Challenges',
+        monthlyChallenges: 'Monthly challenge',
       },
     },
     // Today's Habits
-    todayHabits: "Today's Habits",
+    todayHabits: 'Today’s habits',
     // Screen labels
     streakHistoryLoading: 'Loading...',
     // Level Progress
@@ -380,7 +452,7 @@ const en: TranslationKeys = {
     edit: 'Edit',
     delete: 'Delete',
     retry: 'Retry',
-    tryAgain: 'Try Again',
+    tryAgain: 'Try again',
     add: 'Add',
     create: 'Create',
     update: 'Update',
@@ -398,7 +470,7 @@ const en: TranslationKeys = {
     no: 'No',
     copy: 'Copy',
     share: 'Share',
-    startFresh: 'Start Fresh',
+    startFresh: 'Start fresh',
     level: 'Level',
     totalXP: 'Total XP',
     achievements: 'Achievements',
@@ -488,6 +560,8 @@ const en: TranslationKeys = {
 
   // UI Labels
   ui: {
+    dismiss: 'Dismiss',
+    retrying: 'Trying again…',
     continue: 'Continue',
     next: 'Next',
     edit: 'Edit',
@@ -640,6 +714,8 @@ const en: TranslationKeys = {
 
   // Journal screen
   journal: {
+    streakDaysUnit_one: 'day',
+    streakDaysUnit_other: 'days',
     streakMoment: {
       overline: 'Journal streak',
       days_one: '{{count}} day in a row',
@@ -865,6 +941,7 @@ const en: TranslationKeys = {
 
     // Warm-up modals
     warmUp: {
+      frozenMessage_zero: 'All ads watched — your streak is warming up.',
       title: 'Warm Up Your Streak',
       frozenDays: 'Frozen Days',
       frozenMessage_one: 'Your streak has been frozen for {{count}} day. Watch $t(journal.warmUp.adsCount, {"count": {{adsNeeded}} }) to warm it up, then continue journaling freely! ❄️➡️🔥',
@@ -877,8 +954,8 @@ const en: TranslationKeys = {
       warmingProgress: 'Warming Progress',
       adsProgress: '{{watched}}/{{total}} ads',
       loadingAd: 'Loading Ad...',
-      warmUpComplete: 'Warm Up Complete! ✓',
-      warmUpButton: 'Warm Up ({{current}}/{{total}})',
+      warmUpComplete: 'Warm-up complete',
+      warmUpButton: 'Warm up ({{current}}/{{total}})',
       infoText: 'First warm up your frozen streak by watching ads. After your streak is warmed up, you can write journal entries normally without watching more ads.',
 
       adFailed: {
@@ -901,8 +978,8 @@ const en: TranslationKeys = {
       },
 
       startFresh: {
-        title: 'Start Fresh?',
-        message: '⚠️ This will permanently reset your current streak to 0. You can start fresh without warming up your frozen streak. This action cannot be undone.',
+        title: 'Start fresh?',
+        message: 'This will permanently reset your current streak to 0. You can start fresh without warming up your frozen streak. This action cannot be undone.',
       },
 
       modals: {
@@ -974,15 +1051,15 @@ const en: TranslationKeys = {
       },
       adDismissed: {
         title: 'Ad Not Completed',
-        message: 'You need to watch the full ad to restore your streak day. Please try again.',
+        message: 'The ad didn’t finish, so this day is still frozen.',
       },
       adLoadFailed: {
         title: 'Ad Not Available',
-        message: 'Unable to load the ad right now. Please check your internet connection and try again.',
+        message: 'No ad is available right now. Your streak stays frozen and safe.',
       },
       adError: {
         title: 'Ad Error',
-        message: 'Something went wrong while showing the ad. Please try again.',
+        message: 'Something stopped the ad. Your streak stays frozen and safe.',
       },
     },
 

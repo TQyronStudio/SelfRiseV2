@@ -12,6 +12,77 @@ export interface TranslationKeys {
   
   // Home screen
   home: {
+    forYou: {
+      title: string;
+      write: string;
+      another: string;
+      position: string;
+    };
+    insights: {
+      title: string;
+      period_one: string;
+      period_other: string;
+      trendUp_one: string;
+      trendUp_other: string;
+      trendUpText: string;
+      strongest: string;
+      strongestText: string;
+      focus: string;
+      focusText: string;
+    };
+    stats: {
+      title: string;
+      periodDays_one: string;
+      periodDays_other: string;
+      periodYear: string;
+      sameAsWeek: string;
+      betterThanWeek_one: string;
+      betterThanWeek_other: string;
+      lowerThanWeek_one: string;
+      lowerThanWeek_other: string;
+      sameAsDays: string;
+      betterThanDays_one: string;
+      betterThanDays_other: string;
+      lowerThanDays_one: string;
+      lowerThanDays_other: string;
+      completed: string;
+      ofPlanned: string;
+      bonusCount_one: string;
+      bonusCount_other: string;
+      restDay: string;
+      activeDays_one: string;
+      activeDays_other: string;
+      less: string;
+      more: string;
+    };
+    journalCard: {
+      frozen: string;
+      warming: string;
+      entriesToday: string;
+      writeEntry: string;
+    };
+    hero: {
+      encouragement: {
+        allDone: string;
+        freshStart: string;
+        remaining_one: string;
+        remaining_other: string;
+      };
+      habitsDone_one: string;
+      habitsDone_other: string;
+      arcHint: string;
+      markerDone: string;
+      markerOpen: string;
+      xpToday: string;
+      xpTodayLost: string;
+      nothingPlanned: string;
+    };
+    subline: string;
+    greeting: {
+      morning: string;
+      afternoon: string;
+      evening: string;
+    };
     title: string;
     journalStreak: string;
     habitStatistics: string;
@@ -230,6 +301,7 @@ export interface TranslationKeys {
     };
     // Home Customization
     customization: {
+      hint: string;
       title: string;
       components: string;
       componentsDescription: string;
@@ -300,6 +372,8 @@ export interface TranslationKeys {
 
   // UI Labels
   ui: {
+    dismiss: string;
+    retrying: string;
     continue: string;
     next: string;
     edit: string;
@@ -451,6 +525,8 @@ export interface TranslationKeys {
 
   // Journal screen
   journal: {
+    streakDaysUnit_one: string;
+    streakDaysUnit_other: string;
     streakMoment: {
       overline: string;
       days_one: string;
@@ -620,6 +696,7 @@ export interface TranslationKeys {
       optional: string;
     };
     warmUp: {
+      frozenMessage_zero: string;
       title: string;
       frozenDays: string;
       frozenMessage_one: string;

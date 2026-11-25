@@ -25,6 +25,77 @@ const es: Partial<TranslationKeys> = {
 
   // Home screen
   home: {
+    forYou: {
+      title: 'Para ti',
+      write: 'Escríbelo',
+      another: 'Otra sugerencia',
+      position: '{{index}} de {{count}}',
+    },
+    insights: {
+      title: 'Lo que destaca',
+      period_one: 'La última semana',
+      period_other: 'Últimas {{count}} semanas',
+      trendUp_one: '{{count}} punto más',
+      trendUp_other: '{{count}} puntos más',
+      trendUpText: 'Cumples más de lo que planeas que hace un mes.',
+      strongest: 'Tu hábito más sólido',
+      strongestText: '{{name}} — {{rate}} % este mes.',
+      focus: 'Vale la pena revisarlo',
+      focusText: '{{name}} va al {{rate}} % este mes. Un horario más ligero podría ayudar.',
+    },
+    stats: {
+      title: 'Tus hábitos',
+      periodDays_one: '{{count}} día',
+      periodDays_other: '{{count}} días',
+      periodYear: 'Año',
+      sameAsWeek: 'Igual que la semana anterior',
+      betterThanWeek_one: '{{count}} punto más que la semana anterior',
+      betterThanWeek_other: '{{count}} puntos más que la semana anterior',
+      lowerThanWeek_one: '{{count}} punto menos que la semana anterior',
+      lowerThanWeek_other: '{{count}} puntos menos que la semana anterior',
+      sameAsDays: 'Igual que los {{days}} días anteriores',
+      betterThanDays_one: '{{count}} punto más que los {{days}} días anteriores',
+      betterThanDays_other: '{{count}} puntos más que los {{days}} días anteriores',
+      lowerThanDays_one: '{{count}} punto menos que los {{days}} días anteriores',
+      lowerThanDays_other: '{{count}} puntos menos que los {{days}} días anteriores',
+      completed: 'Completados',
+      ofPlanned: '{{done}} de {{planned}}',
+      bonusCount_one: '{{count}} extra',
+      bonusCount_other: '{{count}} extras',
+      restDay: 'Nada programado',
+      activeDays_one: '{{active}} de {{count}} día activo',
+      activeDays_other: '{{active}} de {{count}} días activos',
+      less: 'Menos',
+      more: 'Más',
+    },
+    journalCard: {
+      frozen: 'Racha congelada',
+      warming: 'Calentándose…',
+      entriesToday: '{{count}} de {{goal}} entradas hoy',
+      writeEntry: 'Escribir una entrada',
+    },
+    hero: {
+      encouragement: {
+        allDone: 'Todo hecho por hoy. ¡Qué orgullo!',
+        freshStart: 'Un nuevo comienzo. Elige un pequeño paso.',
+        remaining_one: 'Solo queda uno. Tú puedes.',
+        remaining_other: 'Quedan {{count}}. Tú puedes.',
+      },
+      habitsDone_one: '{{done}} de {{count}} hábito completado',
+      habitsDone_other: '{{done}} de {{count}} hábitos completados',
+      arcHint: 'Toca o desliza a lo largo del arco',
+      markerDone: 'Hecho hoy',
+      markerOpen: 'Pendiente',
+      xpToday: '+{{xp}} XP hoy',
+      xpTodayLost: '−{{xp}} XP hoy',
+      nothingPlanned: 'Hoy no hay nada programado. Disfruta del día libre.',
+    },
+    subline: 'Un pequeño paso al día.',
+    greeting: {
+      morning: 'Buenos días',
+      afternoon: 'Buenas tardes',
+      evening: 'Buenas noches',
+    },
     title: '¡Hola de nuevo!',
     journalStreak: 'Mi Racha de Diario',
     habitStatistics: 'Estadísticas de Hábitos',
@@ -35,7 +106,7 @@ const es: Partial<TranslationKeys> = {
     day: 'día',
     days: 'días',
     frozen: 'congelada',
-    streakActive: '¡Racha activa!',
+    streakActive: 'Racha activa',
     startToday: 'Comenzar hoy',
     bestStreak: 'Mejor',
     canRecover: 'Recuperar con anuncio',
@@ -65,7 +136,7 @@ const es: Partial<TranslationKeys> = {
       completedToday: 'Completados Hoy',
       weeklyAverage: 'Promedio Semanal',
       monthlyAverage: 'Promedio Mensual',
-      bestDay: 'Mejor Día',
+      bestDay: 'Mejor día',
       improvingTrend: 'Tendencia al alza',
       decliningTrend: 'Tendencia a la baja',
       steadyProgress: 'Progreso estable',
@@ -89,7 +160,7 @@ const es: Partial<TranslationKeys> = {
     copiedToClipboard: '¡Copiado al portapapeles!',
     shareError: 'Error al compartir. Por favor, inténtalo de nuevo.',
     copyError: 'Error al copiar. Por favor, inténtalo de nuevo.',
-    todayHabits: 'Hábitos de Hoy',
+    todayHabits: 'Hábitos de hoy',
     // Daily Quote
     dailyQuote: 'Inspiración Diaria',
     quoteCategories: {
@@ -111,24 +182,24 @@ const es: Partial<TranslationKeys> = {
     recommendationCards: {
       habits: {
         adjustSchedule: {
-          title: 'Ajustar Horario',
+          title: 'Ajustar horario',
           description: '{{habitName}} muestra {{completionRate}}% de cumplimiento. Considera reducir la frecuencia.',
-          action: 'Ajustar Horario',
+          action: 'Ajustar horario',
         },
         levelUp: {
           title: 'Subir de Nivel',
           description: '¡Estás arrasando con {{habitName}} al {{completionRate}}%! ¿Listo para un nuevo desafío?',
-          action: 'Añadir Desafío',
+          action: 'Añadir desafío',
         },
         addNewHabit: {
-          title: 'Añadir Nuevo Hábito',
+          title: 'Añadir un nuevo hábito',
           description: '¡Lo estás haciendo genial con los hábitos existentes! {{successfulDays}} son tus días más fuertes.',
-          action: 'Crear Hábito',
+          action: 'Crear hábito',
         },
       },
       journal: {
         buildStreak: {
-          title: 'Construye tu Racha',
+          title: 'Construye tu racha',
           description: 'El diario regular desarrolla la atención plena. Comienza con solo 3 entradas hoy.',
           prompt: '¿Qué te hizo sonreír hoy?',
         },
@@ -138,59 +209,60 @@ const es: Partial<TranslationKeys> = {
           prompt: 'Reflexiona sobre cómo el diario ha impactado tu mentalidad esta semana.',
         },
         trySelfPraise: {
-          title: 'Prueba el Autoelogio',
+          title: 'Prueba el autoelogio',
           description: 'Equilibra la gratitud con el autoreconocimiento. ¿Qué hiciste bien hoy?',
           prompt: '¿Qué cualidad personal te ayudó a tener éxito hoy?',
         },
       },
       goals: {
         startProgress: {
-          title: 'Comienza a Progresar',
+          title: 'Empieza a avanzar',
           description: '{{goalTitle}} necesita atención. ¡Empieza a hacer progreso!',
-          action: 'Registrar Progreso',
+          action: 'Registrar progreso',
         },
         almostThere: {
-          title: '¡Casi lo Logras!',
+          title: '¡Casi lo logras!',
           description: '{{goalTitle}} está {{progressPercent}}% completado. ¡Dale el empujón final!',
-          action: 'Empujón Final',
+          action: 'Empujón final',
         },
         timelineCheck: {
-          title: 'Revisión de Plazos',
+          title: 'Revisión de plazos',
           description_one: '{{goalTitle}} puede necesitar ajuste de plazos. {{count}} día restante.',
           description_other: '{{goalTitle}} puede necesitar ajuste de plazos. {{count}} días restantes.',
-          action: 'Ajustar Plazos',
+          action: 'Ajustar plazos',
         },
         setNewGoal: {
-          title: 'Establecer Nueva Meta',
+          title: 'Establecer nueva meta',
           description: 'Las metas proporcionan dirección y motivación. ¿Qué te gustaría lograr?',
-          action: 'Crear Meta',
+          action: 'Crear meta',
         },
       },
     },
     // Home Customization
     customization: {
+      hint: 'Arrastra para cambiar el orden. Tu día siempre queda arriba.',
       title: 'Personalizar Inicio',
       components: 'Componentes de Inicio',
       componentsDescription: 'Elige qué secciones mostrar en tu pantalla de inicio',
       order: 'Posición {{order}}',
       actions: 'Acciones',
-      resetToDefaults: 'Restaurar Valores Predeterminados',
+      resetToDefaults: 'Restaurar valores predeterminados',
       resetTitle: 'Restaurar Diseño de Inicio',
       resetMessage: 'Esto restaurará el diseño de pantalla de inicio predeterminado. ¿Estás seguro?',
       errors: {
-        visibilityFailed: 'No se pudo actualizar la visibilidad del componente. Por favor, inténtalo de nuevo.',
+        visibilityFailed: 'Tu cambio en Inicio no se guardó.',
       },
       componentNames: {
         xpProgressBar: 'Progreso de XP',
         xpMultiplier: 'Multiplicador de XP',
-        journalStreak: 'Racha del Diario',
-        quickActions: 'Acciones Rápidas',
+        journalStreak: 'Racha del diario',
+        quickActions: 'Acciones rápidas',
         recommendations: 'Para Ti',
         streakHistory: 'Historial de Rachas',
         habitStats: 'Estadísticas de Hábitos',
         habitPerformance: 'Rendimiento',
         habitTrends: 'Tendencias',
-        monthlyChallenges: 'Desafíos Mensuales',
+        monthlyChallenges: 'Desafío mensual',
       },
     },
     // Habit Performance Indicators
@@ -280,10 +352,10 @@ const es: Partial<TranslationKeys> = {
     // Quick Actions
     quickActionsTitle: 'Acciones Rápidas',
     quickActions: {
-      addHabit: 'Añadir Hábito',
+      addHabit: 'Añadir hábito',
       gratitude: 'Gratitud',
       selfPraise: 'Autoelogio',
-      addGoal: 'Añadir Meta',
+      addGoal: 'Añadir meta',
     },
     // Yearly Habit Overview
     yearlyOverview: {
@@ -499,6 +571,8 @@ const es: Partial<TranslationKeys> = {
 
   // UI Labels
   ui: {
+    dismiss: 'Cerrar',
+    retrying: 'Reintentando…',
     continue: 'Continuar',
     next: 'Siguiente',
     edit: 'Editar',
@@ -650,6 +724,8 @@ const es: Partial<TranslationKeys> = {
 
   // Journal screen
   journal: {
+    streakDaysUnit_one: 'día',
+    streakDaysUnit_other: 'días',
     streakMoment: {
       overline: 'Racha del diario',
       days_one: '{{count}} día seguido',
@@ -867,6 +943,7 @@ const es: Partial<TranslationKeys> = {
 
     // Warm-up modals
     warmUp: {
+      frozenMessage_zero: 'Anuncios vistos: tu racha se está calentando.',
       title: 'Calienta tu racha',
       frozenDays: 'Días congelados',
       frozenMessage_one: 'Tu racha ha estado congelada durante {{count}} día. Mira $t(journal.warmUp.adsCount, {"count": {{adsNeeded}} }) para calentarla y continúa escribiendo libremente! ❄️➡️🔥',
@@ -879,7 +956,7 @@ const es: Partial<TranslationKeys> = {
       warmingProgress: 'Progreso de calentamiento',
       adsProgress: '{{watched}}/{{total}} anuncios',
       loadingAd: 'Cargando anuncio...',
-      warmUpComplete: '¡Calentamiento completado! ✓',
+      warmUpComplete: 'Calentamiento completado',
       warmUpButton: 'Calentar ({{current}}/{{total}})',
       infoText: 'Primero calienta tu racha congelada viendo anuncios. Después de que tu racha esté caliente, puedes escribir entradas de diario normalmente sin ver más anuncios.',
 
@@ -904,7 +981,7 @@ const es: Partial<TranslationKeys> = {
 
       startFresh: {
         title: '¿Empezar de nuevo?',
-        message: '⚠️ Esto restablecerá permanentemente tu racha actual a 0. Puedes empezar de nuevo sin calentar tu racha congelada. Esta acción no se puede deshacer.',
+        message: 'Esto restablecerá permanentemente tu racha actual a 0. Puedes empezar de nuevo sin calentar tu racha congelada. Esta acción no se puede deshacer.',
       },
 
       modals: {
@@ -976,15 +1053,15 @@ const es: Partial<TranslationKeys> = {
       },
       adDismissed: {
         title: 'Anuncio no completado',
-        message: 'Debes ver el anuncio completo para restaurar tu día de racha. Por favor, inténtalo de nuevo.',
+        message: 'El anuncio no terminó, así que este día sigue congelado.',
       },
       adLoadFailed: {
         title: 'Anuncio no disponible',
-        message: 'No se puede cargar el anuncio ahora. Por favor, verifica tu conexión a internet e inténtalo de nuevo.',
+        message: 'Ahora mismo no hay anuncios. Tu racha sigue congelada y a salvo.',
       },
       adError: {
         title: 'Error de anuncio',
-        message: 'Algo salió mal al mostrar el anuncio. Por favor, inténtalo de nuevo.',
+        message: 'Algo interrumpió el anuncio. Tu racha sigue congelada y a salvo.',
       },
     },
 
