@@ -1,6 +1,6 @@
 /**
- * Which days the Year view counts (YearlyHabitOverview) — pure, tested in
- * __tests__/yearlyOverviewLogic.test.ts.
+ * Which days the Year view counts (Home's HabitStatsCard since E11d; until then
+ * YearlyHabitOverview) — pure, tested in __tests__/yearlyOverviewLogic.test.ts.
  *
  * The data range runs from the first habit / check to today. The Year view
  * shows at most the last 365 days of it: until 2026-11-24 it took the whole

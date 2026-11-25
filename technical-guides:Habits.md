@@ -644,22 +644,6 @@ Color Coding:
 - Blue dot: Underlying schedule indicator
 ```
 
-### WeeklyHabitChart
-```typescript
-// Stacked bar chart for 7-day habit overview
-Features:
-- Proportional bar heights based on habit count
-- Stacked sections: missed (red/gray), completed (green), bonus (gold)
-- Smart Conversion applied to data
-- Today highlighting
-- Completion rate statistics
-
-Performance:
-- Dynamic Y-axis scaling
-- Respects habit creation dates
-- Handles empty states gracefully
-```
-
 ### HabitStatsAccordionItem
 ```typescript
 // Collapsible habit statistics with calendar
@@ -676,20 +660,16 @@ Stats Display:
 - Visual indicators for high performance (>100%)
 ```
 
-### HabitStatsDashboard
-```typescript
-// Master view with Week/Month/Year toggle
-Components:
-- WeeklyHabitChart (7 days)
-- Monthly30DayChart (30 days)
-- YearlyHabitOverview (365 days)
-- Unified navigation controls
-
-Data Flow:
-- All components use same completion rate algorithm
-- Consistent Smart Conversion application
-- Shared performance optimizations
-```
+### Statistiky návyků na Home (`HabitStatsCard`, od E11d 2026-11-25)
+Jedna karta se třemi obdobími (7 dní / 30 dní / Rok) nahradila `HabitStatsDashboard` a jeho tři grafy
+(`WeeklyHabitChart`, `Monthly30DayChart`, `YearlyHabitOverview` – smazané). Podrobně v `technical-guides:Home.md`.
+- **Počítání dne se nezměnilo:** `countDay` v `src/screens/home/homeChartsLogic.ts` je pravidlo starého
+  týdenního grafu přenesené beze změny (Smart Bonus Conversion: náhrada = splněno, bonus navíc, krytý den
+  zůstává v plánu). **Jeden třídič pro 7, 30 i 365 dní** – starý rok třídil náhrady jinak.
+- **Míra** = všechna splnění vč. bonusů / naplánované (jednotný vzorec; smí být nad 100 %).
+- **Srovnání s obdobím předtím** jen když předchozí období celé leží v datech uživatele (`comparable`) –
+  jinak by nový uživatel četl „o 8 bodů lépe“ ze srovnání měsíce s jedním dnem.
+- **Rok** = dostupná data, nejvýš posledních 365 dní (`yearWindow`); počítá se až po přepnutí na Rok.
 
 ### Domovské přehledy návyků — čistá pravidla (opraveno 2026-11-24)
 Tři výpočty z Home karet žijí v testovaných čistých souborech v `src/components/home/`:
@@ -699,7 +679,7 @@ Tři výpočty z Home karet žijí v testovaných čistých souborech v `src/com
   jako zhoršení. Týden bez čeho hodnotit (`null` – návyk ještě nebyl, celý týden pauza) se
   do průměru **nepočítá**; chybí-li data v jedné polovině, trend je „stabilní" (jinak první týden
   nového uživatele hlásil „zlepšení").
-- **Rok** (`yearlyOverviewLogic.ts`, YearlyHabitOverview): dostupná data, ale **nejvýš posledních
+- **Rok** (`yearlyOverviewLogic.ts`, dnes `HabitStatsCard`, dřív YearlyHabitOverview): dostupná data, ale **nejvýš posledních
   365 dní**. Dřív celá historie — po roce používání „Rok" znamenal „od začátku".
 - **Týdenní průměr** (`habitPerformanceLogic.ts`, HabitPerformanceIndicators): jednotné pravidlo
   aplikace — všechna splnění (vč. bonusů) / naplánované dny, sečteno přes všechny návyky, **jen dny

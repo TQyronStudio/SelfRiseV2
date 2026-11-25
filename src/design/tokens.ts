@@ -350,6 +350,29 @@ export const sun: Record<DesignMode, Record<Daypart, string>> = {
  * Golden light laid over the hero sky as the day fills up — finishing habits
  * literally warms the screen. Opacity follows today's progress.
  */
+/**
+ * The chart palette (Home's habit statistics, E11d; from the Design Lab, kolo 41).
+ * Validated with the dataviz skill's palette script: done + bonus as a
+ * categorical pair, the year's shades as an ordinal ramp — each against its own
+ * surface. Not the UI gold: that one fails as a fill on white. On a dark surface
+ * "more" is the lighter end of the ramp.
+ */
+export const chart: Record<
+  DesignMode,
+  { done: string; bonus: string; ramp: readonly [string, string, string, string] }
+> = {
+  light: {
+    done: '#0A62D8',
+    bonus: '#B97F0E',
+    ramp: ['#86AFEF', '#5A92EA', '#2E76E2', '#0A55C2'],
+  },
+  dark: {
+    done: '#3F86F0',
+    bonus: '#BE8A1A',
+    ramp: ['#2F5FAF', '#3F7BDD', '#6EA3F5', '#A9CCFF'],
+  },
+};
+
 export const skyGold: Record<DesignMode, readonly [string, string]> = {
   light: ['rgba(255, 214, 150, 0)', 'rgba(255, 196, 110, 0.5)'],
   dark: ['rgba(255, 170, 70, 0)', 'rgba(255, 170, 70, 0.22)'],

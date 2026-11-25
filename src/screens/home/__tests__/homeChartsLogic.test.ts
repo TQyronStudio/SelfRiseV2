@@ -3,9 +3,15 @@ import {
   barScale,
   bestWeekday,
   compareRates,
+  comparable,
+  countDay,
+  HabitOnDate,
   heatLevel,
+  lastDays,
   totalsOf,
 } from '../homeChartsLogic';
+import { DayOfWeek } from '@/src/types/common';
+import { Habit, HabitCompletion } from '@/src/types/habit';
 
 const day = (scheduled: number, done: number, bonus = 0) => ({
   scheduled,
@@ -101,5 +107,103 @@ describe('habit statistics: active days and the best weekday', () => {
       ])
     ).toBe(3);
     expect(bestWeekday([{ ...day(0, 0), weekday: 2 }])).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// countDay — the old WeeklyHabitChart rule, moved unchanged (E11d)
+// ---------------------------------------------------------------------------
+
+describe('countDay', () => {
+  // 2026-11-25 is a Wednesday.
+  const WED = '2026-11-25';
+  const habit = (id: string, days: DayOfWeek[]): Habit =>
+    ({
+      id,
+      name: id,
+      color: 'blue',
+      icon: 'book',
+      scheduledDays: days,
+      isActive: true,
+      order: 0,
+      createdAt: new Date(2026, 10, 1),
+      updatedAt: new Date(2026, 10, 1),
+    }) as Habit;
+  const on = (
+    h: Habit,
+    completed: boolean,
+    over: Partial<HabitCompletion> = {}
+  ): HabitOnDate => ({
+    ...h,
+    isCompleted: completed,
+    completion: {
+      id: `c-${h.id}`,
+      habitId: h.id,
+      date: WED,
+      completed,
+      isBonus: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      ...over,
+    } as HabitCompletion,
+  });
+  const always = () => true;
+  const planned = habit('planned', [DayOfWeek.WEDNESDAY]);
+  const offDay = habit('off', [DayOfWeek.MONDAY]);
+
+  it('a scheduled check is done; the plan counts habits scheduled that day', () => {
+    expect(countDay(WED, [planned, offDay], [on(planned, true)], always)).toEqual({
+      scheduled: 1,
+      done: 1,
+      bonus: 0,
+      weekday: 2,
+    });
+  });
+
+  it('a check off the plan is a bonus, on top of the plan', () => {
+    const day = countDay(
+      WED,
+      [planned, offDay],
+      [on(planned, false), on(offDay, true, { isBonus: true })],
+      always
+    );
+    expect(day).toMatchObject({ scheduled: 1, done: 0, bonus: 1 });
+  });
+
+  it('a make-up (a bonus converted to cover a missed day) counts as done', () => {
+    const day = countDay(
+      WED,
+      [planned, offDay],
+      [on(offDay, true, { isBonus: true, isConverted: true, convertedFromDate: '2026-11-23' })],
+      always
+    );
+    expect(day).toMatchObject({ done: 1, bonus: 0 });
+  });
+
+  it('a habit that did not exist yet is not in the plan', () => {
+    expect(countDay(WED, [planned], [], () => false).scheduled).toBe(0);
+  });
+});
+
+describe('lastDays', () => {
+  it('the last n days, oldest first, today last', () => {
+    expect(lastDays('2026-11-25', 3)).toEqual([
+      '2026-11-23',
+      '2026-11-24',
+      '2026-11-25',
+    ]);
+  });
+});
+
+describe('comparable', () => {
+  it('only when the period before lies wholly inside the data', () => {
+    expect(comparable('2026-10-27', '2026-10-26')).toBe(true);
+    expect(comparable('2026-10-26', '2026-10-26')).toBe(true);
+    // the user started in the middle of the period before
+    expect(comparable('2026-09-26', '2026-10-26')).toBe(false);
+  });
+  it('not without data', () => {
+    expect(comparable('2026-10-27', undefined)).toBe(false);
+    expect(comparable(undefined, '2026-10-26')).toBe(false);
   });
 });

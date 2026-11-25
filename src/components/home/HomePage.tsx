@@ -102,6 +102,7 @@ import {
   usePageScrollFrame,
   useScrollRest,
 } from '@/src/components/ui';
+import { HabitStatsCard } from './HabitStatsCard';
 import { JournalStreakCard } from './JournalStreakCard';
 import { QuickActions } from './QuickActions';
 import { TodayHabitItem, TodayHabits } from './TodayHabits';
@@ -117,7 +118,12 @@ const COMPACT_HEIGHT = 64;
 /** The morning light behind the top of the screen. */
 const GLOW_HEIGHT = 380;
 /** Ids the page draws itself; every other section comes from `renderSection`. */
-const OWN_SECTIONS = new Set(['quickActions', 'todayHabits', 'journalStreak']);
+const OWN_SECTIONS = new Set([
+  'quickActions',
+  'todayHabits',
+  'journalStreak',
+  'habitStats',
+]);
 
 interface HomePageProps {
   /** The top row's buttons (right side; the level badge sits left). */
@@ -394,6 +400,7 @@ function HomeContent({
           onAskStartFresh={confirm => setFreshConfirm(() => confirm)}
         />
       );
+    if (id === 'habitStats') return <HabitStatsCard />;
     if (id === 'todayHabits')
       return (
         <TodayHabits

@@ -7,6 +7,7 @@
 - **Kompaktní hlavička** při rolování a pravidla plynulosti (P1–P3, P79)
 - **Rychlé akce** a jejich odkazy `?quickAction=…`
 - **Karta série deníku se záchranou** zamrzlé série přímo na Home (plamen, vločky → slunce, pruh chyb)
+- **Statistiky návyků** (7 dní / 30 dní / Rok) a odkud berou čísla
 - **Pořadí sekcí** (uživatelovo, `HomeCustomizationContext`)
 - **Nebezpečné zóny**: jak si Home rozbít
 
@@ -18,8 +19,9 @@
 
 *Stav: převod designu E11 běží po krocích. **E11b hotová** (2026-11-25): hrdina, pozdrav,
 kompaktní hlavička, rychlé akce, dnešní návyky. **E11c hotová** (2026-11-25): karta série se
-záchranou. Statistiky návyků (E11d), Přehledy, Pro tebe, nový sheet přizpůsobení a převod
-uloženého rozložení (E11e) zatím zůstávají ve staré podobě – jejich části se doplní sem se svým kódem.*
+záchranou. **E11d hotová** (2026-11-25): statistiky návyků. Přehledy, Pro tebe, nový sheet
+přizpůsobení a převod uloženého rozložení (E11e) zatím zůstávají ve staré podobě – jejich části se
+doplní sem se svým kódem.*
 
 ---
 
@@ -161,6 +163,21 @@ snímky rolování.
   Home už neotevírá okno, ale dorolluje ke kartě série (`reveal` v `HomePage`). Parametr se po
   použití smaže, takže další přesměrování zafunguje znovu.
 
+### Statistiky návyků (E11d)
+`src/components/home/HabitStatsCard.tsx`, čísla z `src/screens/home/homeChartsLogic.ts` (test).
+- **Jedna karta, tři období** s přepínačem. Nahoře míra období a **jedna věta, co znamená** – o kolik
+  bodů lépe / hůř než období předtím; u roku „N z M dní aktivních“.
+- **Srovnání jen poctivé:** předchozí období musí celé ležet v datech uživatele (`comparable`), jinak
+  věta řekne jen „X z Y“. Bez toho by nový uživatel četl „o 8 bodů lépe“ ze srovnání měsíce s jedním dnem.
+- **7 a 30 dní = sloupce:** plán stojí vzadu jako tichý sloupec, splněné ho plní, bonus sedí nahoře
+  zlatě; vynechaný den je nevyplněný sloupec – **žádná červená**. Ťuknutí na den ukáže jeho čísla pod grafem.
+- **Rok = kalendář odstínů** na jednom plátně Skia; počítá se až po přepnutí (365 dní × návyky), jen
+  dostupná data a nejvýš posledních 365 dní (`yearWindow`).
+- **Počty dne beze změny proti starým grafům** (`countDay`, Smart Bonus Conversion). Míra = všechna
+  splnění vč. bonusů / plán. Dnešní sloupec se pohne hned po odškrtnutí.
+- **Barvy grafu** jsou paleta `chart` v tokenech (ověřená pro obě plochy) – ne UI zlatá.
+- Karta se **skryje**, dokud v posledních 30 dnech není žádný naplánovaný den (rozhodnutí E11/2c).
+
 ### Chybový pruh (`ProblemNote`, vrstva 2b)
 `src/components/ui/ProblemNote.tsx`: `ProblemNoteProvider` kolem navigátoru, `<ProblemNoteLayer />`
 v `app/_layout.tsx` mezi odznakem a úvodem. `useProblemNote().showProblem({ message, retry? })`:
@@ -194,6 +211,8 @@ ignoruje – úložiště čte a pak píše, dva zápisy naráz by mohly dát XP
 8. **Plamen bez paměti „zahřátí už hrálo“** → `justUnfrozeToday` platí celý den, každá návštěva by led roztála znovu.
 9. **Platba bez `refreshStats`** → Home a Deník ukážou jiný stav dluhu.
 10. **Okno místo pruhu u chyby záchrany** → rozhodnutí E11/6: potvrzením je plamen, chyba je pruh.
+11. **Vlastní počítání dne ve statistikách** → čísla se rozejdou s kalendářem návyku (vždy `countDay`).
+12. **Rok počítaný při každém vykreslení** → 365 dní × návyky při každém odškrtnutí; jen po přepnutí.
 
 ---
 
@@ -209,6 +228,7 @@ PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH" npx jest src/screens/home src
 - `src/locales/__tests__/homeCopy.test.ts` – texty Home ve třech jazycích.
 - `src/hooks/__tests__/useStreakWarmUp.test.tsx` – reklama = den, obnova po platbě, tichá oprava, pruhy.
 - `src/hooks/__tests__/useJournalFlame.test.ts` – led / zahřátí jednou / oheň.
+- `src/screens/home/__tests__/homeChartsLogic.test.ts` – míra, srovnání, počítání dne, poctivé srovnání.
 - `src/design/__tests__/ratchet.test.ts` – nové soubory Home jen s tokeny.
 
 ---
@@ -237,6 +257,8 @@ PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH" npx jest src/screens/home src
    slunce; poslední den → led praskne a chytne jednou; při dalším otevření Home už jen oheň.
 8. **Zavři reklamu dřív** → pruh „Reklama nedoběhla…“ se „Zkusit znovu“, série dál zamrzlá.
 9. **Začít znovu** → potvrzení → série 0, čip „Začni dnes“.
+10. **Statistiky:** přepni 7 / 30 / Rok; ťukni na sloupec; odškrtni návyk a vrať se – dnešní sloupec vyrostl.
+    Nový uživatel (pár dní dat) → žádné „o X bodů lépe“, jen „X z Y“.
 
 ---
 

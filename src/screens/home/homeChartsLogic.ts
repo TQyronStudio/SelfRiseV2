@@ -12,8 +12,16 @@
  * (Smart Bonus Conversion, covered missed days); only the drawing is new.
  *
  * Moved 1:1 from the Design Lab in migration E11 prep (2026-11-24; the lab keeps
- * its copy — O-6). Not wired yet: the screen of E11 uses it.
+ * its copy — O-6). Wired in E11d (HabitStatsCard) together with `countDay`, the
+ * day count of the old WeeklyHabitChart moved here unchanged.
  */
+import { DateString, DayOfWeek } from '@/src/types/common';
+import { Habit, HabitCompletion } from '@/src/types/habit';
+import {
+  getDayOfWeekFromDateString,
+  subtractDays,
+} from '@/src/utils/date';
+import { wasScheduledOnDate } from '@/src/utils/habitImmutability';
 
 export interface DayStat {
   /** Habits planned for the day. */
@@ -68,6 +76,19 @@ export function compareRates(
 }
 
 /**
+ * May this period be compared with the one before it? Only when the period
+ * before lies wholly inside the user's data: a new user's "30 days before"
+ * holds one real day and 29 empty ones — "8 points better" would compare a
+ * month with a day. `dataStart` = the first day of the data range.
+ */
+export function comparable(
+  previousStart: DateString | undefined,
+  dataStart: DateString | undefined
+): boolean {
+  return !!previousStart && !!dataStart && previousStart >= dataStart;
+}
+
+/**
  * A day's shade in the year view: -1 = nothing was planned (a rest day, drawn
  * empty), 0 = planned and nothing done, 1–4 = how much of the plan was done.
  */
@@ -104,4 +125,62 @@ export function bestWeekday(
     }
   }
   return best;
+}
+
+// ---------------------------------------------------------------------------
+// Counting a day — exactly as the old WeeklyHabitChart / Monthly30DayChart did
+// ---------------------------------------------------------------------------
+
+const WEEKDAY_INDEX: Record<DayOfWeek, number> = {
+  monday: 0,
+  tuesday: 1,
+  wednesday: 2,
+  thursday: 3,
+  friday: 4,
+  saturday: 5,
+  sunday: 6,
+} as Record<DayOfWeek, number>;
+
+export type HabitOnDate = Habit & {
+  isCompleted: boolean;
+  completion?: HabitCompletion;
+};
+
+/**
+ * One day of the habits (Smart Bonus Conversion applied by the caller's
+ * getHabitsByDate): planned = habits that existed and were scheduled that day;
+ * done = scheduled completions and make-ups (a bonus converted to cover a missed
+ * day); bonus = completions on top. A missed day covered by a make-up stays in
+ * the plan — its make-up is counted on the day it was done.
+ * Moved unchanged from WeeklyHabitChart (E11d); one classifier for 7, 30 and 365
+ * days (the old year view sorted make-ups differently, data map E11).
+ */
+export function countDay(
+  date: DateString,
+  habits: Habit[],
+  habitsOnDate: HabitOnDate[],
+  existedOn: (habit: Habit, date: DateString) => boolean
+): DayStat & { weekday: number } {
+  const dayOfWeek = getDayOfWeekFromDateString(date);
+  const scheduled = habits.filter(
+    habit =>
+      wasScheduledOnDate(habit, date, dayOfWeek) && existedOn(habit, date)
+  ).length;
+  let done = 0;
+  let bonus = 0;
+  for (const h of habitsOnDate) {
+    if (!h.isCompleted) continue;
+    const completion = h.completion;
+    const isScheduled = wasScheduledOnDate(h, date, dayOfWeek);
+    if (completion?.isBonus && !completion?.isConverted) bonus++;
+    else if (completion?.isConverted && completion?.convertedFromDate) done++;
+    else if (isScheduled && !completion?.isBonus) done++;
+    else if (!isScheduled && !completion?.isBonus) bonus++;
+  }
+  return { scheduled, done, bonus, weekday: WEEKDAY_INDEX[dayOfWeek] ?? 0 };
+}
+
+/** The last `n` days up to and including `today`, oldest first. */
+export function lastDays(today: DateString, n: number): DateString[] {
+  return Array.from({ length: n }, (_, i) => subtractDays(today, n - 1 - i));
 }

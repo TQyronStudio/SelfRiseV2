@@ -3,7 +3,6 @@ import { StyleSheet, View, DeviceEventEmitter, EmitterSubscription } from 'react
 import { useI18n } from '@/src/hooks/useI18n';
 import { useDesign } from '@/src/contexts/ThemeContext';
 import { StreakHistoryGraph } from '@/src/components/home/StreakHistoryGraph';
-import { HabitStatsDashboard } from '@/src/components/home/HabitStatsDashboard';
 import { HabitPerformanceIndicators } from '@/src/components/home/HabitPerformanceIndicators';
 import { HabitTrendAnalysis } from '@/src/components/home/HabitTrendAnalysis';
 import { PersonalizedRecommendations } from '@/src/components/home/PersonalizedRecommendations';
@@ -221,8 +220,6 @@ export default function HomeScreen() {
             onViewAllPress={handleViewAllChallenges}
           />
         );
-      case 'habitStats':
-        return <HabitStatsDashboard key={componentId} />;
       case 'recommendations':
         return <PersonalizedRecommendations key={componentId} />;
       case 'habitPerformance':
