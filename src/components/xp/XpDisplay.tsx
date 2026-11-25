@@ -114,6 +114,12 @@ import { shouldAnnounceReady } from '@/src/services/xpDisplay/multiplierDisplay'
 
 /** The harmony readiness last announced (its streak start) — D-9. */
 const READY_ANNOUNCED_KEY = 'xp_multiplier_ready_announced';
+/**
+ * Multiplier sources told elsewhere: the harmony one is switched on from the
+ * panel / ready note (its window is queued there), a trophy combo rides in its
+ * trophy moment (E8), the comeback is a quiet note (above).
+ */
+const ANNOUNCED_ELSEWHERE: ReadonlySet<string> = new Set(['harmony_streak', 'achievement', 'inactive_user_return']);
 /** The comeback boost last announced (its start). */
 const COMEBACK_ANNOUNCED_KEY = 'xp_multiplier_comeback_announced';
 
@@ -889,8 +895,11 @@ export function LevelBadgeLayer() {
     const sub = addAppEventListener('xpMultiplierActivated', event => {
       const e = event as { source?: string; xpBonusAwarded?: number };
       if (e?.source === 'inactive_user_return') void comeback(e.xpBonusAwarded ?? XP_REWARDS.SPECIAL.COMEBACK_BONUS);
-      else if (e?.source === 'challenge_completion') {
-        // Until E18 tells it inside the challenge's own window.
+      else if (e?.source && !ANNOUNCED_ELSEWHERE.has(e.source)) {
+        // Every other source keeps its activation window, as Home's old section
+        // did — today the challenge's 'weekly_challenge' (until E18 tells it
+        // inside the challenge's own window). Review 2026-11-25: an allow-list
+        // with a wrong name ('challenge_completion') lost that window.
         void XPMultiplierService.getActiveMultiplier().then(info => {
           if (info.isActive) {
             enqueue({

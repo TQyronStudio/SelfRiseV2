@@ -565,7 +565,7 @@ posune k uživateli (při sníženém pohybu bez animace); za stavovým řádkem
 - **návrat po pauze** (`inactive_user_return`) = tiché oznámení „Welcome back“ + 2× na 48 h + 25 XP; služba posílá
   `xpMultiplierActivated` a vrstva to ověřuje i při připojení (bonus se zapíná při startu, dřív než vrstva poslouchá);
   ohlásí se jednou na zapnutí (`xp_multiplier_comeback_announced`). 2× a 48 h jsou v `XP_MULTIPLIERS.COMEBACK_*`.
-- **výzva** (`challenge_completion`) dál řadí okno zapnutí – do E18, kdy řádek přejde do okna výzvy.
+- **každý jiný zdroj** (dnes výzva – `weekly_challenge`) dál řadí okno zapnutí, stejně jako stará sekce – do E18, kdy řádek přejde do okna výzvy. Jen `harmony_streak`, `achievement` a `inactive_user_return` se oznamují jinde (`ANNOUNCED_ELSEWHERE`).
 - **kombo trofejí** jede v momentu trofeje (E8); **harmonie** se zapíná z panelu / oznámení.
 
 **Značka násobiče (6a):** `src/components/xp/useBadgeMark.ts` – zlatý štítek s faktorem, který opravdu běží
