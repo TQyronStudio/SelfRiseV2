@@ -388,6 +388,11 @@ Denní filtr je právě ta pojistka proti přeodečtení: volání u cílů `met
 neposílají, takže se defaultuje na dnešek a mazání staršího záznamu spadne do
 fallbacku.
 
+**Volající zná přesnou částku** (`metadata.exactAmount: true`, od 2026-11-25): zápis
+pokroku cíle si pamatuje své skutečné XP (`goal_progress.xp_awarded`), mazání ho pošle
+s `exactAmount` a `subtractXP()` dohledání přeskočí — „poslední dnešní grant cíle“ může
+patřit jinému zápisu téhož cíle. Viz `technical-guides:Goals.md` („Zpět vrací přesně“).
+
 **Když přidáváš nový zdroj XP, který lze vzít zpět**: `subtractXP()` **musí**
 dostat `sourceId` — bez něj se dohledání nespustí a asymetrie se vrátí.
 

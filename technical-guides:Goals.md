@@ -624,10 +624,11 @@ MAX_GOAL_PROGRESS_PER_DAY = 3;  // Maximum 3 XP-earning updates per goal per day
 //    zápis se VŽDY uloží, jen XP vrstva (centrální xpLimits.validateXPAddition)
 //    tiše vrátí 0 XP. Žádná chybová hláška — záměr (lepší UX než blokace).
 //
-// ⚠️ ZNÁMÁ HRANA (N-5.9, akceptováno Petrem 2026-07-19): smazání progress
-// zápisu vytvořeného PO vyčerpání denního limitu odečte plných 35 XP,
-// přestože za něj žádné XP nepřišlo. Vzácný případ, vědomě neřešeno
-// (přesné párování transakcí by neúměrně zesložitilo mazání).
+// ✅ HRANA N-5.9 VYŘEŠENA (Petr 2026-11-25 – s „Zpět“ u rychlého zápisu by
+// byla běžná): každý zápis si pamatuje své SKUTEČNÉ XP v goal_progress.xp_awarded
+// (0 nad denním stropem, 70 pod 2× násobičem, −35 za odečet, 0 za „nastavit“)
+// a smazání vrátí přesně tolik (subtractXP s metadata.exactAmount). Zápisy
+// z doby před sloupcem mají NULL → staré chování (odečte 35 / dohledá grant).
 ```
 
 ### Goal Completion Detection
@@ -687,6 +688,10 @@ přes frontu + značka `goal_completion_celebrations_shown`.
 - Místo potvrzovacího okna **pruh „+1 kniha zapsáno · Zpět“** (`UndoToast`, ~4 s). „Zpět“ = existující
   `deleteProgress` (vrácení XP i přepočet; dokončení se vrátí, milníky zůstanou vyplacené) přes akce
   **nejnovějšího** vykreslení – `deleteProgress` hledá zápis ve stavu svého vykreslení.
+- **„Zpět“ vrací přesně to, co zápis dostal** (`goal_progress.xp_awarded`, sloupec přidán 2026-11-25
+  migrací `ALTER TABLE … ADD COLUMN xp_awarded INTEGER` – staré zápisy NULL = staré chování). Čtvrté
+  ťuknutí dne + „Zpět“ tak nic neodečte. Pomocná `awardedXP()` v `SQLiteGoalStorage.ts`; testy
+  `sqliteGoalStorage.progressXP.test.ts` („reverses exactly its own XP“) a `database/__tests__/init.test.ts`.
 - Jiskry XP letí od ťuknutého tlačítka (`registerXpOrigin` se `sourceId = goalId`).
 - **Panel „Jiné“** (`GoalLogSheet`): vlastní číselník, Přičíst / Odečíst / Nastavit = `progressType`
   `add` / `subtract` / `set` 1:1 (XP pravidla úložiště beze změny: odečet bere 35 XP, nastavení XP nedává),

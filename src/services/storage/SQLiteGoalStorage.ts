@@ -539,21 +539,31 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
       });
 
       // Handle XP for goal progress
+      let xpResult: { success?: boolean; xpGained?: number } | undefined;
       if (input.progressType === 'subtract' && input.value > 0) {
-        await GamificationService.subtractXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
+        xpResult = await GamificationService.subtractXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
           source: XPSourceType.GOAL_PROGRESS,
           description: `Goal negative progress: ${goal.title} (-${input.value})`,
           sourceId: input.goalId
         });
         console.log(`🎯 Goal negative progress: ${goal.title} (-${input.value}, -${XP_REWARDS.GOALS.PROGRESS_ENTRY} XP)`);
       } else if (input.progressType === 'add' && input.value > 0) {
-        await GamificationService.addXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
+        xpResult = await GamificationService.addXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
           source: XPSourceType.GOAL_PROGRESS,
           description: `Goal progress: ${goal.title} (+${input.value})`,
           sourceId: input.goalId
         });
         console.log(`🎯 Goal positive progress: ${goal.title} (+${input.value}, +${XP_REWARDS.GOALS.PROGRESS_ENTRY} XP)`);
       }
+      // 🚨 Remember what this entry REALLY got (2026-11-25, replaces the
+      // accepted edge N-5.9): 0 over the daily cap, 70 under a 2× multiplier,
+      // −35 for a subtraction, 0 for "set". Its delete gives back exactly that —
+      // with one-tap logging + Undo, "4th tap of the day + Undo" took 35 XP
+      // that never came. NULL = the amount is unknown (old path, old entries).
+      await db.runAsync('UPDATE goal_progress SET xp_awarded = ? WHERE id = ?', [
+        awardedXP(input.progressType, input.value, xpResult),
+        newProgress.id,
+      ]);
 
       // N-5.1: Milestone XP (25/50/75 % → 50/75/100) — lost in the SQLite
       // rewrite (only legacy goalStorage had it). Awarded once per goal per
@@ -745,8 +755,27 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
         // Handle XP for deleted progress
         const progressValue = progressToDelete.value;
         const progressType = progressToDelete.progress_type;
+        const awarded: number | null =
+          typeof progressToDelete.xp_awarded === 'number' ? progressToDelete.xp_awarded : null;
 
-        if (progressType === 'add' && progressValue > 0) {
+        if (awarded !== null) {
+          // Exactly what the entry got — nothing for an entry over the cap.
+          if (awarded > 0) {
+            await GamificationService.subtractXP(awarded, {
+              source: XPSourceType.GOAL_PROGRESS,
+              description: `Deleted goal progress: ${goal.title} (-${progressValue})`,
+              sourceId: progressToDelete.goal_id,
+              metadata: { exactAmount: true },
+            });
+          } else if (awarded < 0) {
+            await GamificationService.addXP(-awarded, {
+              source: XPSourceType.GOAL_PROGRESS,
+              description: `Reversed goal subtraction: ${goal.title} (+${progressValue})`,
+              sourceId: progressToDelete.goal_id
+            });
+          }
+          console.log(`↩️ Goal progress delete reversed exactly ${awarded} XP`);
+        } else if (progressType === 'add' && progressValue > 0) {
           await GamificationService.subtractXP(XP_REWARDS.GOALS.PROGRESS_ENTRY, {
             source: XPSourceType.GOAL_PROGRESS,
             description: `Deleted goal progress: ${goal.title} (-${progressValue})`,
@@ -1151,3 +1180,20 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
 
 // Singleton instance
 export const sqliteGoalStorage = new SQLiteGoalStorage();
+
+/**
+ * The XP a new progress entry really got, from the XP call's result: the
+ * granted amount (multiplier included), 0 when refused (the daily cap) or for
+ * "set" (it earns nothing), negative for a subtraction. Null when the amount
+ * cannot be known — its delete then keeps the old reversal.
+ */
+export function awardedXP(
+  progressType: 'add' | 'subtract' | 'set',
+  value: number,
+  result: { success?: boolean; xpGained?: number } | undefined
+): number | null {
+  if (progressType === 'set' || !(value > 0)) return 0;
+  if (!result) return null;
+  if (result.success === false) return 0;
+  return typeof result.xpGained === 'number' ? Math.round(result.xpGained) : null;
+}

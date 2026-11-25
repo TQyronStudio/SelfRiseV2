@@ -1106,7 +1106,7 @@ export class GamificationService {
       // got). The only correct amount is the one actually recorded.
       // ─────────────────────────────────────────────────────────────────────
       const reversalMeta = options.metadata as
-        | { date?: string; entryPosition?: number; reverseByPosition?: boolean }
+        | { date?: string; entryPosition?: number; reverseByPosition?: boolean; exactAmount?: boolean }
         | undefined;
       // Journal deletions reverse a POSITION, not an entity (see the helper).
       const slotMatch =
@@ -1116,7 +1116,14 @@ export class GamificationService {
           : null;
 
       let effectiveAmount = amount;
-      if (FEATURE_FLAGS.USE_SQLITE_GAMIFICATION && (slotMatch || options.sourceId)) {
+      // `exactAmount`: the caller knows what was granted (a goal entry records
+      // its own XP since 2026-11-25) — the lookup would pick the day's LATEST
+      // grant of that goal, which may belong to another entry.
+      if (
+        FEATURE_FLAGS.USE_SQLITE_GAMIFICATION &&
+        reversalMeta?.exactAmount !== true &&
+        (slotMatch || options.sourceId)
+      ) {
         try {
           // Goal call sites do not pass metadata.date — default to today, which
           // is the day an add-then-undo happens on. See the helper's doc comment.

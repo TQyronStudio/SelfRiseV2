@@ -81,3 +81,40 @@ describe('Database Initialization', () => {
     await db.runAsync('DELETE FROM journal_entries WHERE id = ?', ['test-1']);
   });
 });
+
+describe('goal_progress.xp_awarded (2026-11-25)', () => {
+  afterEach(async () => {
+    await closeDatabase();
+  });
+
+  test('an existing table gets the column; old entries keep NULL (amount unknown)', async () => {
+    // A database from before: goal_progress without xp_awarded, one entry in it.
+    const SQLite = require('expo-sqlite');
+    const old = await SQLite.openDatabaseAsync('selfrise.db');
+    await old.execAsync(`
+      CREATE TABLE goal_progress (
+        id TEXT PRIMARY KEY, goal_id TEXT NOT NULL, value REAL NOT NULL,
+        date TEXT NOT NULL, note TEXT,
+        progress_type TEXT NOT NULL DEFAULT 'add',
+        created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+      );
+      INSERT INTO goal_progress VALUES ('p1', 'g1', 5, '2026-11-20', NULL, 'add', 1, 1);
+    `);
+    (SQLite.openDatabaseAsync as jest.Mock).mockImplementationOnce(async () => old);
+
+    const db = await initializeDatabase();
+    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(goal_progress)');
+    expect(columns.map(c => c.name)).toContain('xp_awarded');
+    const row = await db.getFirstAsync<{ xp_awarded: number | null; value: number }>(
+      'SELECT xp_awarded, value FROM goal_progress WHERE id = ?',
+      ['p1']
+    );
+    expect(row).toEqual({ xp_awarded: null, value: 5 });
+  });
+
+  test('a new database has the column', async () => {
+    const db = await initializeDatabase();
+    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(goal_progress)');
+    expect(columns.map(c => c.name)).toContain('xp_awarded');
+  });
+});

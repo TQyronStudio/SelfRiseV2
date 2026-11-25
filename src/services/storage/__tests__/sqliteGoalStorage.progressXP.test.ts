@@ -258,3 +258,81 @@ describe('Goal dates are LOCAL calendar dates (N-5.3)', () => {
     expect(goal.startDate).toBe(today());
   });
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// Undo gives back exactly what the entry got (2026-11-25, replaces N-5.9)
+//
+// The accepted edge N-5.9 — deleting an entry logged over the daily cap took
+// 35 XP that never came — became everyday with one-tap logging + Undo (4th tap
+// of the day + Undo). Each entry now records its real XP (xp_awarded).
+// ────────────────────────────────────────────────────────────────────────────
+describe('deleting a progress entry reverses exactly its own XP', () => {
+  const progressReversals = () =>
+    xpCalls(subtractXPMock, XPSourceType.GOAL_PROGRESS);
+
+  test('an entry that earned 35 gives back 35, exactly', async () => {
+    addXPMock.mockImplementation(async () => ({ success: true, xpGained: 35 }));
+    const id = await createGoal(1000);
+    const entry = await addProgress(id, 1);
+    subtractXPMock.mockClear();
+
+    await storage.deleteProgress(entry.id);
+    expect(progressReversals()).toHaveLength(1);
+    expect(progressReversals()[0]![0]).toBe(35);
+    expect(progressReversals()[0]![1].metadata).toEqual({ exactAmount: true });
+  });
+
+  test('an entry over the daily cap (no XP) takes nothing back', async () => {
+    addXPMock.mockImplementation(async () => ({ success: false, error: 'Goal has reached daily XP limit' }));
+    const id = await createGoal(1000);
+    const entry = await addProgress(id, 1);
+    subtractXPMock.mockClear();
+
+    await storage.deleteProgress(entry.id);
+    expect(progressReversals()).toHaveLength(0);
+  });
+
+  test('an entry under a 2× multiplier gives back its 70', async () => {
+    addXPMock.mockImplementation(async () => ({ success: true, xpGained: 70 }));
+    const id = await createGoal(1000);
+    const entry = await addProgress(id, 1);
+    subtractXPMock.mockClear();
+
+    await storage.deleteProgress(entry.id);
+    expect(progressReversals()[0]![0]).toBe(70);
+  });
+
+  test('a subtraction that took 35 is given back 35; "set" moves no XP', async () => {
+    addXPMock.mockImplementation(async () => ({ success: true, xpGained: 35 }));
+    subtractXPMock.mockImplementation(async () => ({ success: true, xpGained: -35 }));
+    const id = await createGoal(1000);
+    await addProgress(id, 10);
+    const minus = await addProgress(id, 2, 'subtract');
+    const set = await addProgress(id, 8, 'set');
+    addXPMock.mockClear();
+    subtractXPMock.mockClear();
+
+    await storage.deleteProgress(minus.id);
+    const giveBack = xpCalls(addXPMock, XPSourceType.GOAL_PROGRESS);
+    expect(giveBack).toHaveLength(1);
+    expect(giveBack[0]![0]).toBe(35);
+
+    addXPMock.mockClear();
+    await storage.deleteProgress(set.id);
+    expect(xpCalls(addXPMock, XPSourceType.GOAL_PROGRESS)).toHaveLength(0);
+    expect(progressReversals()).toHaveLength(0);
+  });
+
+  test('an entry from before (amount unknown) keeps the old reversal', async () => {
+    addXPMock.mockImplementation(async () => ({ success: true, xpGained: 35 }));
+    const id = await createGoal(1000);
+    const entry = await addProgress(id, 1);
+    await getDatabase().runAsync('UPDATE goal_progress SET xp_awarded = NULL WHERE id = ?', [entry.id]);
+    subtractXPMock.mockClear();
+
+    await storage.deleteProgress(entry.id);
+    expect(progressReversals()).toHaveLength(1);
+    expect(progressReversals()[0]![0]).toBe(35);
+    expect(progressReversals()[0]![1].metadata).toBeUndefined();
+  });
+});

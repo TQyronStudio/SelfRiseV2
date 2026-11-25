@@ -135,6 +135,13 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
       console.log('🔄 Adding goal_progress.progress_type...');
       await database.execAsync(`ALTER TABLE goal_progress ADD COLUMN progress_type TEXT NOT NULL DEFAULT 'add';`);
     }
+
+    // The XP an entry really got (2026-11-25, Goals Undo): NULL = an entry
+    // from before — nobody knows, its delete keeps the old reversal.
+    if (!hasOldSchema && !columns.has('xp_awarded')) {
+      console.log('🔄 Adding goal_progress.xp_awarded...');
+      await database.execAsync(`ALTER TABLE goal_progress ADD COLUMN xp_awarded INTEGER;`);
+    }
   }
 
   await database.execAsync(`
@@ -332,6 +339,7 @@ async function createTables(database: SQLite.SQLiteDatabase): Promise<void> {
       date TEXT NOT NULL,
       note TEXT,
       progress_type TEXT NOT NULL DEFAULT 'add' CHECK(progress_type IN ('add', 'subtract', 'set')),
+      xp_awarded INTEGER,
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL,
       FOREIGN KEY (goal_id) REFERENCES goals(id) ON DELETE CASCADE
