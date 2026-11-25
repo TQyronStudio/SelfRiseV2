@@ -20,3 +20,4 @@ export * from './sheets';
 export * from './DetailFrame';
 export * from './windowFrame';
 export * from './help';
+export * from './ProblemNote';

@@ -4,6 +4,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { LevelBadgeLayer, XpDisplayProvider } from '@/src/components/xp/XpDisplay';
 import { ModalQueueOutlet } from '@/src/contexts/ModalQueueContext';
+import { ProblemNoteLayer, ProblemNoteProvider } from '@/src/components/ui/ProblemNote';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -94,6 +95,8 @@ function LayoutContent() {
     <TutorialProvider>
       {/* E7: the XP display — the badge layer above the navigator, the sparks on top of everything (plan 6.0). */}
       <XpDisplayProvider>
+        {/* E11c: one host for "an action failed" notes (layer 2b). */}
+        <ProblemNoteProvider>
             <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="achievements" options={{ headerShown: false, presentation: 'card' }} />
@@ -113,10 +116,13 @@ function LayoutContent() {
             a <Modal>, so it can never collide with a native or RN modal. */}
         {/* Layer 2: the level badge (tabs only; hidden during onboarding). */}
         <LevelBadgeLayer />
+        {/* Layer 2b: a failed action's note — above the tab bar and the banner. */}
+        <ProblemNoteLayer />
         <OnboardingFlow />
         {/* Layer 4: the windows of the moment queue (one at a time) — above the
             onboarding (it waits for its trophy windows), under the sparks. */}
         <ModalQueueOutlet />
+        </ProblemNoteProvider>
       </XpDisplayProvider>
     </TutorialProvider>
   );

@@ -701,8 +701,6 @@ export interface TranslationKeys {
       frozenDays: string;
       frozenMessage_one: string;
       frozenMessage_other: string;
-      adsCount_one: string;
-      adsCount_other: string;
       streakWarmedUp: string;
       warmingUp: string;
       warmingProgress: string;

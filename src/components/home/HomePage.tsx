@@ -36,6 +36,7 @@ import React, {
 } from 'react';
 import {
   Animated as RNAnimated,
+  ScrollView,
   StyleSheet,
   useWindowDimensions,
   View,
@@ -85,6 +86,7 @@ import {
   AppText,
   Chip,
   chipColors,
+  ConfirmSheet,
   DayArc,
   Divider,
   IntroProvider,
@@ -100,6 +102,7 @@ import {
   usePageScrollFrame,
   useScrollRest,
 } from '@/src/components/ui';
+import { JournalStreakCard } from './JournalStreakCard';
 import { QuickActions } from './QuickActions';
 import { TodayHabitItem, TodayHabits } from './TodayHabits';
 
@@ -114,7 +117,7 @@ const COMPACT_HEIGHT = 64;
 /** The morning light behind the top of the screen. */
 const GLOW_HEIGHT = 380;
 /** Ids the page draws itself; every other section comes from `renderSection`. */
-const OWN_SECTIONS = new Set(['quickActions', 'todayHabits']);
+const OWN_SECTIONS = new Set(['quickActions', 'todayHabits', 'journalStreak']);
 
 interface HomePageProps {
   /** The top row's buttons (right side; the level badge sits left). */
@@ -127,6 +130,13 @@ interface HomePageProps {
   bottomInset: number;
   /** Stored check; a second tap on the same habit waits for it. */
   onToggleHabit: (habitId: string) => Promise<void>;
+  onOpenJournal: () => void;
+  onWriteEntry: () => void;
+  /**
+   * Scroll a section into view (a new `key` each time): the Journal sends a
+   * frozen streak here, to its rescue on the streak card.
+   */
+  reveal?: { id: string; key: number } | null;
 }
 
 export function HomePage(props: HomePageProps) {
@@ -144,6 +154,9 @@ function HomeContent({
   renderSection,
   bottomInset,
   onToggleHabit,
+  onOpenJournal,
+  onWriteEntry,
+  reveal,
 }: HomePageProps) {
   const { c, mode } = useDesign();
   const { t } = useI18n();
@@ -341,8 +354,46 @@ function HomeContent({
     />
   );
 
+  // "Start fresh" asks first; the sheet covers the page, so it lives here.
+  const [freshConfirm, setFreshConfirm] = useState<(() => void) | null>(null);
+
+  // Scroll a section into view (the Journal's frozen-streak redirect).
+  const scrollRef = useRef<ScrollView>(null);
+  const pageRef = useRef<View>(null);
+  const sectionRefs = useRef(new Map<string, View | null>());
+  useEffect(() => {
+    if (!reveal) return;
+    // After the tab switch has laid the page out.
+    const id = setTimeout(() => {
+      const section = sectionRefs.current.get(reveal.id);
+      const page = pageRef.current;
+      if (!section || !page) return;
+      page.measureInWindow((_px, pageY) =>
+        section.measureInWindow((_x, y) => {
+          const target = Math.max(
+            0,
+            frame.getScrollY() + y - pageY - COMPACT_HEIGHT - space.lg
+          );
+          scrollRef.current?.scrollTo({ y: target, animated: true });
+        })
+      );
+    }, 350);
+    return () => clearTimeout(id);
+    // `frame` is stable for the read it needs (getScrollY).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reveal?.key]);
+
   const renderOwn = (id: string) => {
     if (id === 'quickActions') return <QuickActions />;
+    if (id === 'journalStreak')
+      return (
+        <JournalStreakCard
+          rest={rest.signal}
+          onOpen={onOpenJournal}
+          onWrite={onWriteEntry}
+          onAskStartFresh={confirm => setFreshConfirm(() => confirm)}
+        />
+      );
     if (id === 'todayHabits')
       return (
         <TodayHabits
@@ -366,9 +417,10 @@ function HomeContent({
         <TopRow>{actions}</TopRow>
       </View>
 
-      <View style={styles.page}>
+      <View style={styles.page} ref={pageRef} collapsable={false}>
         <ScrollFrameProvider value={frame}>
           <RNAnimated.ScrollView
+            ref={scrollRef}
             style={styles.flex}
             onLayout={onLayout}
             onScroll={onScroll}
@@ -518,11 +570,18 @@ function HomeContent({
             {sections.map((id, i) => (
               <ScrollCard key={id}>
                 <Rise window={sectionWindow(i)}>
-                  {OWN_SECTIONS.has(id) ? (
-                    renderOwn(id)
-                  ) : (
-                    <View style={styles.legacy}>{renderSection(id)}</View>
-                  )}
+                  <View
+                    ref={view => {
+                      sectionRefs.current.set(id, view);
+                    }}
+                    collapsable={false}
+                  >
+                    {OWN_SECTIONS.has(id) ? (
+                      renderOwn(id)
+                    ) : (
+                      <View style={styles.legacy}>{renderSection(id)}</View>
+                    )}
+                  </View>
                 </Rise>
               </ScrollCard>
             ))}
@@ -569,6 +628,19 @@ function HomeContent({
             )}
           </View>
         </RNAnimated.View>
+
+        {freshConfirm && (
+          <ConfirmSheet
+            title={t('journal.warmUp.startFresh.title')}
+            message={t('journal.warmUp.startFresh.message')}
+            confirm={t('common.startFresh')}
+            cancel={t('common.cancel')}
+            icon="refresh"
+            bottomInset={bottomInset}
+            onClosed={() => setFreshConfirm(null)}
+            onConfirm={freshConfirm}
+          />
+        )}
       </View>
     </View>
   );

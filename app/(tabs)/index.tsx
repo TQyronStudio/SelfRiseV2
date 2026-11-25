@@ -2,7 +2,6 @@ import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, DeviceEventEmitter, EmitterSubscription } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useDesign } from '@/src/contexts/ThemeContext';
-import { JournalStreakCard } from '@/src/components/home/GratitudeStreakCard';
 import { StreakHistoryGraph } from '@/src/components/home/StreakHistoryGraph';
 import { HabitStatsDashboard } from '@/src/components/home/HabitStatsDashboard';
 import { HabitPerformanceIndicators } from '@/src/components/home/HabitPerformanceIndicators';
@@ -46,8 +45,9 @@ export default function HomeScreen() {
   const [selectedChallenge, setSelectedChallenge] = useState<MonthlyChallenge | null>(null);
   const [selectedChallengeProgress, setSelectedChallengeProgress] = useState<MonthlyChallengeProgress | null>(null);
   const [showChallengeDetail, setShowChallengeDetail] = useState(false);
-  // 🚀 DEBT RECOVERY AUTO-MODAL: Reference to JournalStreakCard for auto-opening debt modal
-  const journalStreakCardRef = useRef<any>(null);
+  // A frozen streak sent here from the Journal: Home scrolls to the streak
+  // card, where the rescue is (E11c — no window to open any more).
+  const [reveal, setReveal] = useState<{ id: string; key: number } | null>(null);
 
   // The customize button of the top row (migration E3; was the tab header)
   useEffect(() => {
@@ -90,18 +90,12 @@ export default function HomeScreen() {
     initializeMonthlyProgress();
   }, []); // Run once on mount
 
-  // 🚀 SPECIFICATION COMPLIANCE: Auto-open debt recovery modal on redirect from My Journal
   useEffect(() => {
-    if (params.openDebtModal === 'true' && journalStreakCardRef.current) {
-      console.log('[DEBUG] HomeScreen: Auto-opening debt recovery modal from My Journal redirect');
-      // Trigger debt modal opening on JournalStreakCard component
-      setTimeout(() => {
-        if (journalStreakCardRef.current?.triggerDebtModal) {
-          journalStreakCardRef.current.triggerDebtModal();
-        }
-      }, 100); // Small delay to ensure component is mounted
-    }
-  }, [params.openDebtModal]);
+    if (params.openDebtModal !== 'true') return;
+    setReveal({ id: 'journalStreak', key: Date.now() });
+    // Clear it, so the next redirect is a change again.
+    router.setParams({ openDebtModal: undefined });
+  }, [params.openDebtModal, router]);
 
   // Load progress for selected challenge and setup real-time updates
   useEffect(() => {
@@ -217,14 +211,6 @@ export default function HomeScreen() {
     switch (componentId) {
       case 'xpProgressBar':
         return <OptimizedXpProgressBar key={componentId} />;
-      case 'journalStreak':
-        return (
-          <JournalStreakCard 
-            key={componentId}
-            ref={journalStreakCardRef}
-            onPress={handleStreakPress} 
-          />
-        );
       case 'streakHistory':
         return <StreakHistoryGraph key={componentId} />;
       case 'monthlyChallenges':
@@ -276,6 +262,11 @@ export default function HomeScreen() {
         renderSection={renderComponent}
         bottomInset={BANNER_ROOM}
         onToggleHabit={handleHabitToggle}
+        onOpenJournal={handleStreakPress}
+        onWriteEntry={() =>
+          router.push('/(tabs)/journal?quickAction=addGratitude')
+        }
+        reveal={reveal}
       />
 
       {/* AdMob Banner - Fixed at bottom */}

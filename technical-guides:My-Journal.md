@@ -557,13 +557,28 @@ Journal celebrations represent immediate user actions and MUST have highest prio
    - Level celebrations caused by journal XP
 ```
 
-### 🔥 Zahřátí zamrzlé série – jeden hook (migrace E11a, 2026-11-25)
-Logika (reklama za odměnu → `applySingleWarmUpPayment`, kontrola dokončení s automatickou opravou zbylého dne,
-dvakrát „zkus znovu“ a pak oprava s omluvou, „Začít znovu“) žije v `src/hooks/useStreakWarmUp.ts` – dřív byla celá
-uvnitř `GratitudeStreakCard` na Home. Hook nic nezobrazuje: vrací stav sheetu a `notice` (úspěch / chyba / gratulace),
-které ukáže volající. **Home i Deník (od E12) používají tentýž hook** – nikdy druhou kopii. Pojistka proti dvojímu
-ťuknutí je `ref` (dvě ťuknutí v jednom snímku by ze stavu četla stejné `false`). Hlídá
-`src/hooks/__tests__/useStreakWarmUp.test.tsx`.
+### 🔥 Zahřátí zamrzlé série – jeden hook, záchrana přímo na kartě (E11a + E11c, 2026-11-25)
+Logika žije v `src/hooks/useStreakWarmUp.ts` (dřív celá uvnitř staré `GratitudeStreakCard`, smazané v E11c).
+**Home i Deník (od E12) používají tentýž hook** – nikdy druhou kopii. Hlídá `src/hooks/__tests__/useStreakWarmUp.test.tsx`.
+
+- **Jedna reklama = jeden zmeškaný den** (`watchAd` → `adService.showRewardedAd` → `applySingleWarmUpPayment`).
+  Pojistka proti dvojímu ťuknutí je `ref` (dvě ťuknutí v jednom snímku by ze stavu četla stejné `false`).
+- **Po KAŽDÉ platbě `refreshStats()`** – kontext po platbě sám neobnovuje, a Home i Deník čtou jeden stav:
+  den zaplacený na Home je hned zaplacený i v Deníku.
+- `progress` = zmeškané dny a kolik je zaplacených (`getWarmUpPaymentProgress`): karta kreslí vločku za den,
+  která se zaplacením změní ve slunce.
+- **Žádná okna úspěchu** (rozhodnutí E11/6): potvrzením je plamen (led → zahřátí → oheň). Technické větve
+  (po poslední reklamě zůstal den zamrzlý) se opraví potichu bez reklamy.
+- **Chyby jdou do pruhu `ProblemNote`** (`src/components/ui/ProblemNote.tsx`, vrstva 2b): reklama nedoběhla /
+  není k dispozici / chyba reklamy (se „Zkusit znovu“), nepovedený reset. Nikdy `error.message`.
+
+**Plamen** (`src/hooks/useJournalFlame.ts`, `flameStateOf` s testem): zamrzlá série = led; `justUnfrozeToday`
+a zahřátí dnes ještě nehrálo = zahřátí; jinak oheň. `justUnfrozeToday` platí **celý den** – proto si appka
+pamatuje (sdíleně pro všechny plameny a v AsyncStorage `journal_flame_warmed_on` na den), že zahřátí už
+přehrála. Jinak by každá návštěva Home led roztála znovu. Přehraje ho jen plamen na viditelné obrazovce.
+
+**Věta zamrzlé série** `journal.warmUp.frozenMessage`: `count` = **zbývající reklamy** (od E11c; dřív dny,
+což dávalo „frozen for 2 days. Watch 1 ads“). Dny ukazuje řada vloček. Tvar `_zero` = vše zaplaceno, plamen se zahřívá.
 
 ### ⏱️ Okno série se rozhoduje podle série PO dnešním zápisu (2026-11-24)
 

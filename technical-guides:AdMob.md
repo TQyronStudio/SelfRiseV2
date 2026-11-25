@@ -178,28 +178,29 @@ All banners follow the same consistent pattern:
 
 ### WarmUp System Integration
 
-**User Flow**:
+**User Flow** (from migration E11c, 2026-11-25 – no window, the rescue sits on the card):
 ```
-User misses journal entry → Streak at risk
+User misses a day of journal entries → the streak freezes
    ↓
-User opens app next day
+Home's streak card turns icy: one snowflake per missed day (max 3),
+"Warm up (0/2)" and a quiet "Start fresh"
    ↓
-StreakWarmUpModal appears with options:
-   1. Pay with bonus entries (if available)
-   2. Watch rewarded ad (always available)
+User taps "Warm up" → one rewarded ad plays
    ↓
-User selects "Watch Ad"
+Full view: ONE missed day is paid (snowflake → sun); the shared streak refreshes
+at once (Home and the Journal show the same state)
    ↓
-Rewarded ad plays (15-30 seconds)
-   ↓
-On completion: Streak restored ✅
+Last day paid → the flame cracks the ice and catches (no success window)
 ```
+Ad closed early / no ad available / ad error → a calm note above the tab bar
+(`ProblemNote`) with "Try again"; the streak stays frozen and safe.
 
 **Technical Implementation**:
-- **Trigger**: `StreakWarmUpModal.tsx` component
+- **UI**: `src/components/home/JournalStreakCard.tsx` (`WarmUpControls`)
+- **Logic**: `src/hooks/useStreakWarmUp.ts` (shared with the Journal from E12; tested)
 - **Service**: `src/services/adService.ts`
-- **Storage**: `src/services/storage/gratitudeStorage.ts` (WarmUp payment tracking)
-- **Reward**: 1 streak restoration credit
+- **Storage**: `SQLiteGratitudeStorage.applySingleWarmUpPayment()` (1 ad = 1 day, table `warm_up_payments`)
+- **Reward**: 1 missed day paid per fully watched ad
 
 **XP Integration**:
 - Watching ad does **NOT** award XP (prevents abuse)
@@ -211,29 +212,12 @@ On completion: Streak restored ✅
 ### Rewarded Ad Flow
 
 ```typescript
-// Pseudocode
-async function handleWatchAd() {
-  // 1. Load rewarded ad
-  const ad = await AdService.loadRewardedAd();
-
-  // 2. Show ad
-  const result = await ad.show();
-
-  // 3. On completion
-  if (result.rewarded) {
-    await GratitudeStorage.addWarmUpPayment({
-      date: today(),
-      method: 'ad',
-      cost: 0, // Free via ad
-    });
-
-    // Update streak calculation
-    await GratitudeContext.recalculateStreak();
-
-    // Show success modal
-    showSuccessModal();
-  }
-}
+// useStreakWarmUp().watchAd() — one ad at a time (a ref guard)
+const ad = await adService.showRewardedAd();
+if (!ad.rewarded) { showProblem({ message, retry }); return; }   // nothing paid
+const payment = await actions.applySingleWarmUpPayment();          // 1 day
+if (payment.isFullyWarmed) await finish(); // verify; a leftover day is fixed quietly
+else await actions.refreshStats();         // shared state: the Journal sees it too
 ```
 
 **Error Handling**:
@@ -245,7 +229,7 @@ async function handleWatchAd() {
 
 **Implementation Status**: ✅ Rewarded ads fully implemented (ad unit ID auto-switches by build type — see [Current Status](#-current-status))
 - `src/services/adService.ts` - Rewarded ad service with preloading
-- `src/components/home/GratitudeStreakCard.tsx` - Integration point
+- `src/components/home/JournalStreakCard.tsx` + `src/hooks/useStreakWarmUp.ts` - Integration point
 - Translation keys added for all ad-related errors (EN/DE/ES)
 
 ---

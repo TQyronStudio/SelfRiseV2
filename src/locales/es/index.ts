@@ -946,11 +946,8 @@ const es: Partial<TranslationKeys> = {
       frozenMessage_zero: 'Anuncios vistos: tu racha se está calentando.',
       title: 'Calienta tu racha',
       frozenDays: 'Días congelados',
-      frozenMessage_one: 'Tu racha ha estado congelada durante {{count}} día. Mira $t(journal.warmUp.adsCount, {"count": {{adsNeeded}} }) para calentarla y continúa escribiendo libremente! ❄️➡️🔥',
-      frozenMessage_other: 'Tu racha ha estado congelada durante {{count}} días. Mira $t(journal.warmUp.adsCount, {"count": {{adsNeeded}} }) para calentarla y continúa escribiendo libremente! ❄️➡️🔥',
-      // The ads of the sentence above, with their own plural ("Watch 1 ads" until 2026-11-24)
-      adsCount_one: '{{count}} anuncio',
-      adsCount_other: '{{count}} anuncios',
+      frozenMessage_one: 'Tu racha está congelada. Un anuncio corto la vuelve a calentar.',
+      frozenMessage_other: 'Tu racha está congelada. {{count}} anuncios cortos —uno por cada día perdido— la vuelven a calentar.',
       streakWarmedUp: '¡Racha calentada! ¡Ve al Diario y continúa tu viaje! ✨',
       warmingUp: 'Calentando: {{current}}/{{total}} 🔥',
       warmingProgress: 'Progreso de calentamiento',
@@ -1049,7 +1046,7 @@ const es: Partial<TranslationKeys> = {
       },
       resetFailed: {
         title: 'Reinicio fallido',
-        message: 'Tu racha no se reinició. Inténtalo de nuevo.',
+        message: 'Tu racha no se reinició. No ha cambiado nada.',
       },
       adDismissed: {
         title: 'Anuncio no completado',

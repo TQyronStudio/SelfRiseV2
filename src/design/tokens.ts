@@ -576,6 +576,7 @@ export interface TypeStyle {
 
 export type TypeVariant =
   | 'display'
+  | 'streak'
   | 'title'
   | 'titleSm'
   | 'number'
@@ -595,6 +596,14 @@ export const type: Record<TypeVariant, TypeStyle> = {
     lineHeight: 40,
     letterSpacing: -0.6,
     maxScale: 1.3,
+  },
+  /** The journal streak's big number next to its flame (Home card, Journal). */
+  streak: {
+    fontFamily: fonts.display,
+    fontSize: 52,
+    lineHeight: 58,
+    letterSpacing: -1,
+    maxScale: 1.2,
   },
   title: {
     fontFamily: fonts.display,

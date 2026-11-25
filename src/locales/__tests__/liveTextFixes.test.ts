@@ -17,14 +17,17 @@ const clean = (text: string, key: string) => {
 describe.each(LANGS)('%s', lang => {
   const t = fixed(lang);
 
-  it('the frozen streak: days and ads each have their own plural', () => {
-    // Two days frozen, one already warmed up → one ad left.
-    const text = t('journal.warmUp.frozenMessage', { count: 2, adsNeeded: 1 });
-    clean(text, 'journal.warmUp.frozenMessage');
-    expect(text).toContain(t('journal.warmUp.adsCount', { count: 1 }));
-    expect(text).not.toContain(t('journal.warmUp.adsCount', { count: 2 }).replace('2', '1'));
-    const many = t('journal.warmUp.frozenMessage', { count: 3, adsNeeded: 3 });
-    expect(many).toContain(t('journal.warmUp.adsCount', { count: 3 }));
+  it('the frozen streak: the sentence counts the ads still to watch (E11c)', () => {
+    // One ad left: no number, one ad. Several: the number of ads.
+    const one = t('journal.warmUp.frozenMessage', { count: 1 });
+    const three = t('journal.warmUp.frozenMessage', { count: 3 });
+    const none = t('journal.warmUp.frozenMessage', { count: 0 });
+    clean(one, 'journal.warmUp.frozenMessage');
+    clean(three, 'journal.warmUp.frozenMessage');
+    clean(none, 'journal.warmUp.frozenMessage');
+    expect(one).not.toMatch(/\d/);
+    expect(three).toContain('3');
+    expect(none).not.toBe(one);
   });
 
   it.each([

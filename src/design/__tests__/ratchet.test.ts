@@ -80,6 +80,9 @@ const CONVERTED: readonly string[] = [
   'src/components/home/TodayHabits.tsx',
   'src/components/home/QuickActions.tsx',
   'src/screens/home/homeHeroLogic.ts',
+  'src/components/home/JournalStreakCard.tsx',
+  'src/components/ui/ProblemNote.tsx',
+  'src/hooks/useJournalFlame.ts',
   // E7 (part 1) – the XP display: books, origins, multiplier mark rules
   'src/services/xpDisplay/xpLedger.ts',
   'src/services/xpDisplay/xpOriginRegistry.ts',

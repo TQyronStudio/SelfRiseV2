@@ -946,11 +946,8 @@ const de: Partial<TranslationKeys> = {
       frozenMessage_zero: 'Alle Werbungen angesehen – deine Serie wärmt sich auf.',
       title: 'Wärme deine Serie auf',
       frozenDays: 'Eingefrorene Tage',
-      frozenMessage_one: 'Deine Serie ist seit {{count}} Tag eingefroren. Schau dir $t(journal.warmUp.adsCount, {"count": {{adsNeeded}} }) an, um sie aufzuwärmen und schreibe dann frei weiter! ❄️➡️🔥',
-      frozenMessage_other: 'Deine Serie ist seit {{count}} Tagen eingefroren. Schau dir $t(journal.warmUp.adsCount, {"count": {{adsNeeded}} }) an, um sie aufzuwärmen und schreibe dann frei weiter! ❄️➡️🔥',
-      // The ads of the sentence above, with their own plural ("Watch 1 ads" until 2026-11-24)
-      adsCount_one: '{{count}} Werbung',
-      adsCount_other: '{{count}} Werbungen',
+      frozenMessage_one: 'Deine Serie ist eingefroren. Eine kurze Werbung wärmt sie wieder auf.',
+      frozenMessage_other: 'Deine Serie ist eingefroren. {{count}} kurze Werbungen – eine pro verpasstem Tag – wärmen sie wieder auf.',
       streakWarmedUp: 'Serie aufgewärmt! Gehe zum Tagebuch und setze deine Reise fort! ✨',
       warmingUp: 'Aufwärmen: {{current}}/{{total}} 🔥',
       warmingProgress: 'Aufwärm-Fortschritt',
@@ -1049,7 +1046,7 @@ const de: Partial<TranslationKeys> = {
       },
       resetFailed: {
         title: 'Zurücksetzen fehlgeschlagen',
-        message: 'Deine Serie wurde nicht zurückgesetzt. Versuch es bitte noch einmal.',
+        message: 'Deine Serie wurde nicht zurückgesetzt. Es hat sich nichts geändert.',
       },
       adDismissed: {
         title: 'Werbung nicht abgeschlossen',

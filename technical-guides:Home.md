@@ -6,6 +6,7 @@
 - **Pozdrav podle denní doby** (vlastní hranice 5 / 12 / 18 h, odděleně od barvy nebe)
 - **Kompaktní hlavička** při rolování a pravidla plynulosti (P1–P3, P79)
 - **Rychlé akce** a jejich odkazy `?quickAction=…`
+- **Karta série deníku se záchranou** zamrzlé série přímo na Home (plamen, vločky → slunce, pruh chyb)
 - **Pořadí sekcí** (uživatelovo, `HomeCustomizationContext`)
 - **Nebezpečné zóny**: jak si Home rozbít
 
@@ -16,9 +17,9 @@
 - Řešíš zadrhávání při rolování Home nebo „slunce se točí, i když se nedívám“
 
 *Stav: převod designu E11 běží po krocích. **E11b hotová** (2026-11-25): hrdina, pozdrav,
-kompaktní hlavička, rychlé akce, dnešní návyky. Karta série se záchranou (E11c), statistiky
-návyků (E11d), Přehledy, Pro tebe, nový sheet přizpůsobení a převod uloženého rozložení (E11e)
-zatím zůstávají ve staré podobě – jejich části se doplní sem se svým kódem.*
+kompaktní hlavička, rychlé akce, dnešní návyky. **E11c hotová** (2026-11-25): karta série se
+záchranou. Statistiky návyků (E11d), Přehledy, Pro tebe, nový sheet přizpůsobení a převod
+uloženého rozložení (E11e) zatím zůstávají ve staré podobě – jejich části se doplní sem se svým kódem.*
 
 ---
 
@@ -142,8 +143,34 @@ snímky rolování.
 `/(tabs)/goals?quickAction=addGoal` – cílové záložky na ně poslouchají. Bublina nápovědy
 `home.quickActions` zanikla (plán 7.10, `technical-guides:Help-Tooltips.md`).
 
+### Karta série deníku (E11c)
+`src/components/home/JournalStreakCard.tsx` nad `useStreakWarmUp` a `useJournalFlame`
+(pravidla obou: `technical-guides:My-Journal.md`, „Zahřátí zamrzlé série“).
+- **Plamen** vypráví příběh: oheň; zamrzlá série = led a karta zledovatí (`iceSoft` / `iceRing`);
+  zahřáto = led praskne a chytne – **jednou** (paměť na den, sdílená). Smyčka stojí při rolování (`rest`).
+- **Zamrzlá série se zachraňuje přímo tady** (5c): věta `journal.warmUp.frozenMessage` (`count` =
+  zbývající reklamy), vločka za každý zmeškaný den (zaplacený = slunce), „Zahřát (x/y)“ a tiché
+  „Začít znovu“ s potvrzením (`ConfirmSheet` kreslí stránka, aby překryl celou plochu). Psaní je
+  v tu chvíli skryté – Deník zamrzlé sérii záznamy nebere.
+- Jinak: tři tečky dnešních záznamů (denní cíl 3 = pravidlo série v úložišti), ⭐🔥👑 a „Napsat
+  záznam“ (`/(tabs)/journal?quickAction=addGratitude`). Série 0 → čip „Začni dnes“, ne „aktivní“.
+- Každá návštěva Home obnoví sérii (`refreshStats` na fokus) – tam se taky ruší dluh nad 3 dny.
+- **Čtečka:** karta je celá tlačítko (otevře Deník), proto vnořená tlačítka nabízí jako své akce
+  (Zahřát / Začít znovu / Napsat) – na iOS by je jinak čtečka neviděla.
+- **Přesměrování z Deníku** (`?openDebtModal=true`, posílá `GratitudeInput` při zamrzlé sérii):
+  Home už neotevírá okno, ale dorolluje ke kartě série (`reveal` v `HomePage`). Parametr se po
+  použití smaže, takže další přesměrování zafunguje znovu.
+
+### Chybový pruh (`ProblemNote`, vrstva 2b)
+`src/components/ui/ProblemNote.tsx`: `ProblemNoteProvider` kolem navigátoru, `<ProblemNoteLayer />`
+v `app/_layout.tsx` mezi odznakem a úvodem. `useProblemNote().showProblem({ message, retry? })`:
+jedna věta z locales (nikdy `error.message`), „Zkusit znovu“ jen když pomůže, sám zmizí po 6 s,
+nový pruh nahradí starý. Sedí nad spodní lištou a místem pro reklamu. Home je první obrazovka, která
+ho používá (chyby záchrany série); další obrazovky ho převezmou ve svých etapách (plán 7.9).
+
 ### Pořadí sekcí
-Pořadí a viditelnost z `useHomeCustomization()`. Do E11e: „Dnešní návyky“ jdou hned za rychlé akce
+Pořadí a viditelnost z `useHomeCustomization()`. Stránka sama kreslí `quickActions`, `todayHabits`
+a `journalStreak`; ostatní dodá `renderSection` z `index.tsx`. Do E11e: „Dnešní návyky“ jdou hned za rychlé akce
 (dřív byly spodním řádkem jejich karty), sekce `xpMultiplier` se přeskakuje (násobič je na
 odznaku, E9). Staré karty (`renderSection`) dostávají zpět svůj okraj 16 bodů, dokud je E11c–E11e
 nenahradí.
@@ -164,6 +191,9 @@ ignoruje – úložiště čte a pak píše, dva zápisy naráz by mohly dát XP
 5. **Povzbuzení bez `minHeight`** → poslední návyk posune všechny karty pod hrdinou.
 6. **Konstanta XP v obrazovce** → lže při bonusu, násobiči i stropu.
 7. **Smazání posluchače `openHomeCustomization`** → tlačítko přizpůsobení přestane fungovat.
+8. **Plamen bez paměti „zahřátí už hrálo“** → `justUnfrozeToday` platí celý den, každá návštěva by led roztála znovu.
+9. **Platba bez `refreshStats`** → Home a Deník ukážou jiný stav dluhu.
+10. **Okno místo pruhu u chyby záchrany** → rozhodnutí E11/6: potvrzením je plamen, chyba je pruh.
 
 ---
 
@@ -177,6 +207,8 @@ PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH" npx jest src/screens/home src
   značek, kdy je den dokončený.
 - `src/screens/habits/__tests__/habitListLogic.test.ts` – `scheduleLabel`, `splitHabits`, `doneToday`.
 - `src/locales/__tests__/homeCopy.test.ts` – texty Home ve třech jazycích.
+- `src/hooks/__tests__/useStreakWarmUp.test.tsx` – reklama = den, obnova po platbě, tichá oprava, pruhy.
+- `src/hooks/__tests__/useJournalFlame.test.ts` – led / zahřátí jednou / oheň.
 - `src/design/__tests__/ratchet.test.ts` – nové soubory Home jen s tokeny.
 
 ---
@@ -186,7 +218,8 @@ PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH" npx jest src/screens/home src
 - Stejné „x/y“ na Home i v Návycích.
 - Rychlé akce otevírají správné okno v cílové záložce.
 - Přizpůsobení Home (pořadí, viditelnost, událost `openHomeCustomization`).
-- `?openDebtModal=true` otevře záchranu série (do E12).
+- `?openDebtModal=true` dorolluje ke kartě série se záchranou (do E12).
+- Zaplacený den na Home je hned zaplacený i v Deníku (jeden stav).
 - Jiskry XP letí z odškrtnutí k odznaku.
 
 ---
@@ -200,6 +233,10 @@ PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH" npx jest src/screens/home src
 4. **Den bez naplánovaného návyku** → věta o volném dni, žádné „0/0“.
 5. **Rychle roluj nahoru a dolů** → bez zadrhnutí; lišta vyjede pod horním řádkem bez schodu ve světle.
 6. **Ťukni na každou rychlou akci** → správná záložka a správné okno.
+7. **Zamrzlá série** (vynech den deníku) → karta zledovatí; „Zahřát“ → reklama → vločka se změní ve
+   slunce; poslední den → led praskne a chytne jednou; při dalším otevření Home už jen oheň.
+8. **Zavři reklamu dřív** → pruh „Reklama nedoběhla…“ se „Zkusit znovu“, série dál zamrzlá.
+9. **Začít znovu** → potvrzení → série 0, čip „Začni dnes“.
 
 ---
 

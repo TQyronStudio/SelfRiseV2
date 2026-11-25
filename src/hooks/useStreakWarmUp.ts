@@ -1,167 +1,142 @@
 /**
- * Warming up a frozen journal streak (migration E11a, plan point 5b): the logic
- * that lived inside Home's GratitudeStreakCard — rewarded ad, payment per ad,
- * completion check with its automatic fixes, "start fresh" — moved here
- * UNCHANGED, so Home and the Journal (E12) share one copy. Tested in
- * __tests__/useStreakWarmUp.test.tsx.
+ * Warming up a frozen journal streak, right on the card (migration E11a moved the
+ * logic here from Home's old GratitudeStreakCard; E11c rebuilt the flow for the
+ * inline rescue — plan point 5c, decision E11/6). Shared by Home's streak card
+ * and, from E12, the Journal. Tested in __tests__/useStreakWarmUp.test.tsx.
  *
- * The hook keeps the state the warm-up sheet needs and a `notice` (success,
- * error, congratulations) for the caller to show; it shows nothing itself.
+ * - One ad = one missed day (adService → applySingleWarmUpPayment).
+ * - After EVERY payment the shared streak is refreshed (refreshStats), so a day
+ *   paid on Home is paid in the Journal at once (the context does not refresh
+ *   after a payment on its own).
+ * - `progress` = the missed days and how many are paid (getWarmUpPaymentProgress):
+ *   the card draws one snowflake per day that turns into a sun.
+ * - No success windows: the flame is the confirmation (ice → warming → fire).
+ *   The technical branches (a day left frozen after the last ad, repeated
+ *   failures) fix themselves without a window, as before.
+ * - Problems go to the calm note (ProblemNote): ad errors with "Try again", a
+ *   failed reset, and — only if warming truly failed — the ad error sentence.
  */
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useGratitude } from '../contexts/GratitudeContext';
 import { adService } from '../services/adService';
+import { useProblemNote } from '../components/ui/ProblemNote';
 import { useI18n } from './useI18n';
 
-export type WarmUpNotice =
-  | { kind: 'success' | 'error' | 'congratulations'; title: string; message: string }
-  | null;
+export interface WarmUpProgress {
+  /** Missed days of the current freeze. */
+  total: number;
+  /** Of those, already paid with an ad. */
+  paid: number;
+}
 
 export function useStreakWarmUp() {
   const { t } = useI18n();
-  const { actions } = useGratitude();
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [adsWatched, setAdsWatched] = useState(0);
-  const [totalAdsNeeded, setTotalAdsNeeded] = useState(0);
-  const [notice, setNotice] = useState<WarmUpNotice>(null);
+  const { state, actions } = useGratitude();
+  const { showProblem } = useProblemNote();
+  const [progress, setProgress] = useState<WarmUpProgress | null>(null);
   // Prevents a second ad while one plays (a ref: two taps in one frame both
   // read a stale `false` from state).
   const watching = useRef(false);
   const [isWatchingAd, setIsWatchingAd] = useState(false);
-  const retries = useRef(0);
+  const latest = useRef(actions);
+  latest.current = actions;
+  // "Try again" on the note calls the newest watchAd.
+  const watchAdRef = useRef<() => Promise<boolean>>(async () => false);
 
-  const success = useCallback((title: string, message: string) => setNotice({ kind: 'success', title, message }), []);
-  const error = useCallback((title: string, message: string) => setNotice({ kind: 'error', title, message }), []);
-  const clearNotice = useCallback(() => setNotice(null), []);
+  const loadProgress = useCallback(async () => {
+    const p = await latest.current.getWarmUpPaymentProgress();
+    setProgress({ total: p.totalMissedDays, paid: p.paidDays });
+  }, []);
 
-  /** Opens the warm-up (fresh count of ads needed); nothing to pay = a success note. */
-  const openWarmUp = useCallback(async () => {
-    setAdsWatched(0);
-    const adsNeeded = await actions.adsNeededToWarmUp();
-    setTotalAdsNeeded(adsNeeded);
-    if (adsNeeded === 0) {
-      success(t('journal.rescue.noDebt.title'), t('journal.rescue.noDebt.message'));
-      return;
+  // While frozen, follow the debt (it can change at midnight or in the Journal).
+  // After the warm-up the last progress stays: the card shows the paid days
+  // while the flame catches.
+  const frozen = state.streakInfo?.isFrozen ?? false;
+  const frozenDays = state.streakInfo?.frozenDays ?? 0;
+  useEffect(() => {
+    if (frozen) void loadProgress();
+  }, [frozen, frozenDays, loadProgress]);
+
+  /**
+   * Debt-free without ads (the same payments, no ad): when the last ad was
+   * watched but a day stayed frozen. Returns false if even that failed.
+   */
+  const forceResetDebt = useCallback(async (): Promise<boolean> => {
+    try {
+      const a = latest.current;
+      let remaining = await a.adsNeededToWarmUp();
+      for (let i = 0; i < 3 && remaining > 0; i++) {
+        const result = await a.applySingleWarmUpPayment();
+        remaining = result.remainingFrozenDays;
+      }
+      await a.refreshStats();
+      return true;
+    } catch {
+      return false;
     }
-    setSheetOpen(true);
-  }, [actions, success, t]);
+  }, []);
+
+  /** The last day is paid: make sure nothing stayed frozen, quietly. */
+  const finish = useCallback(async () => {
+    try {
+      await latest.current.refreshStats();
+      const remaining = await latest.current.calculateFrozenDays();
+      if (remaining > 0 && !(await forceResetDebt())) {
+        showProblem({ message: t('journal.rescue.adError.message') });
+      }
+    } catch {
+      if (!(await forceResetDebt())) {
+        showProblem({ message: t('journal.rescue.adError.message') });
+      }
+    }
+  }, [forceResetDebt, showProblem, t]);
 
   /** Shows one rewarded ad; a full view pays one frozen day. True = paid. */
   const watchAd = useCallback(async (): Promise<boolean> => {
     if (watching.current) return false;
     watching.current = true;
     setIsWatchingAd(true);
+    const retry = () => void watchAdRef.current();
     try {
       const adResult = await adService.showRewardedAd();
       if (!adResult.rewarded) {
-        if (adResult.error === 'AD_DISMISSED_EARLY') {
-          error(t('journal.rescue.adDismissed.title'), t('journal.rescue.adDismissed.message'));
-        } else if (adResult.error === 'AD_LOAD_FAILED') {
-          error(t('journal.rescue.adLoadFailed.title'), t('journal.rescue.adLoadFailed.message'));
-        } else {
-          error(t('journal.rescue.adError.title'), t('journal.rescue.adError.message'));
-        }
+        const key =
+          adResult.error === 'AD_DISMISSED_EARLY'
+            ? 'journal.rescue.adDismissed.message'
+            : adResult.error === 'AD_LOAD_FAILED'
+              ? 'journal.rescue.adLoadFailed.message'
+              : 'journal.rescue.adError.message';
+        showProblem({ message: t(key), retry });
         return false;
       }
-      const payment = await actions.applySingleWarmUpPayment();
-      setAdsWatched(prev => {
-        const next = prev + 1;
-        if (payment.isFullyWarmed) setTotalAdsNeeded(next);
-        return next;
-      });
+      const payment = await latest.current.applySingleWarmUpPayment();
+      if (payment.isFullyWarmed) {
+        await finish();
+      } else {
+        await latest.current.refreshStats();
+      }
+      await loadProgress();
       return true;
     } catch {
-      error(t('journal.rescue.adError.title'), t('journal.rescue.adError.message'));
+      showProblem({ message: t('journal.rescue.adError.message'), retry });
       return false;
     } finally {
       watching.current = false;
       setIsWatchingAd(false);
     }
-  }, [actions, error, t]);
+  }, [finish, loadProgress, showProblem, t]);
+  watchAdRef.current = watchAd;
 
-  /**
-   * Debt-free without ads (the same payments, no ad): used when the warm-up was
-   * fully watched but a day stayed frozen, or after repeated technical failures.
-   */
-  const forceResetDebt = useCallback(async () => {
-    try {
-      let remaining = await actions.adsNeededToWarmUp();
-      for (let i = 0; i < 3 && remaining > 0; i++) {
-        const result = await actions.applySingleWarmUpPayment();
-        remaining = result.remainingFrozenDays;
-      }
-      setAdsWatched(0);
-      setTotalAdsNeeded(0);
-      await actions.refreshStats();
-      success(t('journal.rescue.issueResolved.title'), t('journal.rescue.issueResolved.message'));
-    } catch {
-      error(t('journal.rescue.resetFailed.title'), t('journal.rescue.resetFailed.message'));
-    }
-  }, [actions, success, error, t]);
-
-  /** The sheet says all ads were watched: verify, fix leftovers, congratulate. */
-  const completeWarmUp = useCallback(async () => {
-    try {
-      setSheetOpen(false);
-      setAdsWatched(0);
-      setTotalAdsNeeded(0);
-      await actions.refreshStats();
-      const remainingDebt = await actions.calculateFrozenDays();
-      if (remainingDebt > 0) {
-        try {
-          await forceResetDebt();
-          success(t('journal.rescue.autoFixed.title'), t('journal.rescue.autoFixed.message'));
-        } catch {
-          error(t('journal.rescue.technicalIssue.title'), t('journal.rescue.technicalIssue.message'));
-        }
-        return;
-      }
-      setNotice({
-        kind: 'congratulations',
-        title: t('journal.rescue.congratulations.title'),
-        message: t('journal.rescue.congratulations.message'),
-      });
-    } catch {
-      // Progressive: twice "try again", then fix it with an apology.
-      if (retries.current < 2) {
-        retries.current += 1;
-        error(
-          t('journal.rescue.technicalIssueRetry.title'),
-          t('journal.rescue.technicalIssueRetry.message', { attempt: retries.current })
-        );
-      } else {
-        try {
-          await forceResetDebt();
-          success(t('journal.rescue.issueResolved.title'), t('journal.rescue.issueResolved.message'));
-        } catch {
-          error(t('journal.rescue.criticalError.title'), t('journal.rescue.criticalError.message'));
-        }
-        retries.current = 0;
-      }
-    }
-  }, [actions, forceResetDebt, success, error, t]);
-
-  /** "Start fresh": the streak goes to 0 (the sheet asks before). */
+  /** "Start fresh": the streak goes to 0 (the card asks before). */
   const startFresh = useCallback(async () => {
     try {
-      await actions.resetStreak();
-      await actions.refreshStats();
+      await latest.current.resetStreak();
+      await latest.current.refreshStats();
+      setProgress(null);
     } catch {
-      // the old card only logged it
+      showProblem({ message: t('journal.rescue.resetFailed.message') });
     }
-  }, [actions]);
+  }, [showProblem, t]);
 
-  return {
-    sheetOpen,
-    closeSheet: () => setSheetOpen(false),
-    adsWatched,
-    totalAdsNeeded,
-    isWatchingAd,
-    notice,
-    clearNotice,
-    openWarmUp,
-    watchAd,
-    completeWarmUp,
-    startFresh,
-  };
+  return { progress, isWatchingAd, watchAd, startFresh };
 }

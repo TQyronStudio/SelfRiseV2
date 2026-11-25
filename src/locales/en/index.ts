@@ -944,11 +944,8 @@ const en: TranslationKeys = {
       frozenMessage_zero: 'All ads watched — your streak is warming up.',
       title: 'Warm Up Your Streak',
       frozenDays: 'Frozen Days',
-      frozenMessage_one: 'Your streak has been frozen for {{count}} day. Watch $t(journal.warmUp.adsCount, {"count": {{adsNeeded}} }) to warm it up, then continue journaling freely! ❄️➡️🔥',
-      frozenMessage_other: 'Your streak has been frozen for {{count}} days. Watch $t(journal.warmUp.adsCount, {"count": {{adsNeeded}} }) to warm it up, then continue journaling freely! ❄️➡️🔥',
-      // The ads of the sentence above, with their own plural ("Watch 1 ads" until 2026-11-24)
-      adsCount_one: '{{count}} ad',
-      adsCount_other: '{{count}} ads',
+      frozenMessage_one: 'Your streak is frozen. One short ad warms it up again.',
+      frozenMessage_other: 'Your streak is frozen. {{count}} short ads — one for each missed day — warm it up again.',
       streakWarmedUp: 'Streak warmed up! Go to Journal and continue your journey! ✨',
       warmingUp: 'Warming up: {{current}}/{{total}} 🔥',
       warmingProgress: 'Warming Progress',
@@ -1047,7 +1044,7 @@ const en: TranslationKeys = {
       },
       resetFailed: {
         title: 'Reset Failed',
-        message: 'Your streak wasn’t reset. Please try again.',
+        message: 'Your streak wasn’t reset. Nothing has changed.',
       },
       adDismissed: {
         title: 'Ad Not Completed',
