@@ -266,7 +266,9 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
       return result;
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to apply warm up payment');
-      return { remainingFrozenDays: 0, isFullyWarmed: false };
+      // Rethrow: a watched ad that paid nothing must reach the rescue's error
+      // note (useStreakWarmUp). A quiet "0 left, not warmed" was a lost payment.
+      throw error;
     }
   };
 
@@ -290,13 +292,8 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
       return await gratitudeStorage.getWarmUpPaymentProgress();
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to get warm up progress');
-      return {
-        totalMissedDays: 0,
-        paidDays: 0,
-        unpaidDays: 0,
-        paidDates: [],
-        unpaidDates: [],
-      };
+      // Rethrow: all-zero progress read as "0 of 1 paid" on the frozen card.
+      throw error;
     }
   };
 
@@ -307,6 +304,8 @@ export function GratitudeProvider({ children }: { children: ReactNode }) {
       await refreshStats();
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to reset streak');
+      // Rethrow: "Start fresh" shows its own error note (useStreakWarmUp).
+      throw error;
     }
   };
 

@@ -130,3 +130,11 @@ it('start fresh resets the streak; a failure is a note', async () => {
   await act(() => result.current.startFresh());
   expect(mockShowProblem).toHaveBeenCalledWith({ message: 'journal.rescue.resetFailed.message' });
 });
+
+it('a failed progress read shows no made-up count (the card falls back to the frozen days)', async () => {
+  mockActions.getWarmUpPaymentProgress.mockRejectedValueOnce(new Error('db'));
+  const { result } = renderHook(() => useStreakWarmUp());
+  await waitFor(() => expect(mockActions.getWarmUpPaymentProgress).toHaveBeenCalled());
+  await act(async () => {});
+  expect(result.current.progress).toBeNull();
+});

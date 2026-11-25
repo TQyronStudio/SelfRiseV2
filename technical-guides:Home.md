@@ -200,7 +200,8 @@ Bez doporučení karta zmizí.
 `src/components/ui/ProblemNote.tsx`: `ProblemNoteProvider` kolem navigátoru, `<ProblemNoteLayer />`
 v `app/_layout.tsx` mezi odznakem a úvodem. `useProblemNote().showProblem({ message, retry? })`:
 jedna věta z locales (nikdy `error.message`), „Zkusit znovu“ jen když pomůže, sám zmizí po 6 s,
-nový pruh nahradí starý. Sedí nad spodní lištou a místem pro reklamu. Home je první obrazovka, která
+nový pruh nahradí starý. Na záložkách sedí nad spodní lištou a místem pro reklamu, na stránkách mimo
+záložky (Historie, Statistiky deníku) jen nad místem pro reklamu (`useSegments`, stejně jako odznak úrovně). Home je první obrazovka, která
 ho používá (chyby záchrany série); další obrazovky ho převezmou ve svých etapách (plán 7.9).
 
 ### Sekce a jejich pořadí (E11e)

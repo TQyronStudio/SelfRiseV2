@@ -43,9 +43,15 @@ export function useStreakWarmUp() {
   // "Try again" on the note calls the newest watchAd.
   const watchAdRef = useRef<() => Promise<boolean>>(async () => false);
 
+  // A failed read keeps what the card shows (or the streak's frozen days) —
+  // never a made-up "0 of 1".
   const loadProgress = useCallback(async () => {
-    const p = await latest.current.getWarmUpPaymentProgress();
-    setProgress({ total: p.totalMissedDays, paid: p.paidDays });
+    try {
+      const p = await latest.current.getWarmUpPaymentProgress();
+      setProgress({ total: p.totalMissedDays, paid: p.paidDays });
+    } catch {
+      // keep the last progress
+    }
   }, []);
 
   // While frozen, follow the debt (it can change at midnight or in the Journal).

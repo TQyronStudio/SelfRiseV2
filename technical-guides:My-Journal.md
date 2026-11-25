@@ -620,6 +620,11 @@ Logika žije v `src/hooks/useStreakWarmUp.ts` (dřív celá uvnitř staré `Grat
   (po poslední reklamě zůstal den zamrzlý) se opraví potichu bez reklamy.
 - **Chyby jdou do pruhu `ProblemNote`** (`src/components/ui/ProblemNote.tsx`, vrstva 2b): reklama nedoběhla /
   není k dispozici / chyba reklamy (se „Zkusit znovu“), nepovedený reset. Nikdy `error.message`.
+- **Akce záchrany v `GratitudeContext` chybu posílají dál** (`applySingleWarmUpPayment`, `resetStreak`,
+  `getWarmUpPaymentProgress` – po `setError` ji vyhodí). Dřív ji spolkly: dokoukaná reklama s nepovedeným
+  zápisem vypadala jako zaplacená, „Začít znovu“ jako hotové a nepovedené čtení ukázalo „0/1“. Hook pruh
+  ukáže jen když akce vyhodí; nepovedené čtení postupu nechá kartě předchozí stav (nebo zamrzlé dny série).
+  Test: `src/contexts/__tests__/gratitudeWarmUpErrors.test.tsx` + `useStreakWarmUp.test.tsx`.
 
 **Plamen** (`src/hooks/useJournalFlame.ts`, `flameStateOf` s testem): zamrzlá série = led; `justUnfrozeToday`
 a zahřátí dnes ještě nehrálo = zahřátí; jinak oheň. `justUnfrozeToday` platí **celý den** – proto si appka

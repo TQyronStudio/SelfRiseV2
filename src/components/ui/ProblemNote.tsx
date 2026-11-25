@@ -24,6 +24,7 @@ import React, {
 import { AccessibilityInfo, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSegments } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useDesign } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
@@ -33,7 +34,7 @@ import { TAB_BAR_HEIGHT } from './TabBar';
 
 /** The note stays this long, then goes by itself. */
 export const PROBLEM_HOLD_MS = 6000;
-/** The ad banner's room above the tab bar (as on the tab screens). */
+/** The ad banner's room (above the tab bar on the tabs, at the bottom elsewhere). */
 const BANNER_ROOM = 60;
 
 export interface Problem {
@@ -113,6 +114,9 @@ function ProblemNoteView({
   const { c } = useDesign();
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
+  // The tab bar is there only on the tabs; a pushed page (journal history,
+  // statistics) has just its banner — the note sits right above it.
+  const onTabs = useSegments()[0] === '(tabs)';
   const gone = useRef(onGone);
   gone.current = onGone;
 
@@ -135,7 +139,7 @@ function ProblemNoteView({
           styles.note,
           {
             marginBottom:
-              insets.bottom + TAB_BAR_HEIGHT + BANNER_ROOM + space.sm,
+              insets.bottom + (onTabs ? TAB_BAR_HEIGHT : 0) + BANNER_ROOM + space.sm,
             backgroundColor: c.surface,
             borderColor: c.border,
             boxShadow: c.shadow,
