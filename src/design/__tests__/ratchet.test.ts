@@ -95,6 +95,10 @@ const CONVERTED: readonly string[] = [
   'src/screens/journal/journalDayLogic.ts',
   'src/screens/journal/journalWritingGate.ts',
   'src/utils/journalXp.ts',
+  // E13 – Journal history and statistics
+  'src/components/journal/JournalHistoryPage.tsx',
+  'src/screens/journal/journalHistoryLogic.ts',
+  'app/journal-history.tsx',
   'src/components/ui/ProblemNote.tsx',
   'src/hooks/useJournalFlame.ts',
   // E7 (part 1) – the XP display: books, origins, multiplier mark rules

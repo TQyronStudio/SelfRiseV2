@@ -6,7 +6,7 @@
  * text carries no emoji — E12/7).
  */
 import React, { memo, useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -47,6 +47,10 @@ interface EntryCardProps {
   position: number;
   /** Just written: glows twice in its type's colour as it arrives. */
   fresh: boolean;
+  /** Shown above the text (search results span many days). */
+  dateLabel?: string;
+  /** Search term to pick out in the text. */
+  term?: string;
   onMore: (id: string) => void;
 }
 
@@ -57,6 +61,8 @@ export const EntryCard = memo(function EntryCard({
   time,
   position,
   fresh,
+  dateLabel,
+  term = '',
   onMore,
 }: EntryCardProps) {
   const { c } = useDesign();
@@ -150,12 +156,53 @@ export const EntryCard = memo(function EntryCard({
           <Ionicons name="ellipsis-horizontal" size={18} color={c.textMuted} />
         </PressableScale>
       </View>
+      {dateLabel && (
+        <AppText variant="overline" tone="muted" style={styles.text}>
+          {dateLabel}
+        </AppText>
+      )}
       <AppText variant="body" style={styles.text}>
-        {text}
+        <Highlighted text={text} term={term} />
       </AppText>
     </View>
   );
 });
+
+/** Text with the search term picked out (case-insensitive). */
+function Highlighted({ text, term }: { text: string; term: string }) {
+  const { c } = useDesign();
+  const needle = term.trim().toLowerCase();
+  if (!needle) return <>{text}</>;
+  const parts: { s: string; hit: boolean }[] = [];
+  const lower = text.toLowerCase();
+  let i = 0;
+  while (i < text.length) {
+    const at = lower.indexOf(needle, i);
+    if (at === -1) {
+      parts.push({ s: text.slice(i), hit: false });
+      break;
+    }
+    if (at > i) parts.push({ s: text.slice(i, at), hit: false });
+    parts.push({ s: text.slice(at, at + needle.length), hit: true });
+    i = at + needle.length;
+  }
+  return (
+    <>
+      {parts.map((part, k) =>
+        part.hit ? (
+          <Text
+            key={k}
+            style={{ fontFamily: fonts.semibold, color: c.primary, backgroundColor: c.primarySoft }}
+          >
+            {part.s}
+          </Text>
+        ) : (
+          <Text key={k}>{part.s}</Text>
+        )
+      )}
+    </>
+  );
+}
 
 /** "⋯" on an entry → Edit / Delete. */
 export function EntryActionsSheet({

@@ -581,6 +581,19 @@ záznam přinese) → **citát dne (vždy nad dnešními záznamy)** → dnešn�
 - Nápověda: tiché „i“ `journalDay` (u „Dnes“) a `frozen` (u zamrzlé série); čísla z konstant
   (`XP_REWARDS.JOURNAL`, `MAX_DEBT_DAYS` – limit dluhu, který používá i úložiště).
 
+### 📅 Historie deníku jako kalendář (E13, 2026-11-25)
+`app/journal-history.tsx` → `src/components/journal/JournalHistoryPage.tsx`, pravidla
+`src/screens/journal/journalHistoryLogic.ts` (test). Měsíc ukáže celý rytmus, ťuknutí otevře den.
+- **Stav dne tvarem** (čte se v obou režimech i bez barev): plný kruh = splněno (3+), ★ = bonusový den (4+),
+  čárkovaný kruh = začato (1–2), led + ❄ = zamrzlý den zachráněný reklamou (`warmUpPayments`, jen `isComplete`),
+  samotné číslo = nic. Splněný den zůstane splněný, i když byl zároveň zaplacený.
+- **Stuha** spojuje v řádku týdne dny, které nesou sérii (splněné a zaplacené) – je vidět série i den, který ji zlomil.
+- Panel dne s ‹ › (jako dřív), záznamy s „⋯“ (stejný sheet úprav a potvrzení jako Deník). Měsíce sahají
+  k prvnímu záznamu.
+- **Hledání** nahradí kalendář při psaní; shody jsou v textu zvýrazněné. Filtruje záznamy, které drží kontext
+  (úložiště hledalo stejně v JavaScriptu) – okamžité a nemůže selhat. Výsledky dál ve `FlatList` (N9).
+- Chyba úpravy / smazání = pruh `ProblemNote`, nikdy `Alert.alert`. `EditGratitudeModal` a `GratitudeList` smazány.
+
 ### 🔥 Zahřátí zamrzlé série – jeden hook, záchrana přímo na kartě (E11a + E11c, 2026-11-25)
 Logika žije v `src/hooks/useStreakWarmUp.ts` (dřív celá uvnitř staré `GratitudeStreakCard`, smazané v E11c).
 **Home i Deník (od E12) používají tentýž hook** – nikdy druhou kopii. Hlídá `src/hooks/__tests__/useStreakWarmUp.test.tsx`.
