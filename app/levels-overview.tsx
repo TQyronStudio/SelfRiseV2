@@ -1,14 +1,10 @@
 import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { LevelsOverviewScreen } from '@/src/screens/levels/LevelsOverviewScreen';
+import { LevelsJourneyScreen } from '@/src/screens/levels/LevelsJourneyScreen';
 
-export default function LevelsOverviewTab() {
-  // Still the blue header until this screen's migration stage: light icons
-  // (the root status bar follows the mode since E3).
-  return (
-    <>
-      <StatusBar style="light" />
-      <LevelsOverviewScreen />
-    </>
-  );
+/**
+ * All levels (E9): the journey in the new look. The root status bar follows the
+ * mode; the old table (LevelsOverviewScreen) goes in E26.
+ */
+export default function LevelsOverviewRoute() {
+  return <LevelsJourneyScreen />;
 }

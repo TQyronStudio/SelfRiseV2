@@ -70,6 +70,7 @@ const CONVERTED: readonly string[] = [
   'src/components/xp/LevelPanel.tsx',
   'src/components/xp/useMultiplierState.ts',
   'src/services/levels/rankTitle.ts',
+  'src/screens/levels/LevelsJourneyScreen.tsx',
   // E7 (part 1) – the XP display: books, origins, multiplier mark rules
   'src/services/xpDisplay/xpLedger.ts',
   'src/services/xpDisplay/xpOriginRegistry.ts',

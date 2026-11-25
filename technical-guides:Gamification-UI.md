@@ -550,6 +550,13 @@ přepnutí záložky a tažení (lze pustit v půli). Jen na záložkách, ne po
 tlačítkem / sbírá se se sedmi dílky a dnešními třemi), tiché „i“ (téma `multiplier`, okno nápovědy hostí vrstva odznaku
 až po zavření panelu), „All levels“ → `/levels-overview`. Ťuk na odznak během tichého oznámení = ťuk na oznámení.
 
+**Přehled úrovní (E9 bod 3, 2026-11-25):** trasa `/levels-overview` → `src/screens/levels/LevelsJourneyScreen.tsx`
+(staré `LevelsOverviewScreen` zaniká v E26). Cesta šesti kapitolami (`levelsJourney.ts`, test): hrdina „Level N of 100“,
+přeložená hodnost (`rankTitle`), pás šesti barev úrovní naplněný po uživatele, XP do další úrovně, další milník; vlastní
+kapitola v ohnisku (zlatý kroužek „You are here“), ostatní na ťuk. **Milník jmenuje jen skutečnou trofej z katalogu**
+(`CORE_ACHIEVEMENTS`, podmínka `level`), tajnou nikdy (75 a 100 = „Milestone · Level N“). Stránka se po příjezdu sama
+posune k uživateli (při sníženém pohybu bez animace); za stavovým řádkem drží pruh v barvě stránky.
+
 **Oznámení násobiče (E9 2c/2d, 2026-11-24)** – vrstva odznaku (`LevelBadgeLayer`) převzala, co dělala sekce Home
 `XpMultiplierSection` (z Home i s odpočtem `MultiplierCountdownTimer` odstraněna; soubory zaniknou v E26):
 - **„připraveno“** = tiché oznámení s akcí „Switch on“ **jednou na připravení** (`shouldAnnounceReady`, klíč = začátek
