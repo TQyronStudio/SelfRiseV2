@@ -688,6 +688,16 @@ přes frontu + značka `goal_completion_celebrations_shown`.
 - Místo potvrzovacího okna **pruh „+1 kniha zapsáno · Zpět“** (`UndoToast`, ~4 s). „Zpět“ = existující
   `deleteProgress` (vrácení XP i přepočet; dokončení se vrátí, milníky zůstanou vyplacené) přes akce
   **nejnovějšího** vykreslení – `deleteProgress` hledá zápis ve stavu svého vykreslení.
+- **Denní strop 3 XP transakcí na cíl počítá granty MÍNUS jejich vrácení** (revize E14, 2026-11-25):
+  „+1 → Zpět“ místo vrátí (dřív zůstávalo obsazené a skutečný zápis dne pak nedostal nic). Počítají
+  se jen `goal_progress` a `goal_milestone` – dokončení cíle místo nebere. `getDailyXPData` (SQLite);
+  test `src/services/__tests__/goalXpCapCounter.test.ts`.
+- **„Zpět“ běží ve stejné frontě jako zápisy** – rozběhnutý zápis nepřepíše hodnotu cíle po smazání.
+- **Smazání odečtu vrací přesně** – `addXP` se `skipLimits` a `metadata.exactAmount` (bez stropu, bez
+  násobiče; pod 2× šlo „odečti → Zpět“ vydělávat 70 XP za kolo).
+- **Datum „dnes“ sleduje hodiny** (`useToday`: půlnoc a návrat do appky) – rychlý zápis po půlnoci
+  nedostane včerejší datum.
+- Selhání okna oslavy po uloženém zápisu se nehlásí jako „neuloženo“ (opakování by zapsalo dvakrát).
 - **Pruh po zápisu říká jen to, co úložiště opravdu udělalo** (E14c): `addProgress` vrací
   `LoggedGoalProgress` – zápis + `xpAwarded` (skutečné XP) + `milestonesPaid` (milníky vyplacené
   **tímto** zápisem). Pruh: „+1 zapsáno“, k tomu „· 50 % – milník dosažen“ (nejvyšší vyplacený), nebo

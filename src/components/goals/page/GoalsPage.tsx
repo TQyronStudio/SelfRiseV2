@@ -125,7 +125,9 @@ function GoalsContent({
         message: parts.join(' · '),
         undo: () => {
           setToast(null);
-          latest.current.onUndo(logged.id);
+          // In the same queue: a log still running must not write the goal's
+          // value over the delete's recalculation.
+          queue.current = queue.current.then(() => latest.current.onUndo(logged.id));
         },
       });
     });

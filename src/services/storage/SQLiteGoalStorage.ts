@@ -774,10 +774,15 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
               metadata: { exactAmount: true },
             });
           } else if (awarded < 0) {
+            // Give back exactly what the subtraction took: not refused by the
+            // daily cap, not multiplied again (review 2026-11-25 — a 2×
+            // multiplier turned "subtract → Undo" into +70 XP a cycle).
             await GamificationService.addXP(-awarded, {
               source: XPSourceType.GOAL_PROGRESS,
               description: `Reversed goal subtraction: ${goal.title} (+${progressValue})`,
-              sourceId: progressToDelete.goal_id
+              sourceId: progressToDelete.goal_id,
+              skipLimits: true,
+              metadata: { exactAmount: true },
             });
           }
           console.log(`↩️ Goal progress delete reversed exactly ${awarded} XP`);

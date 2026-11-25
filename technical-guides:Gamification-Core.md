@@ -393,6 +393,13 @@ pokroku cíle si pamatuje své skutečné XP (`goal_progress.xp_awarded`), mazá
 s `exactAmount` a `subtractXP()` dohledání přeskočí — „poslední dnešní grant cíle“ může
 patřit jinému zápisu téhož cíle. Viz `technical-guides:Goals.md` („Zpět vrací přesně“).
 
+**Přesné vrácení odečtu** (`addXP` s `metadata.exactAmount: true` + `skipLimits`): násobič se znovu
+nepoužije – vrací se částka, kterou odečet skutečně vzal.
+
+**Denní strop cílů** (3 transakce na cíl) v SQLite počítá `goal_progress` + `goal_milestone` granty
+**minus** jejich vrácení (záporné řádky), nejméně 0 – vrácený zápis místo uvolní, jako vždy dělala
+cesta přes AsyncStorage. Test `src/services/__tests__/goalXpCapCounter.test.ts`.
+
 **Když přidáváš nový zdroj XP, který lze vzít zpět**: `subtractXP()` **musí**
 dostat `sourceId` — bez něj se dohledání nespustí a asymetrie se vrátí.
 

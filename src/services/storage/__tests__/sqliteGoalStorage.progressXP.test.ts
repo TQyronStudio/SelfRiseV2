@@ -316,6 +316,9 @@ describe('deleting a progress entry reverses exactly its own XP', () => {
     const giveBack = xpCalls(addXPMock, XPSourceType.GOAL_PROGRESS);
     expect(giveBack).toHaveLength(1);
     expect(giveBack[0]![0]).toBe(35);
+    // exact: neither refused by the daily cap nor multiplied again
+    expect(giveBack[0]![1].skipLimits).toBe(true);
+    expect(giveBack[0]![1].metadata).toEqual({ exactAmount: true });
 
     addXPMock.mockClear();
     await storage.deleteProgress(set.id);

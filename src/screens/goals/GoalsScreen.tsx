@@ -38,7 +38,7 @@ import { useModalQueue, ModalPriority } from '@/src/contexts/ModalQueueContext';
 // The feature-flag-aware storage (SQLite): the legacy AsyncStorage goalStorage
 // returned null for goals living in SQLite, so the completion never fired.
 import { getGoalStorageImpl } from '@/src/config/featureFlags';
-import { today as todayString } from '@/src/utils/date';
+import { useToday } from '@/src/hooks/useToday';
 
 const goalStorage = getGoalStorageImpl();
 
@@ -52,6 +52,8 @@ export function GoalsScreen() {
   const params = useLocalSearchParams();
   const { enqueue: enqueueModal } = useModalQueue();
   const { showProblem } = useProblemNote();
+  // Today follows the clock: midnight, or coming back to the app the next day.
+  const today = useToday();
   // Actions of the newest render: Undo comes seconds after the log, and the
   // context's deleteProgress looks the entry up in its own (render's) state.
   const latestActions = useRef(actions);
@@ -177,7 +179,13 @@ export function GoalsScreen() {
         after.status === GoalStatus.COMPLETED &&
         before?.status !== GoalStatus.COMPLETED
       ) {
-        await celebrateCompletion(after);
+        try {
+          await celebrateCompletion(after);
+        } catch (error) {
+          // The log IS saved: a failed window must not report it as not saved
+          // (a retry would log it twice).
+          console.error('Goal completion window failed:', error);
+        }
       }
       return progress;
     } catch (error) {
@@ -225,7 +233,7 @@ export function GoalsScreen() {
       ) : (
         <GoalsPage
           goals={goals}
-          today={todayString()}
+          today={today}
           bottomInset={BANNER_ROOM}
           freshId={freshId}
           onLog={handleLog}

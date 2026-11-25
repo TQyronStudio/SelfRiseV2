@@ -733,9 +733,11 @@ export class GamificationService {
         console.log(`⚡ Skipping XP validation (test environment or skipLimits=true)`);
       }
 
-      // Apply XP multiplier if active
+      // Apply XP multiplier if active — not to an exact refund (metadata
+      // .exactAmount): giving back what was taken must not be multiplied again.
+      const exactRefund = (options.metadata as { exactAmount?: boolean } | undefined)?.exactAmount === true;
       const multiplierData = await this.getActiveXPMultiplier();
-      const finalAmount = multiplierData.isActive ? amount * multiplierData.multiplier : amount;
+      const finalAmount = multiplierData.isActive && !exactRefund ? amount * multiplierData.multiplier : amount;
 
       // Create transaction record
       const transaction: XPTransaction = {
@@ -2291,19 +2293,22 @@ export class GamificationService {
         // Get goal transactions count (for anti-spam)
         // NOTE: stored source values are lowercase XPSourceType strings.
         const goalTransactions: Record<string, number> = {};
+        // Grants minus their reversals (2026-11-25, Goals Undo): an undone log
+        // gives its slot back, as the AsyncStorage path always did. Only the two
+        // capped sources count — a completion never used one of the 3 slots.
         const goalTxRows = await db.getAllAsync<{ source_id: string; count: number }>(
-          `SELECT source_id, COUNT(*) as count
+          `SELECT source_id,
+                  SUM(CASE WHEN amount > 0 THEN 1 WHEN amount < 0 THEN -1 ELSE 0 END) as count
            FROM xp_transactions
            WHERE DATE(timestamp / 1000, 'unixepoch', 'localtime') = ?
-           AND source LIKE 'goal_%'
+           AND source IN ('${XPSourceType.GOAL_PROGRESS}', '${XPSourceType.GOAL_MILESTONE}')
            AND source_id IS NOT NULL
-           AND amount > 0
            GROUP BY source_id`,
           [todayDate]
         );
 
         for (const row of goalTxRows) {
-          goalTransactions[row.source_id] = row.count;
+          goalTransactions[row.source_id] = Math.max(0, row.count);
         }
 
         // Get last transaction time
