@@ -17,6 +17,7 @@ import { postTrophyNote } from '../services/moments/noteBus';
 import { XPSourceType } from '../types/gamification';
 import { routeTrophyBatch } from '../services/moments/trophyBatch';
 import { chapterOfAction } from '../services/moments/momentRules';
+import { LEVEL_TIERS } from '../services/levels/levelsJourney';
 import { markChapterShown } from '../services/moments/chapterShown';
 import { GamificationService } from '../services/gamificationService';
 import i18n from '../config/i18n';
@@ -383,7 +384,10 @@ export const AchievementProvider: React.FC<AchievementProviderProps> = ({ childr
       const total = await GamificationService.getTotalXP();
       const chapter = chapterOfAction(total - credited, credited);
       if (chapter) {
-        markChapterShown(chapter.level);
+        // The level-up events come one level at a time: the one that opens the
+        // tier is its FIRST level (a jump 10 → 12 opens at 11, not 12).
+        const entry = LEVEL_TIERS.find(t => t.id === chapter.tier)?.from ?? chapter.level;
+        markChapterShown(entry);
         enqueueModalRef.current({
           type: 'level_up',
           priority: ModalPriority.LEVEL_UP,

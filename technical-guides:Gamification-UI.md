@@ -220,8 +220,8 @@ jsou odstraněné; hlídá to `src/services/__tests__/levelMilestonePromises.tes
 **Okna oslav v novém vzhledu (E10, 2026-11-25)** – `src/components/moments/MomentWindows.tsx`, `View` ve vrstvě oken:
 - **Nová kapitola** (`level_up`) jen při vstupu do nového stupně (`tierEntered`: 11/21/41/61/81) – ostatní úrovně okno
   nemají (odznak + štítek LEVEL UP). **Spojení s trofejemi (L-8):** když XP dávky trofejí otevře kapitolu
-  (`chapterOfAction`), `AchievementContext` zařadí JEDNO okno kapitoly s trofejemi uvnitř a označí ji
-  (`chapterShown`); posluchač `levelUp` v `XpAnimationContext` čeká 700 ms a tutéž kapitolu **jednou** přeskočí.
+  (`chapterOfAction`), `AchievementContext` zařadí JEDNO okno kapitoly s trofejemi uvnitř a označí její **vstupní
+  úroveň** (`chapterShown` – události `levelUp` chodí po jedné úrovni, skok 10 → 12 otevírá kapitolu na 11); posluchač `levelUp` v `XpAnimationContext` čeká 700 ms a tutéž kapitolu **jednou** přeskočí.
   Potlačení během úvodu zůstává.
 - **Série deníku:** okno jen pro 7/30/100/365/1000 dní (`streakMomentSize`), ostatní délky tiché oznámení s titulkem
   (journal → `showPlainNote`). Texty `getJournalStreakMilestoneTexts`, emoji z nadpisů pryč.
