@@ -336,3 +336,32 @@ describe('deleting a progress entry reverses exactly its own XP', () => {
     expect(progressReversals()[0]![1].metadata).toBeUndefined();
   });
 });
+
+// What a log reports back (E14c): the Goals note says only what really happened.
+describe('addProgress reports its real XP and the milestones it paid', () => {
+  test('a log that crosses 25 % and 50 % reports both, with its XP', async () => {
+    addXPMock.mockImplementation(async (amount: number) => ({ success: true, xpGained: amount }));
+    const id = await createGoal(100);
+    const logged = await addProgress(id, 60);
+    expect(logged.xpAwarded).toBe(35);
+    expect(logged.milestonesPaid).toEqual([25, 50]);
+    const stored = await storage.getProgressByGoalId(id);
+    expect(stored[0]!.xpAwarded).toBe(35);
+  });
+
+  test('over the daily cap: 0 XP and no milestone (it stays outstanding)', async () => {
+    addXPMock.mockImplementation(async () => ({ success: false, error: 'Goal has reached daily XP limit' }));
+    const id = await createGoal(100);
+    const logged = await addProgress(id, 60);
+    expect(logged.xpAwarded).toBe(0);
+    expect(logged.milestonesPaid).toEqual([]);
+  });
+
+  test('a milestone paid once is not reported again', async () => {
+    addXPMock.mockImplementation(async (amount: number) => ({ success: true, xpGained: amount }));
+    const id = await createGoal(100);
+    await addProgress(id, 30);
+    const second = await addProgress(id, 5);
+    expect(second.milestonesPaid).toEqual([]);
+  });
+});

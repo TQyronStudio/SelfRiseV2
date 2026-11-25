@@ -3,7 +3,7 @@
  * Phase 1.3.4 - Goals storage using SQLite
  */
 
-import { Goal, GoalProgress, CreateGoalInput, GoalStatus, AddGoalProgressInput, GoalStats, GoalTimelineStatus } from '../../types/goal';
+import { Goal, GoalProgress, CreateGoalInput, GoalStatus, AddGoalProgressInput, GoalStats, GoalTimelineStatus, LoggedGoalProgress } from '../../types/goal';
 import { EntityStorage, StorageError, STORAGE_ERROR_CODES, STORAGE_KEYS } from './base';
 import { createGoal, updateEntityTimestamp, updateGoalValue, createBaseEntity } from '../../utils/data';
 import { DateString } from '../../types/common';
@@ -429,6 +429,7 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
         note: row.note,
         date: row.date,
         progressType: row.progress_type || 'add',
+        xpAwarded: typeof row.xp_awarded === 'number' ? row.xp_awarded : null,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       }));
@@ -460,6 +461,7 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
         note: row.note,
         date: row.date,
         progressType: row.progress_type || 'add',
+        xpAwarded: typeof row.xp_awarded === 'number' ? row.xp_awarded : null,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       }));
@@ -471,7 +473,7 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
     }
   }
 
-  async addProgress(input: AddGoalProgressInput): Promise<GoalProgress> {
+  async addProgress(input: AddGoalProgressInput): Promise<LoggedGoalProgress> {
     try {
       const db = getDatabase();
 
@@ -560,10 +562,13 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
       // −35 for a subtraction, 0 for "set". Its delete gives back exactly that —
       // with one-tap logging + Undo, "4th tap of the day + Undo" took 35 XP
       // that never came. NULL = the amount is unknown (old path, old entries).
+      const xpAwarded = awardedXP(input.progressType, input.value, xpResult);
       await db.runAsync('UPDATE goal_progress SET xp_awarded = ? WHERE id = ?', [
-        awardedXP(input.progressType, input.value, xpResult),
+        xpAwarded,
         newProgress.id,
       ]);
+      // The milestones THIS log paid — the screen says so (E14c, never a guess).
+      const milestonesPaid: number[] = [];
 
       // N-5.1: Milestone XP (25/50/75 % → 50/75/100) — lost in the SQLite
       // rewrite (only legacy goalStorage had it). Awarded once per goal per
@@ -624,6 +629,7 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
               [milestoneId, goal.id, milestone.threshold, `XP milestone ${milestone.label}`, Date.now()]
             );
 
+            milestonesPaid.push(milestone.threshold);
             console.log(`🎯 Goal milestone ${milestone.label}: ${goal.title} (+${xpResult.xpGained} XP)`);
           }
         }
@@ -660,7 +666,7 @@ export class SQLiteGoalStorage implements EntityStorage<Goal> {
         console.log(`📉 Goal completion reversed: ${goal.title} (-${completionXPAmount} XP)`);
       }
 
-      return newProgress;
+      return { ...newProgress, xpAwarded, milestonesPaid };
     } catch (error) {
       console.error(`❌ SQLite addProgress error (${input.goalId}):`, error);
       if (error instanceof StorageError) throw error;

@@ -28,6 +28,7 @@ import {
   CreateGoalInput,
   Goal,
   GoalStatus,
+  LoggedGoalProgress,
   UpdateGoalInput,
 } from '@/src/types/goal';
 import { useGoalsData } from '@/src/hooks/useGoalsData';
@@ -164,7 +165,7 @@ export function GoalsScreen() {
    * milestones and the completion; a log that completed the goal gets its window
    * (E14 point 5 — a goal finished with one tap is celebrated too).
    */
-  const handleLog = async (goal: Goal, input: AddGoalProgressInput): Promise<string | null> => {
+  const handleLog = async (goal: Goal, input: AddGoalProgressInput): Promise<LoggedGoalProgress | null> => {
     try {
       // The status BEFORE this log, from storage: two fast taps must not
       // celebrate one completion twice.
@@ -178,7 +179,7 @@ export function GoalsScreen() {
       ) {
         await celebrateCompletion(after);
       }
-      return progress.id;
+      return progress;
     } catch (error) {
       console.error('Goal progress not saved:', error);
       showProblem({ message: t('goals.errors.logFailed') });

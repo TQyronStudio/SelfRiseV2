@@ -688,6 +688,12 @@ přes frontu + značka `goal_completion_celebrations_shown`.
 - Místo potvrzovacího okna **pruh „+1 kniha zapsáno · Zpět“** (`UndoToast`, ~4 s). „Zpět“ = existující
   `deleteProgress` (vrácení XP i přepočet; dokončení se vrátí, milníky zůstanou vyplacené) přes akce
   **nejnovějšího** vykreslení – `deleteProgress` hledá zápis ve stavu svého vykreslení.
+- **Pruh po zápisu říká jen to, co úložiště opravdu udělalo** (E14c): `addProgress` vrací
+  `LoggedGoalProgress` – zápis + `xpAwarded` (skutečné XP) + `milestonesPaid` (milníky vyplacené
+  **tímto** zápisem). Pruh: „+1 zapsáno“, k tomu „· 50 % – milník dosažen“ (nejvyšší vyplacený), nebo
+  „· Uloženo. XP za tenhle cíl zase zítra.“ (přičtení s `xpAwarded === 0` = vyčerpané 3 XP za den;
+  `null` = neznámo → nic netvrdí). Pravidlo `logNoteParts` v `goalsPageLogic.ts` (test).
+  ❌ WRONG: odvozovat „bez XP“ z toho, že nepřišla událost `xpGained` (P49).
 - **„Zpět“ vrací přesně to, co zápis dostal** (`goal_progress.xp_awarded`, sloupec přidán 2026-11-25
   migrací `ALTER TABLE … ADD COLUMN xp_awarded INTEGER` – staré zápisy NULL = staré chování). Čtvrté
   ťuknutí dne + „Zpět“ tak nic neodečte. Pomocná `awardedXP()` v `SQLiteGoalStorage.ts`; testy

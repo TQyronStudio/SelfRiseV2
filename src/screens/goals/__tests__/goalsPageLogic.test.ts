@@ -6,6 +6,7 @@ import {
   logAmountError,
   loggedAmount,
   logInput,
+  logNoteParts,
   MAX_MONTH_TICKS,
   STACK_STEP,
   overviewOf,
@@ -139,5 +140,22 @@ describe('deadlineLayout', () => {
     const layout = deadlineLayout([far], TODAY, 300);
     expect(layout.months.length).toBeLessThanOrEqual(MAX_MONTH_TICKS);
     expect(layout.months.length).toBeGreaterThan(0);
+  });
+});
+
+describe('logNoteParts', () => {
+  it('says "no XP today" only for an add that really got 0', () => {
+    expect(logNoteParts('add', { xpAwarded: 0, milestonesPaid: [] }).noXp).toBe(true);
+    expect(logNoteParts('add', { xpAwarded: 35, milestonesPaid: [] }).noXp).toBe(false);
+    // unknown is not 0 — no claim
+    expect(logNoteParts('add', { xpAwarded: null, milestonesPaid: [] }).noXp).toBe(false);
+    // set and subtract never earn: nothing to explain
+    expect(logNoteParts('set', { xpAwarded: 0, milestonesPaid: [] }).noXp).toBe(false);
+    expect(logNoteParts('subtract', { xpAwarded: -35, milestonesPaid: [] }).noXp).toBe(false);
+  });
+  it('names the highest milestone this log paid, none otherwise', () => {
+    expect(logNoteParts('add', { xpAwarded: 35, milestonesPaid: [25, 50] }).milestone).toBe(50);
+    expect(logNoteParts('add', { xpAwarded: 35, milestonesPaid: [] }).milestone).toBeNull();
+    expect(logNoteParts('add', { xpAwarded: 35 }).milestone).toBeNull();
   });
 });

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect, useMemo, ReactNode } from 'react';
-import { Goal, GoalProgress, GoalStats, CreateGoalInput, UpdateGoalInput, AddGoalProgressInput } from '../types/goal';
+import { Goal, GoalProgress, GoalStats, CreateGoalInput, UpdateGoalInput, AddGoalProgressInput, LoggedGoalProgress } from '../types/goal';
 import { getGoalStorageImpl } from '../config/featureFlags';
 import { AchievementService } from '../services/achievementService';
 import { isTutorialRestarted, isTutorialActive } from './TutorialContext';
@@ -21,7 +21,7 @@ export interface GoalsContextType {
     createGoal: (input: CreateGoalInput) => Promise<Goal>;
     updateGoal: (id: string, updates: UpdateGoalInput) => Promise<Goal>;
     deleteGoal: (id: string) => Promise<void>;
-    addProgress: (input: AddGoalProgressInput) => Promise<GoalProgress>;
+    addProgress: (input: AddGoalProgressInput) => Promise<LoggedGoalProgress>;
     deleteProgress: (id: string) => Promise<void>;
     getGoalStats: (goalId: string) => GoalStats | null;
     updateGoalOrder: (goalOrders: Array<{ id: string; order: number }>) => Promise<void>;
@@ -225,7 +225,7 @@ export function GoalsProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const addProgress = async (input: AddGoalProgressInput): Promise<GoalProgress> => {
+  const addProgress = async (input: AddGoalProgressInput): Promise<LoggedGoalProgress> => {
     try {
       setLoading(true);
       setError(null);

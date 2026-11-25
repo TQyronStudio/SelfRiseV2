@@ -19,7 +19,7 @@ import { useDesign } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { onHabitColor, radius, space } from '@/src/design/tokens';
 import { goalLook } from '@/src/constants/goalLook';
-import { AddGoalProgressInput, Goal, GoalStatus } from '@/src/types/goal';
+import { AddGoalProgressInput, Goal, GoalStatus, LoggedGoalProgress } from '@/src/types/goal';
 import { DateString } from '@/src/types/common';
 import { goalDate } from '@/src/utils/goalCalculations';
 import { parseDate } from '@/src/utils/date';
@@ -43,6 +43,7 @@ import {
   formatGoalNumber,
   loggedAmount,
   LogMode,
+  logNoteParts,
   overviewOf,
 } from '@/src/screens/goals/goalsPageLogic';
 import { GoalCard, GoalCardActions } from './GoalCard';
@@ -57,8 +58,8 @@ export interface GoalsPageProps {
   bottomInset: number;
   /** A goal just created or edited: its card glows as it arrives. */
   freshId: string | null;
-  /** Logs; resolves with the new entry's id, or null when it was not saved. */
-  onLog: (goal: Goal, input: AddGoalProgressInput) => Promise<string | null>;
+  /** Logs; resolves with what the storage did, or null when it was not saved. */
+  onLog: (goal: Goal, input: AddGoalProgressInput) => Promise<LoggedGoalProgress | null>;
   /** Takes a just-logged entry back (the storage's delete path). */
   onUndo: (progressId: string) => void;
   onOpenDetail: (goal: Goal) => void;
@@ -109,16 +110,22 @@ function GoalsContent({
   const queue = useRef<Promise<unknown>>(Promise.resolve());
   const log = (goal: Goal, input: AddGoalProgressInput, mode: LogMode) => {
     queue.current = queue.current.then(async () => {
-      const progressId = await latest.current.onLog(goal, input);
-      if (!progressId) return;
+      const logged = await latest.current.onLog(goal, input);
+      if (!logged) return;
+      // Only what the storage reports it did (E14c, D-4): the milestone this
+      // log paid, or that the goal's XP for today is used up.
+      const { noXp, milestone } = logNoteParts(mode, logged);
+      const parts = [
+        t('goals.log.logged', { amount: loggedAmount(mode, input.value, goal.unit, locale) }),
+        ...(milestone !== null ? [t('goals.log.milestone', { percent: milestone })] : []),
+        ...(noXp ? [t('goals.log.noXpLeft')] : []),
+      ];
       setToast({
         key: Date.now(),
-        message: t('goals.log.logged', {
-          amount: loggedAmount(mode, input.value, goal.unit, locale),
-        }),
+        message: parts.join(' · '),
         undo: () => {
           setToast(null);
-          latest.current.onUndo(progressId);
+          latest.current.onUndo(logged.id);
         },
       });
     });

@@ -737,7 +737,7 @@ Historie jako měsíční kalendář (tvar dne, stuha série, ❄ dny zachráně
 ## E14 – Cíle: seznam, karta s tempem, rychlý zápis
 
 Přehled (aktivní / v plánu / splněné) s čárou termínů, karta cíle s pruhem, zářezy milníků a čipem tempa, zápis jedním ťuknutím se „Zpět“, panel „Other“ s vlastní klávesnicí, nabídka „⋯“ a sekce Splněné.
-*Texty po zápisu („+35 XP“, milník, „dnes už bez XP“) se ukážou, až bude rozhodnuté D-4 – `addProgress` je dnes nevrací (karta E14, bod 6). Okno dokončení cíle je v E10.*
+*Texty po zápisu (milník, „dnes už bez XP“) se ukazují od E14c podle toho, co vrátí úložiště (D-4 → (a), `xpAwarded` + `milestonesPaid`); „+35 XP“ létá od tlačítka (E7). Okno dokončení cíle je v E10.*
 
 ### A. Nové texty
 

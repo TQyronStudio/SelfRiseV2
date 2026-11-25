@@ -36,6 +36,16 @@ export interface GoalProgress extends BaseEntity {
   note: string;
   date: DateString;
   progressType: 'add' | 'subtract' | 'set'; // type of progress update
+  /**
+   * The XP this entry really got (0 over the daily cap or for "set", negative
+   * for a subtraction); null = unknown — an entry from before 2026-11-25.
+   */
+  xpAwarded?: number | null;
+}
+
+/** What a new log did: the entry, and the milestones (25/50/75) it paid. */
+export interface LoggedGoalProgress extends GoalProgress {
+  milestonesPaid: number[];
 }
 
 // Timeline status for goal progress tracking

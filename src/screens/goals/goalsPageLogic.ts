@@ -90,6 +90,23 @@ export function loggedAmount(
   return unit.trim() && amount !== 1 ? `${sign}${number} ${unit.trim()}` : `${sign}${number}`;
 }
 
+/**
+ * What the note after a log adds (E14c, D-4) — only what the storage reports
+ * it really did, never a guess:
+ *   noXp      — an "add" that earned nothing (the goal's 3 XP a day are used);
+ *   milestone — the highest milestone THIS log paid (null when none).
+ */
+export function logNoteParts(
+  mode: LogMode,
+  result: { xpAwarded?: number | null; milestonesPaid?: number[] }
+): { noXp: boolean; milestone: number | null } {
+  const paid = result.milestonesPaid ?? [];
+  return {
+    noXp: mode === 'add' && result.xpAwarded === 0,
+    milestone: paid.length > 0 ? Math.max(...paid) : null,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Overview and the deadline line
 // ---------------------------------------------------------------------------
