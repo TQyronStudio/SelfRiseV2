@@ -557,6 +557,14 @@ Journal celebrations represent immediate user actions and MUST have highest prio
    - Level celebrations caused by journal XP
 ```
 
+### 🔥 Zahřátí zamrzlé série – jeden hook (migrace E11a, 2026-11-25)
+Logika (reklama za odměnu → `applySingleWarmUpPayment`, kontrola dokončení s automatickou opravou zbylého dne,
+dvakrát „zkus znovu“ a pak oprava s omluvou, „Začít znovu“) žije v `src/hooks/useStreakWarmUp.ts` – dřív byla celá
+uvnitř `GratitudeStreakCard` na Home. Hook nic nezobrazuje: vrací stav sheetu a `notice` (úspěch / chyba / gratulace),
+které ukáže volající. **Home i Deník (od E12) používají tentýž hook** – nikdy druhou kopii. Pojistka proti dvojímu
+ťuknutí je `ref` (dvě ťuknutí v jednom snímku by ze stavu četla stejné `false`). Hlídá
+`src/hooks/__tests__/useStreakWarmUp.test.tsx`.
+
 ### ⏱️ Okno série se rozhoduje podle série PO dnešním zápisu (2026-11-24)
 
 ```typescript

@@ -74,6 +74,8 @@ const CONVERTED: readonly string[] = [
   // E10 – the other celebration windows
   'src/components/moments/MomentWindows.tsx',
   'src/services/moments/chapterShown.ts',
+  // E11 – Home
+  'src/hooks/useStreakWarmUp.ts',
   // E7 (part 1) – the XP display: books, origins, multiplier mark rules
   'src/services/xpDisplay/xpLedger.ts',
   'src/services/xpDisplay/xpOriginRegistry.ts',

@@ -15,13 +15,8 @@ import { useGratitude } from '../../contexts/GratitudeContext';
 import { GratitudeStreak, WarmUpHistoryEntry } from '../../types/gratitude';
 import { BaseStorage, STORAGE_KEYS } from '../../services/storage/base';
 import StreakWarmUpModal from '../gratitude/StreakWarmUpModal';
-import {
-  WarmUpSuccessModal,
-  WarmUpErrorModal,
-  WarmUpIssueModal,
-  QuickWarmUpModal,
-} from '../gratitude/WarmUpModals';
-import { adService } from '../../services/adService';
+import { WarmUpSuccessModal, WarmUpErrorModal } from '../gratitude/WarmUpModals';
+import { useStreakWarmUp } from '../../hooks/useStreakWarmUp';
 
 interface JournalStreakCardProps {
   onPress?: () => void;
@@ -38,11 +33,6 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
   const { state, actions } = useGratitude();
   const [streak, setStreak] = useState<GratitudeStreak | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showDebtModal, setShowDebtModal] = useState(false);
-  const [adsWatched, setAdsWatched] = useState(0);
-  const [totalAdsNeeded, setTotalAdsNeeded] = useState(0);
-  const [issueRetryCount, setIssueRetryCount] = useState(0);
-  const [isWatchingAd, setIsWatchingAd] = useState(false); // 🚨 CRITICAL FIX: Prevent multiple clicks
   
   // Ref to always hold the latest handleDebtPress — avoids stale closure in useImperativeHandle
   // (handleDebtPress is defined after the early return, so it can't be captured directly)
@@ -57,71 +47,8 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
     }
   }), []);
 
-  // BUG #4 FIX: Central Modal State Management - replace 10 modal states with 1
-  enum DebtModalType {
-    NONE = 'none',
-    DEBT_RECOVERY = 'debt_recovery',
-    SUCCESS = 'success',
-    ERROR = 'error', 
-    CONGRATULATIONS = 'congratulations',
-  }
-
-  interface ModalConfig {
-    type: DebtModalType;
-    title?: string;
-    message?: string;
-    primaryText?: string;
-    secondaryText?: string;
-    onPrimaryAction?: () => void;
-    onSecondaryAction?: () => void;
-  }
-
-  const [currentModal, setCurrentModal] = useState<ModalConfig>({ type: DebtModalType.NONE });
-  
-  // BUG #4 FIX: Modal helper functions for coordinated flow
-  const showModal = (config: ModalConfig) => {
-    console.log(`[DEBUG] Modal: Showing ${config.type}`);
-    setCurrentModal(config);
-  };
-
-  const closeModal = () => {
-    console.log(`[DEBUG] Modal: Closing ${currentModal.type}`);
-    setCurrentModal({ type: DebtModalType.NONE });
-  };
-
-  const showSuccessModal = (title: string, message: string) => {
-    showModal({
-      type: DebtModalType.SUCCESS,
-      title,
-      message,
-      primaryText: t('common.ok'),
-      onPrimaryAction: closeModal,
-    });
-  };
-
-  const showErrorModal = (title: string, message: string) => {
-    showModal({
-      type: DebtModalType.ERROR,
-      title,
-      message,
-      primaryText: t('common.ok'),
-      onPrimaryAction: closeModal,
-    });
-  };
-
-  // REMOVED: showIssueModal - no longer needed with progressive error handling
-
-  const showCongratulationsModal = () => {
-    showModal({
-      type: DebtModalType.CONGRATULATIONS,
-      title: t('journal.rescue.congratulations.title'),
-      message: t('journal.rescue.congratulations.message'),
-      primaryText: t('journal.rescue.congratulations.continue'),
-      onPrimaryAction: closeModal,
-    });
-  };
-
-  
+  // E11a: the warm-up logic lives in one shared hook (Home and, from E12, the Journal).
+  const warmUp = useStreakWarmUp();
 
   useEffect(() => {
     loadStreakData();
@@ -387,193 +314,10 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
 
   const handleDebtPress = async (e: any) => {
     e.stopPropagation();
-    
-    // Reset modal state first
-    setAdsWatched(0);
-    
-    // Calculate total ads needed (fresh calculation)
-    const adsNeeded = await actions.adsNeededToWarmUp();
-    setTotalAdsNeeded(adsNeeded);
-    
-    // BUG #4 FIX: Use coordinated modal flow
-    if (adsNeeded === 0) {
-      showSuccessModal(t('journal.rescue.noDebt.title'), t('journal.rescue.noDebt.message'));
-      return;
-    }
-    
-    setShowDebtModal(true);
+    await warmUp.openWarmUp();
   };
   // Keep ref updated so useImperativeHandle's closure always calls the latest version
   handleDebtPressRef.current = handleDebtPress;
-
-  const handleWatchAd = async (): Promise<boolean> => {
-    // 🚨 CRITICAL: Prevent multiple simultaneous ad watches
-    if (isWatchingAd) {
-      console.log('[DEBUG] handleWatchAd: Already watching ad, ignoring');
-      return false;
-    }
-
-    try {
-      setIsWatchingAd(true);
-      console.log('[DEBUG] handleWatchAd: Starting rewarded ad flow...');
-
-      // Show the rewarded ad using AdService
-      const adResult = await adService.showRewardedAd();
-      console.log('[DEBUG] handleWatchAd: Ad result:', adResult);
-
-      // Check if user earned the reward (watched full ad)
-      if (!adResult.rewarded) {
-        console.log('[DEBUG] handleWatchAd: Ad not rewarded:', adResult.error);
-
-        // Show appropriate error message based on what happened
-        if (adResult.error === 'AD_DISMISSED_EARLY') {
-          showErrorModal(
-            t('journal.rescue.adDismissed.title'),
-            t('journal.rescue.adDismissed.message')
-          );
-        } else if (adResult.error === 'AD_LOAD_FAILED') {
-          showErrorModal(
-            t('journal.rescue.adLoadFailed.title'),
-            t('journal.rescue.adLoadFailed.message')
-          );
-        } else {
-          showErrorModal(
-            t('journal.rescue.adError.title'),
-            t('journal.rescue.adError.message')
-          );
-        }
-
-        return false;
-      }
-
-      // User watched full ad - apply the payment
-      const paymentResult = await actions.applySingleWarmUpPayment();
-      console.log('[DEBUG] handleWatchAd: Payment result', paymentResult);
-
-      // Update local state to reflect the payment
-      setAdsWatched(prev => prev + 1);
-
-      // If fully paid, update total needed (for UI consistency)
-      if (paymentResult.isFullyWarmed) {
-        setTotalAdsNeeded(adsWatched + 1);
-      }
-
-      return true; // Successful ad watch and payment
-    } catch (error) {
-      console.error('[DEBUG] handleWatchAd: Error:', error);
-      showErrorModal(
-        t('journal.rescue.adError.title'),
-        t('journal.rescue.adError.message')
-      );
-      return false;
-    } finally {
-      setIsWatchingAd(false);
-    }
-  };
-
-  const handleDebtComplete = async () => {
-    try {
-      console.log(`[DEBUG] handleDebtComplete: Starting debt completion verification`);
-      
-      // ENHANCED: Debt payments are now applied incrementally in handleWatchAd()
-      // This function just verifies completion and refreshes UI state
-      
-      // Close modal and reset state BEFORE reloading data
-      setShowDebtModal(false);
-      setAdsWatched(0);
-      setTotalAdsNeeded(0);
-      
-      // CRITICAL FIX: Only refresh once to avoid duplicate calculateAndUpdateStreak() calls
-      // applySingleWarmUpPayment() already updated streak internally, just refresh UI state
-      await actions.refreshStats();
-      
-      // Verify debt was actually cleared (should be 0 due to incremental payments)
-      const remainingDebt = await actions.calculateFrozenDays();
-      console.log(`[DEBUG] remainingDebt after completion: ${remainingDebt}`);
-      
-      if (remainingDebt > 0) {
-        // AUTOMATIC FIX: User watched all ads, automatically clear remaining debt
-        console.log(`[DEBUG] Auto-fixing remaining debt: ${remainingDebt} days`);
-        try {
-          await executeForceResetDebt();
-          showSuccessModal(t('journal.rescue.autoFixed.title'), t('journal.rescue.autoFixed.message'));
-          return;
-        } catch (autoFixError) {
-          console.error('Auto-fix failed:', autoFixError);
-          showErrorModal(t('journal.rescue.technicalIssue.title'), t('journal.rescue.technicalIssue.message'));
-          return;
-        }
-      }
-      
-      // BUG #4 FIX: Show congratulations modal instead of generic success
-      showCongratulationsModal();
-    } catch (error) {
-      console.error('Failed to complete debt verification:', error);
-      
-      // IMPROVED: Progressive error handling - try again first, force reset after 2 failures
-      if (issueRetryCount < 2) {
-        setIssueRetryCount(prev => prev + 1);
-        showErrorModal(
-          t('journal.rescue.technicalIssueRetry.title'),
-          t('journal.rescue.technicalIssueRetry.message', { attempt: issueRetryCount + 1 })
-        );
-      } else {
-        // After 2 failures, automatically fix it with apology
-        console.log(`[DEBUG] Auto-fixing after 2 failed attempts`);
-        try {
-          await executeForceResetDebt();
-          showSuccessModal(
-            t('journal.rescue.issueResolved.title'),
-            t('journal.rescue.issueResolved.message')
-          );
-        } catch (autoFixError) {
-          console.error('Auto-fix failed after retries:', autoFixError);
-          showErrorModal(t('journal.rescue.criticalError.title'), t('journal.rescue.criticalError.message'));
-        }
-        setIssueRetryCount(0); // Reset for future issues
-      }
-    }
-  };
-  
-  const handleForceResetDebt = async () => {
-    // IMPROVED: Direct execution with apology message - no user choice needed
-    await executeForceResetDebt();
-  };
-
-  const executeForceResetDebt = async () => {
-    try {
-      // FIX (July 2026): the previous implementation wrote the "cleared" streak
-      // object into AsyncStorage via BaseStorage.set(), but the live streak
-      // store is SQLite — the write was a silent no-op and refreshStats()
-      // immediately recalculated the debt back. The "issue resolved" success
-      // modal lied to the user.
-      //
-      // Proper debt forgiveness: apply warm-up payments WITHOUT ads through
-      // the same storage machinery real ads use. Payments bridge the missed
-      // days, so the streak continues exactly as if the ads were watched.
-      let remaining = await actions.adsNeededToWarmUp();
-      for (let i = 0; i < 3 && remaining > 0; i++) {
-        const result = await actions.applySingleWarmUpPayment();
-        remaining = result.remainingFrozenDays;
-      }
-
-      // BUG #4 FIX: Clean up and show success using coordinated flow
-      setAdsWatched(0);
-      setTotalAdsNeeded(0);
-      await loadStreakData();
-
-      // Refresh context
-      await actions.refreshStats();
-
-      // Show success message with apology
-      showSuccessModal(t('journal.rescue.issueResolved.title'), t('journal.rescue.issueResolved.message'));
-
-    } catch (error) {
-      console.error('Failed to reset debt:', error);
-      // BUG #4 FIX: Use coordinated modal flow for errors
-      showErrorModal(t('journal.rescue.resetFailed.title'), t('journal.rescue.resetFailed.message'));
-    }
-  };
 
   return (
     <TouchableOpacity 
@@ -679,53 +423,33 @@ export const JournalStreakCard = forwardRef<JournalStreakCardRef, JournalStreakC
       
       {/* Debt Recovery Modal */}
       <StreakWarmUpModal
-        visible={showDebtModal}
-        onClose={() => setShowDebtModal(false)}
+        visible={warmUp.sheetOpen}
+        onClose={warmUp.closeSheet}
         frozenDays={streakData.frozenDays}
-        adsWatched={adsWatched}
-        totalAdsNeeded={totalAdsNeeded}
-        onWatchAd={handleWatchAd}
-        onComplete={handleDebtComplete}
-        onResetStreak={async () => {
-          try {
-            await actions.resetStreak();
-            await loadStreakData();
-          } catch (error) {
-            console.error('Failed to reset streak:', error);
-          }
-        }}
+        adsWatched={warmUp.adsWatched}
+        totalAdsNeeded={warmUp.totalAdsNeeded}
+        onWatchAd={warmUp.watchAd}
+        onComplete={warmUp.completeWarmUp}
+        onResetStreak={warmUp.startFresh}
       />
 
-      {/* BUG #4 FIX: Central Modal System - replaces all 6 separate modals above */}
-      {currentModal.type === DebtModalType.SUCCESS && (
+      {warmUp.notice && warmUp.notice.kind !== 'error' && (
         <WarmUpSuccessModal
           visible={true}
-          onClose={currentModal.onPrimaryAction || closeModal}
-          title={currentModal.title || t('journal.fallback.success')}
-          message={currentModal.message || t('journal.fallback.operationComplete')}
-          buttonText={currentModal.primaryText || t('common.ok')}
+          onClose={warmUp.clearNotice}
+          title={warmUp.notice.title}
+          message={warmUp.notice.message}
+          buttonText={warmUp.notice.kind === 'congratulations' ? t('journal.rescue.congratulations.continue') : t('common.ok')}
         />
       )}
 
-      {currentModal.type === DebtModalType.ERROR && (
+      {warmUp.notice?.kind === 'error' && (
         <WarmUpErrorModal
           visible={true}
-          onClose={currentModal.onPrimaryAction || closeModal}
-          title={currentModal.title || t('journal.fallback.error')}
-          message={currentModal.message || t('journal.fallback.errorMessage')}
-          buttonText={currentModal.primaryText || t('common.ok')}
-        />
-      )}
-
-      {/* REMOVED: DebtIssueModal and ForceResetModal - replaced with progressive error handling */}
-
-      {currentModal.type === DebtModalType.CONGRATULATIONS && (
-        <WarmUpSuccessModal
-          visible={true}
-          onClose={currentModal.onPrimaryAction || closeModal}
-          title={currentModal.title || t('journal.fallback.congratulations')}
-          message={currentModal.message || t('journal.fallback.debtCleared')}
-          buttonText={currentModal.primaryText || t('common.continue')}
+          onClose={warmUp.clearNotice}
+          title={warmUp.notice.title}
+          message={warmUp.notice.message}
+          buttonText={t('common.ok')}
         />
       )}
     </TouchableOpacity>
