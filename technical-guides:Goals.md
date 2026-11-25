@@ -654,6 +654,47 @@ const onProgressUpdate = async (goal: Goal, amount: number) => {
 
 ---
 
+## 📱 Stránka Cíle v novém vzhledu (E14)
+
+**Soubory:** `src/screens/goals/GoalsScreen.tsx` (data a pravidla), `src/components/goals/page/` –
+`GoalsPage` (stránka), `GoalCard` (karta, pruh, čip tempa), `GoalLogSheet` (panel „Jiné“),
+`GoalActionsSheet` („⋯“), `GoalsReorderView` (řazení); čistá logika `src/screens/goals/goalsPageLogic.ts`
+(test `__tests__/goalsPageLogic.test.ts`). Smazány `GoalItem`, `GoalList`, `GoalListWithDragAndDrop`,
+`ProgressModal`, `ProgressEntryForm` (nápověda `goals.overview` zanikla s nimi).
+
+Shora: datum, nadpis, věta → **přehled** (aktivní / v plánu z těch s termínem / splněné) s **čárou
+termínů** (dnes vlevo, každý aktivní cíl s termínem jako tečka v barvě a ikoně své kategorie; tečky, které
+by se dotkly, jdou do další řady; termín po datu sedí na „dnes“; pod čárou nejvýš 6 značek měsíců, leden nese
+rok) → **aktivní cíle** (karty) → **splněné** (tiché řádky, ťuk = detail, „⋯“ = smazat). Bez cílů prázdný
+stav `goals.noGoals` + `noGoalsHint`. Horní řada: řazení (od 2 cílů), **šablony (dočasně do E15, pak
+uvnitř okna tvorby)**, „+“.
+
+**Karta:** ikona a barva kategorie (`goalLook`), název, „Kategorie · do 31. 12. / Bez termínu“, „⋯“; hodnota
+„/ cíl jednotka“ a procento (čísla se při otevření neodvalují, P44); pruh se zářezy 25/50/75 % (rozsvítí
+se při dosažení procenta – vyplacení milníku je věc úložiště) a ryskou plánu dnes; čip tempa + „zbývá N dní“
+(`paceOf`); rychlé částky (`quickAmounts`) a „Jiné“. Karta je `memo` a nečte datový kontext (P42).
+Na iOS přístupná karta skryje svá tlačítka → částky, „Jiné“ a „⋯“ jsou **akce karty** pro VoiceOver
+(stejně jako u návyku). Jednotka je slovo uživatele, nejde vyskloňovat → u jedničky se nepíše („+1“).
+
+### 🚨 Zápis jedním ťuknutím dělá všechno, co dřív formulář
+✅ CORRECT: `GoalsScreen.handleLog` – stav cíle **před** zápisem z úložiště → `addProgress` (XP, denní strop,
+milníky, dokončení – vše úložiště) → stav **po** z úložiště → dokončil-li zápis cíl, okno `goal_completion`
+přes frontu + značka `goal_completion_celebrations_shown`.
+❌ WRONG: porovnat se stavem z objektu karty – dvě rychlá ťuknutí by jedno dokončení oslavila dvakrát.
+**Proč:** cíl dokončený jedním ťuknutím se jinak nikdy neoslaví (bod 5 E14) a karta drží starý objekt.
+
+- Zápisy jdou **jeden po druhém v pořadí ťuknutí** (fronta ve stránce) – dvě ťuknutí = dva zápisy.
+- Místo potvrzovacího okna **pruh „+1 kniha zapsáno · Zpět“** (`UndoToast`, ~4 s). „Zpět“ = existující
+  `deleteProgress` (vrácení XP i přepočet; dokončení se vrátí, milníky zůstanou vyplacené) přes akce
+  **nejnovějšího** vykreslení – `deleteProgress` hledá zápis ve stavu svého vykreslení.
+- Jiskry XP letí od ťuknutého tlačítka (`registerXpOrigin` se `sourceId = goalId`).
+- **Panel „Jiné“** (`GoalLogSheet`): vlastní číselník, Přičíst / Odečíst / Nastavit = `progressType`
+  `add` / `subtract` / `set` 1:1 (XP pravidla úložiště beze změny: odečet bere 35 XP, nastavení XP nedává),
+  náhled „teď → potom · %“, částky z karty, **datum Dnes / Včera / Jiné datum** (pravidlo
+  `progressDateError` – skutečné datum, ne v budoucnu), poznámka. Částka > 0 a ≤ `MAX_GOAL_VALUE`
+  (`logAmountError`). Chyba = zatřesení a věta v panelu.
+- Chyby akcí = jedna klidná věta v pruhu `ProblemNote` (`goals.errors.*`), nikdy `error.message`.
+
 ## Goal Templates System
 
 ### Template Categories

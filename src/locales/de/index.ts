@@ -1121,6 +1121,13 @@ const de: Partial<TranslationKeys> = {
 
   // Goals screen
   goals: {
+    errors: {
+      saveFailed: 'Das Ziel wurde nicht gespeichert. Versuch es noch einmal.',
+      logFailed: 'Der Fortschritt wurde nicht gespeichert. Das Ziel bleibt, wie es war.',
+      undoFailed: 'Der Eintrag ließ sich nicht rückgängig machen. Er bleibt im Verlauf des Ziels.',
+      deleteFailed: 'Das Ziel wurde nicht gelöscht. Nichts ist verloren.',
+      reorderFailed: 'Die neue Reihenfolge wurde nicht gespeichert.',
+    },
     subline: 'Große Dinge, Schritt für Schritt.',
     pace: {
       onPace: 'Im Plan',
@@ -1139,6 +1146,7 @@ const de: Partial<TranslationKeys> = {
       other: 'Andere',
     },
     log: {
+      otherDate: 'Anderes Datum',
       undo: 'Rückgängig',
       logged: '{{amount}} eingetragen',
       milestone: '{{percent}} % – Meilenstein erreicht',

@@ -1,10 +1,5 @@
 export { GoalModal } from './GoalModal';
 export { GoalForm } from './GoalForm';
-export { GoalList } from './GoalList';
-export { GoalListWithDragAndDrop } from './GoalListWithDragAndDrop';
-export { GoalItem } from './GoalItem';
-export { ProgressModal } from './ProgressModal';
-export { ProgressEntryForm } from './ProgressEntryForm';
 export { GoalStatsCard } from './GoalStatsCard';
 export { ProgressHistoryList } from './ProgressHistoryList';
 export { GoalCompletionModal } from './GoalCompletionModal';

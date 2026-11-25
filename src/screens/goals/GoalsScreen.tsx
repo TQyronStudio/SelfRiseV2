@@ -1,154 +1,90 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
+/**
+ * The Goals tab (migration E14: the page is GoalsPage — overview, deadline line,
+ * pace cards with one-tap logging and Undo; reorder mode GoalsReorderView).
+ *
+ * This screen keeps the DATA rules (technical-guides:Goals.md):
+ * - a log goes through GoalsContext.addProgress → SQLiteGoalStorage (XP, the
+ *   daily cap, milestones, completion); a log that completes the goal enqueues
+ *   the goal_completion window, read against the goal's status BEFORE the log;
+ * - Undo deletes the entry through the existing path (its XP reversal included);
+ * - errors are one calm sentence in the ProblemNote bar, never error.message.
+ * Creating and editing still use GoalModal and the templates modal until E15
+ * moves both into one composer.
+ */
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { TopRow } from '@/src/components/ui/TopRow';
 import { useFocusEffect } from '@react-navigation/native';
-import { AdBanner } from '@/src/components/ads/AdBanner';
-import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Goal, CreateGoalInput, UpdateGoalInput, AddGoalProgressInput, GoalStatus } from '@/src/types/goal';
-import { GoalModal, GoalListWithDragAndDrop, ProgressModal, GoalTemplatesModal } from '@/src/components/goals';
-import { useGoalsData } from '@/src/hooks/useGoalsData';
-// useEnhancedGamification removed - XP handled by goalStorage
-import { useTheme } from '@/src/contexts/ThemeContext';
-import { useI18n } from '@/src/hooks/useI18n';
-import { ErrorModal, HelpTooltip } from '@/src/components/common';
-import { contentColumn } from '@/src/utils/layout';
-// XPSourceType removed - XP handled by goalStorage
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// Use the feature-flag-aware storage (SQLite) — the legacy AsyncStorage
-// goalStorage returned null for goals living in SQLite, so the goal
-// completion celebration never fired.
+import { RoundButton, TopRow } from '@/src/components/ui/TopRow';
+import { useProblemNote } from '@/src/components/ui';
+import { AdBanner } from '@/src/components/ads/AdBanner';
+import { GoalModal, GoalTemplatesModal } from '@/src/components/goals';
+import { GoalsPage } from '@/src/components/goals/page/GoalsPage';
+import { GoalsReorderView } from '@/src/components/goals/page/GoalsReorderView';
+import {
+  AddGoalProgressInput,
+  CreateGoalInput,
+  Goal,
+  GoalStatus,
+  UpdateGoalInput,
+} from '@/src/types/goal';
+import { useGoalsData } from '@/src/hooks/useGoalsData';
+import { useDesign } from '@/src/contexts/ThemeContext';
+import { useI18n } from '@/src/hooks/useI18n';
+import { useModalQueue, ModalPriority } from '@/src/contexts/ModalQueueContext';
+// The feature-flag-aware storage (SQLite): the legacy AsyncStorage goalStorage
+// returned null for goals living in SQLite, so the completion never fired.
 import { getGoalStorageImpl } from '@/src/config/featureFlags';
+import { today as todayString } from '@/src/utils/date';
 
 const goalStorage = getGoalStorageImpl();
-import { useModalQueue, ModalPriority } from '@/src/contexts/ModalQueueContext';
+
+/** Room for the ad banner at the bottom (banner 50 + its padding). */
+const BANNER_ROOM = 60;
 
 export function GoalsScreen() {
   const { t } = useI18n();
-  const { colors } = useTheme();
-  const { goals, isLoading, actions } = useGoalsData();
-  // addXP removed - XP handled by goalStorage
+  const { c } = useDesign();
+  const { goals, actions } = useGoalsData();
   const params = useLocalSearchParams();
   const { enqueue: enqueueModal } = useModalQueue();
+  const { showProblem } = useProblemNote();
+  // Actions of the newest render: Undo comes seconds after the log, and the
+  // context's deleteProgress looks the entry up in its own (render's) state.
+  const latestActions = useRef(actions);
+  latestActions.current = actions;
 
-  // Styles inside component to access theme colors
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.backgroundSecondary,
-    },
-    addButtonContainer: {
-      ...contentColumn,
-      paddingHorizontal: 16,
-      paddingTop: 16,
-      paddingBottom: 8,
-      gap: 8,
-      backgroundColor: colors.backgroundSecondary,
-    },
-    buttonsRow: {
-      flexDirection: 'row',
-      gap: 12,
-    },
-    listContainer: {
-      flex: 1, // Klíčová oprava - seznam zabere pouze zbývající místo
-      paddingBottom: 60, // Extra padding for banner
-    },
-    bannerContainer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: colors.backgroundSecondary,
-    },
-    addButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.primary,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      borderRadius: 8,
-    },
-    addButtonText: {
-      color: 'white',
-      fontSize: 16,
-      fontWeight: '600',
-      marginLeft: 8,
-    },
-    templateButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.cardBackgroundElevated,
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.primary,
-    },
-    templateButtonText: {
-      color: colors.primary,
-      fontSize: 16,
-      fontWeight: '600',
-      marginLeft: 8,
-    },
-    editButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: colors.cardBackgroundElevated,
-      paddingVertical: 12,
-      paddingHorizontal: 20,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    editButtonText: {
-      color: colors.text,
-      fontSize: 16,
-      fontWeight: '600',
-    },
-  });
-
-  // Tutorial target registration for Add Goal button
-  const addGoalButtonRef = useRef<View>(null);
-  
   const [isEditMode, setIsEditMode] = useState(false);
-
   // Reorder mode ends when the screen loses focus. A dragged item can get stuck
   // after the screen is detached and re-attached (react-native-sortables with
   // gesture-handler 2 on iOS) — leaving the mode prevents that state entirely.
-  useFocusEffect(
-    useCallback(() => () => setIsEditMode(false), [])
-  );
+  useFocusEffect(useCallback(() => () => setIsEditMode(false), []));
+
   const [modalVisible, setModalVisible] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | undefined>();
-  const [progressModalVisible, setProgressModalVisible] = useState(false);
-  const [progressGoal, setProgressGoal] = useState<Goal | undefined>();
-  const [showError, setShowError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [showTemplatesModal, setShowTemplatesModal] = useState(false);
   const [templateData, setTemplateData] = useState<CreateGoalInput | undefined>();
+  const [showTemplatesModal, setShowTemplatesModal] = useState(false);
+  const [freshId, setFreshId] = useState<string | null>(null);
 
-  // This useEffect is now disabled - goal completion detection moved to handleSubmitProgress
-  // for immediate priority over level-up modals
-  // useEffect(() => { ... }, [goals, completionModalVisible]);
-
-  // Tutorial target registration
-    // Handle quick action from home screen
+  // A quick action from Home opens the new-goal window.
   useEffect(() => {
     if (params.quickAction === 'addGoal') {
       setEditingGoal(undefined);
       setTemplateData(undefined);
       setModalVisible(true);
-      // Clear the quick action parameter after a brief delay to prevent re-triggering
-      setTimeout(() => {
-        router.replace('/(tabs)/goals');
-      }, 100);
+      // Clear the parameter after a moment so it does not fire again.
+      setTimeout(() => router.replace('/(tabs)/goals'), 100);
     }
   }, [params.quickAction]);
+
+  const glow = (id: string) => {
+    setFreshId(null);
+    setTimeout(() => setFreshId(id), 0);
+    // The glow plays once (about 2 s); a later remount must not replay it.
+    setTimeout(() => setFreshId(prev => (prev === id ? null : prev)), 3000);
+  };
 
   const handleAddGoal = () => {
     setEditingGoal(undefined);
@@ -156,20 +92,10 @@ export function GoalsScreen() {
     setModalVisible(true);
   };
 
-  const handleAddFromTemplate = () => {
-    setShowTemplatesModal(true);
-  };
-
-  const handleSelectTemplate = (selectedTemplateData: CreateGoalInput) => {
+  const handleSelectTemplate = (selected: CreateGoalInput) => {
     setShowTemplatesModal(false);
     setEditingGoal(undefined);
-    setTemplateData(selectedTemplateData);
-    setModalVisible(true);
-  };
-
-  const handleEditGoal = (goal: Goal) => {
-    setEditingGoal(goal);
-    setTemplateData(undefined);
+    setTemplateData(selected);
     setModalVisible(true);
   };
 
@@ -181,22 +107,16 @@ export function GoalsScreen() {
 
   /** The completion window (through the queue), remembered so it never shows twice. */
   const celebrateCompletion = async (goal: Goal) => {
-    console.log(`🎉 Goal completion → ModalQueue: ${goal.title}`);
     enqueueModal({
       type: 'goal_completion',
       priority: ModalPriority.GOAL_COMPLETION,
       props: { goal },
     });
     const SHOWN_CELEBRATIONS_KEY = 'goal_completion_celebrations_shown';
-    const storedCelebrations = await AsyncStorage.getItem(SHOWN_CELEBRATIONS_KEY);
-    const shownCelebrations = new Set<string>(
-      storedCelebrations ? JSON.parse(storedCelebrations) : []
-    );
-    shownCelebrations.add(`${goal.id}_${goal.completedDate}`);
-    await AsyncStorage.setItem(
-      SHOWN_CELEBRATIONS_KEY,
-      JSON.stringify(Array.from(shownCelebrations))
-    );
+    const stored = await AsyncStorage.getItem(SHOWN_CELEBRATIONS_KEY);
+    const shown = new Set<string>(stored ? JSON.parse(stored) : []);
+    shown.add(`${goal.id}_${goal.completedDate}`);
+    await AsyncStorage.setItem(SHOWN_CELEBRATIONS_KEY, JSON.stringify(Array.from(shown)));
   };
 
   const handleSubmitGoal = async (data: CreateGoalInput | UpdateGoalInput) => {
@@ -205,131 +125,122 @@ export function GoalsScreen() {
         const updated = await actions.updateGoal(editingGoal.id, data as UpdateGoalInput);
         // Lowering the target under the progress completes the goal (storage
         // pays the XP) — it gets its window like a completion by progress.
-        if (
-          updated.status === GoalStatus.COMPLETED &&
-          editingGoal.status !== GoalStatus.COMPLETED
-        ) {
+        if (updated.status === GoalStatus.COMPLETED && editingGoal.status !== GoalStatus.COMPLETED) {
           await celebrateCompletion(updated);
         }
+        glow(updated.id);
       } else {
-        await actions.createGoal(data as CreateGoalInput);
+        const created = await actions.createGoal(data as CreateGoalInput);
+        glow(created.id);
       }
       handleCloseModal();
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : t('common.errors.goals.failedToSave'));
-      setShowError(true);
+      console.error('Goal not saved:', error);
+      showProblem({ message: t('goals.errors.saveFailed') });
     }
   };
 
-  const handleDeleteGoal = async (goalId: string) => {
+  const handleDeleteGoal = async (goal: Goal) => {
     try {
-      await actions.deleteGoal(goalId);
+      // The XP the goal earned stays (technical-guides:Goals.md).
+      await actions.deleteGoal(goal.id);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : t('common.errors.goals.failedToDelete'));
-      setShowError(true);
+      console.error('Goal not deleted:', error);
+      showProblem({ message: t('goals.errors.deleteFailed') });
     }
   };
 
-  const handleReorderGoals = async (goalOrders: Array<{ id: string; order: number }>) => {
+  const handleReorderGoals = async (orders: Array<{ id: string; order: number }>) => {
     try {
-      await actions.updateGoalOrder(goalOrders);
+      await actions.updateGoalOrder(orders);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : t('common.errors.goals.failedToReorder'));
-      setShowError(true);
+      console.error('Goals not reordered:', error);
+      showProblem({ message: t('goals.errors.reorderFailed') });
     }
   };
 
-
-  const handleViewGoalStats = (goalId: string) => {
-    router.push(`/goal-stats?goalId=${goalId}` as any);
-  };
-
-  const handleAddProgress = (goal: Goal) => {
-    setProgressGoal(goal);
-    setProgressModalVisible(true);
-  };
-
-  const handleCloseProgressModal = () => {
-    setProgressModalVisible(false);
-    setProgressGoal(undefined);
-  };
-
-  const handleSubmitProgress = async (data: AddGoalProgressInput) => {
+  /**
+   * One log, everything the old progress form did: the storage pays XP,
+   * milestones and the completion; a log that completed the goal gets its window
+   * (E14 point 5 — a goal finished with one tap is celebrated too).
+   */
+  const handleLog = async (goal: Goal, input: AddGoalProgressInput): Promise<string | null> => {
     try {
-      const previousGoal = progressGoal;
-      const newProgress = await actions.addProgress(data);
-
-      // XP is now handled entirely by GoalStorage.awardGoalProgressXP - no dual system
-      console.log(`✅ Goal progress added successfully - XP handled by storage layer`);
-
-      setProgressModalVisible(false);
-      setProgressGoal(undefined);
-
-      // Check if goal was completed by this progress - IMMEDIATE detection
-      if (previousGoal) {
-        const freshGoal = await goalStorage.getById(previousGoal.id);
-
-        if (freshGoal &&
-            freshGoal.status === GoalStatus.COMPLETED &&
-            previousGoal.status !== GoalStatus.COMPLETED) {
-          await celebrateCompletion(freshGoal);
-        }
+      // The status BEFORE this log, from storage: two fast taps must not
+      // celebrate one completion twice.
+      const before = await goalStorage.getById(goal.id);
+      const progress = await latestActions.current.addProgress(input);
+      const after = await goalStorage.getById(goal.id);
+      if (
+        after &&
+        after.status === GoalStatus.COMPLETED &&
+        before?.status !== GoalStatus.COMPLETED
+      ) {
+        await celebrateCompletion(after);
       }
+      return progress.id;
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : t('common.errors.goals.failedToAddProgress'));
-      setShowError(true);
+      console.error('Goal progress not saved:', error);
+      showProblem({ message: t('goals.errors.logFailed') });
+      return null;
     }
   };
+
+  const handleUndo = async (progressId: string) => {
+    try {
+      // The existing delete path: it reverses the entry's XP and recalculates
+      // the goal (a completion it caused is undone; milestones stay paid).
+      await latestActions.current.deleteProgress(progressId);
+    } catch (error) {
+      console.error('Goal progress not undone:', error);
+      showProblem({ message: t('goals.errors.undoFailed') });
+    }
+  };
+
+  const styles = StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.canvas },
+    banner: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: c.canvas },
+  });
 
   return (
     <SafeAreaView style={styles.container} edges={[]}>
-      {/* Top row (E3): the level badge (E7) and the screen's buttons come here. */}
-      <TopRow />
-      {/* Tlačítka Add, Template a Edit */}
-      <View style={styles.addButtonContainer}>
-        {!isEditMode && (
+      <TopRow>
+        {isEditMode ? (
+          <RoundButton icon="checkmark" tone="primary" label={t('goals.actions.done')} onPress={() => setIsEditMode(false)} />
+        ) : (
           <>
-            <View ref={addGoalButtonRef} nativeID="add-goal-button">
-              <TouchableOpacity
-                style={styles.addButton}
-                onPress={handleAddGoal}
-              >
-                <Ionicons name="add" size={24} color="white" />
-                <Text style={styles.addButtonText}>{t('goals.addGoal')}</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity style={styles.templateButton} onPress={handleAddFromTemplate}>
-              <Ionicons name="library-outline" size={24} color={colors.primary} />
-              <Text style={styles.templateButtonText}>{t('goals.useTemplate')}</Text>
-            </TouchableOpacity>
+            {goals.length > 1 && (
+              <RoundButton icon="swap-vertical" label={t('goals.actions.reorder')} onPress={() => setIsEditMode(true)} />
+            )}
+            {/* Until E15 puts the ideas inside the new-goal window. */}
+            <RoundButton icon="library-outline" label={t('goals.useTemplate')} onPress={() => setShowTemplatesModal(true)} />
+            <RoundButton icon="add" tone="primary" label={t('goals.addGoal')} onPress={handleAddGoal} />
           </>
         )}
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => setIsEditMode(!isEditMode)}
-        >
-          <Text style={styles.editButtonText}>
-            {isEditMode ? t('goals.actions.done') : t('goals.actions.reorder')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-      
-      {/* Seznam má vlastní kontejner s flex: 1 */}
-      <View style={styles.listContainer}>
-        <GoalListWithDragAndDrop
-          goals={goals}
-          isLoading={isLoading}
-          isEditMode={isEditMode}
-          onEditGoal={handleEditGoal}
-          onDeleteGoal={handleDeleteGoal}
-          onViewGoalStats={handleViewGoalStats}
-          onAddProgress={handleAddProgress}
-          onReorderGoals={handleReorderGoals}
-        />
-      </View>
+      </TopRow>
 
-      {/* AdMob Banner - Fixed at bottom */}
-      <View style={styles.bannerContainer}>
+      {isEditMode ? (
+        <GoalsReorderView goals={goals} bottomInset={BANNER_ROOM} onReorder={handleReorderGoals} />
+      ) : (
+        <GoalsPage
+          goals={goals}
+          today={todayString()}
+          bottomInset={BANNER_ROOM}
+          freshId={freshId}
+          onLog={handleLog}
+          onUndo={handleUndo}
+          onOpenDetail={goal => router.push(`/goal-stats?goalId=${goal.id}` as never)}
+          onEdit={goal => {
+            setEditingGoal(goal);
+            setTemplateData(undefined);
+            setModalVisible(true);
+          }}
+          onDelete={handleDeleteGoal}
+        />
+      )}
+
+      {/* AdMob banner, fixed at the bottom */}
+      <View style={styles.banner}>
         <AdBanner />
       </View>
 
@@ -339,26 +250,7 @@ export function GoalsScreen() {
         {...(templateData && { templateData })}
         onClose={handleCloseModal}
         onSubmit={handleSubmitGoal}
-        isLoading={isLoading}
-      />
-
-      {progressGoal && (
-        <ProgressModal
-          visible={progressModalVisible}
-          goal={progressGoal}
-          onClose={handleCloseProgressModal}
-          onSubmit={handleSubmitProgress}
-          isLoading={isLoading}
-        />
-      )}
-
-      {/* GoalCompletionModal removed - now rendered by ModalQueueContext */}
-
-      <ErrorModal
-        visible={showError}
-        onClose={() => setShowError(false)}
-        title={t('common.error')}
-        message={errorMessage}
+        isLoading={false}
       />
 
       <GoalTemplatesModal

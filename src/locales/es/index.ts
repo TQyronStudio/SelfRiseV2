@@ -1121,6 +1121,13 @@ const es: Partial<TranslationKeys> = {
 
   // Goals screen
   goals: {
+    errors: {
+      saveFailed: 'La meta no se guardó. Inténtalo de nuevo.',
+      logFailed: 'El progreso no se guardó. La meta sigue como estaba.',
+      undoFailed: 'No se pudo deshacer la entrada. Sigue en el historial de la meta.',
+      deleteFailed: 'La meta no se eliminó. No se perdió nada.',
+      reorderFailed: 'El nuevo orden no se guardó.',
+    },
     subline: 'Cosas grandes, paso a paso.',
     pace: {
       onPace: 'A buen ritmo',
@@ -1139,6 +1146,7 @@ const es: Partial<TranslationKeys> = {
       other: 'Otra',
     },
     log: {
+      otherDate: 'Otra fecha',
       undo: 'Deshacer',
       logged: 'Registrado: {{amount}}',
       milestone: '{{percent}} % — hito alcanzado',

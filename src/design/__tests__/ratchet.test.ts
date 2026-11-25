@@ -101,6 +101,13 @@ const CONVERTED: readonly string[] = [
   'app/journal-history.tsx',
   'app/journal-stats.tsx',
   'src/components/journal/JournalStatsPage.tsx',
+  // E14 — Goals list
+  'src/screens/goals/GoalsScreen.tsx',
+  'src/components/goals/page/GoalsPage.tsx',
+  'src/components/goals/page/GoalCard.tsx',
+  'src/components/goals/page/GoalLogSheet.tsx',
+  'src/components/goals/page/GoalActionsSheet.tsx',
+  'src/components/goals/page/GoalsReorderView.tsx',
   'src/screens/journal/journalStatsLogic.ts',
   'src/components/ui/ProblemNote.tsx',
   'src/hooks/useJournalFlame.ts',

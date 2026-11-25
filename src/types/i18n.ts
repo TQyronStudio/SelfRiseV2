@@ -865,6 +865,13 @@ export interface TranslationKeys {
   
   // Goals screen
   goals: {
+    errors: {
+      saveFailed: string;
+      logFailed: string;
+      undoFailed: string;
+      deleteFailed: string;
+      reorderFailed: string;
+    };
     subline: string;
     pace: {
       onPace: string;
@@ -883,6 +890,7 @@ export interface TranslationKeys {
       other: string;
     };
     log: {
+      otherDate: string;
       undo: string;
       logged: string;
       milestone: string;

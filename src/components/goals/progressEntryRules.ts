@@ -1,5 +1,5 @@
 /**
- * The date of a goal progress entry (ProgressEntryForm) — pure, tested in
+ * The date of a goal progress entry (the Goals log sheet, GoalLogSheet) — pure, tested in
  * __tests__/progressEntryRules.test.ts.
  *
  * The field is free text. Until 2026-11-24 anything typed was saved: "2026-13-45",

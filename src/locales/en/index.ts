@@ -1119,6 +1119,13 @@ const en: TranslationKeys = {
   
   // Goals screen
   goals: {
+    errors: {
+      saveFailed: 'The goal wasn’t saved. Try again.',
+      logFailed: 'The progress wasn’t saved. The goal stays as it was.',
+      undoFailed: 'The entry couldn’t be undone. It stays in the goal’s history.',
+      deleteFailed: 'The goal wasn’t deleted. Nothing was lost.',
+      reorderFailed: 'The new order wasn’t saved.',
+    },
     subline: 'Big things, one step at a time.',
     pace: {
       onPace: 'On pace',
@@ -1137,6 +1144,7 @@ const en: TranslationKeys = {
       other: 'Other',
     },
     log: {
+      otherDate: 'Other date',
       undo: 'Undo',
       logged: '{{amount}} logged',
       milestone: '{{percent}} % — milestone reached',
