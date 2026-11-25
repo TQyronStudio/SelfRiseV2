@@ -865,6 +865,34 @@ export interface TranslationKeys {
   
   // Goals screen
   goals: {
+    subline: string;
+    pace: {
+      onPace: string;
+      ahead_one: string;
+      ahead_other: string;
+      behind_one: string;
+      behind_other: string;
+      overdue: string;
+      daysLeft_zero: string;
+      daysLeft_one: string;
+      daysLeft_other: string;
+    };
+    card: {
+      by: string;
+      noDeadline: string;
+      other: string;
+    };
+    log: {
+      undo: string;
+      logged: string;
+      milestone: string;
+      noXpLeft: string;
+    };
+    deadlines: {
+      next_zero: string;
+      next_one: string;
+      next_other: string;
+    };
     title: string;
     addGoal: string;
     editGoal: string;

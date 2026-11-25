@@ -1119,10 +1119,38 @@ const en: TranslationKeys = {
   
   // Goals screen
   goals: {
-    title: 'My Goals',
-    addGoal: 'Add Goal',
-    editGoal: 'Edit Goal',
-    deleteGoal: 'Delete Goal',
+    subline: 'Big things, one step at a time.',
+    pace: {
+      onPace: 'On pace',
+      ahead_one: '{{count}} day ahead',
+      ahead_other: '{{count}} days ahead',
+      behind_one: '{{count}} day behind',
+      behind_other: '{{count}} days behind',
+      overdue: 'Deadline passed',
+      daysLeft_zero: 'Due today',
+      daysLeft_one: '{{count}} day left',
+      daysLeft_other: '{{count}} days left',
+    },
+    card: {
+      by: 'by {{date}}',
+      noDeadline: 'No deadline',
+      other: 'Other',
+    },
+    log: {
+      undo: 'Undo',
+      logged: '{{amount}} logged',
+      milestone: '{{percent}} % — milestone reached',
+      noXpLeft: 'Saved. XP for this goal returns tomorrow.',
+    },
+    deadlines: {
+      next_zero: 'Next: {{title}} today',
+      next_one: 'Next: {{title}} tomorrow',
+      next_other: 'Next: {{title}} in {{count}} days',
+    },
+    title: 'My goals',
+    addGoal: 'Add goal',
+    editGoal: 'Edit goal',
+    deleteGoal: 'Delete goal',
     noGoals: 'No goals yet. Start by creating your first goal!',
     // Shown when every goal is gone — after onboarding this is a rare state,
     // so it points at the templates rather than repeating the obvious.
@@ -1211,7 +1239,7 @@ const en: TranslationKeys = {
         note: 'Note (Optional)',
         date: 'Date',
         preview: 'Preview',
-        submit: 'Add Progress',
+        submit: 'Add progress',
         placeholders: {
           value: '0',
           note: 'Add a note about your progress...',
@@ -1220,7 +1248,7 @@ const en: TranslationKeys = {
         types: {
           add: 'Add',
           subtract: 'Subtract',
-          set: 'Set To',
+          set: 'Set to',
         },
         errors: {
           valueRequired: 'Value must be greater than 0',
@@ -1321,10 +1349,10 @@ const en: TranslationKeys = {
     // Goal Dashboard
     dashboard: {
       overview: 'Overview',
-      activeGoals: 'Active Goals',
-      completedGoals: 'Completed Goals',
+      activeGoals: 'Active goals',
+      completedGoals: 'Completed goals',
       completionRate: 'Completion Rate',
-      onTrack: 'On Track',
+      onTrack: 'On pace',
       deadlines: 'Deadlines',
       overdue: 'Overdue',
       dueThisWeek: 'Due This Week',
@@ -1345,8 +1373,8 @@ const en: TranslationKeys = {
 
     // Goal Sections
     sections: {
-      activeGoals: 'Active Goals',
-      completedGoals: 'Completed Goals',
+      activeGoals: 'Active goals',
+      completedGoals: 'Completed goals',
       otherGoals: 'Other Goals',
     },
 

@@ -771,6 +771,39 @@ interface GoalAnalytics {
 }
 ```
 
+### 🚨 Tempo cíle – jedno pravidlo (E14, R-17)
+
+`paceOf(goal, today)` v `src/utils/goalCalculations.ts` (test `src/utils/__tests__/goalPace.test.ts`):
+**přímka od data začátku (počáteční hodnota) k termínu (cílová hodnota)** proti skutečnému pokroku.
+Dny napřed / pozadu = o kolik dní té přímky je pokrok před (za) dnešním bodem na ní. Čte ji karta cíle
+(čip a ryska plánu), přehled „v plánu“ a od E15 detail (fakta tempa, graf „Ty a plán“).
+
+| Stav | Kdy | Na kartě |
+|---|---|---|
+| `done` | `status = COMPLETED` nebo ≥ 100 % | čip „Splněno“ |
+| `none` | bez termínu | „Bez termínu“, nic se nepočítá |
+| `overdue` | termín uplynul, cíl nesplněný | teplý čip „Termín uplynul“, **nic dál nepočítá** (číslo rostoucí každý den jen kárá); nové datum přes „⋯ → Upravit cíl“ |
+| `ahead` / `onPace` / `behind` | ±`PACE_TOLERANCE_DAYS` (3) kolem přímky | „o N dní napřed“ / „v plánu“ / „o N dní pozadu“ (teplá barva, ne červená) |
+
+✅ CORRECT: kartu, přehled i detail krmí `paceOf` / `fractionOf`.
+❌ WRONG: vlastní výpočet tempa v obrazovce, nebo převzetí `getGoalStats().estimatedCompletionDate`
+(průměr na **den se zápisem**, datum přes `toISOString` = UTC).
+**Proč:** dvě pravidla tempa = karta říká „v plánu“ a detail „pozadu“ (P37).
+
+- Data cíle parsuje `goalDate()` **místně** (i starý tvar `DD.MM.YYYY`), nikdy `new Date('YYYY-MM-DD')`.
+- `fractionOf` umí směr dolů (`startValue` > cíl – připraveno pro druh „Messen“ v E16) a smí přes 100 %.
+- První den cíle není „pozadu“ (uplynulé dny se počítají nejméně jako 1).
+- Starý `calculateTimelineStatus` (pásma ±1/±30 dní z odhadu) zůstává jen pro `getGoalStats().timelineStatus`
+  do E15, kdy zanikají záložky Trendy a Předpovědi.
+
+**Rychlé částky** na kartě: `quickAmounts(targetValue)` (týž soubor a test) – do 30 po jedné, do 200
+[1, 5], do 2 000 [10, 50], nad tím [5, 10, 25] × řád (10 000 → 50/100/250, 1 000 000 → 5 000/10 000/25 000).
+Počítá se při zobrazení z cílové hodnoty, **v datech se nic neukládá**.
+
+**Ikona a barva cíle** = jeho kategorie: `goalLook(category)` v `src/constants/goalLook.ts` (test
+`goalLook.test.ts`), barvy z palety návyků (`c.habit[...]`, kontrast symbolu přes `onHabitColor`). Čte ji karta,
+čára termínů a okno „Cíl splněn“.
+
 ### Progress Prediction
 ```typescript
 // Estimate completion date based on current progress rate

@@ -1121,10 +1121,38 @@ const es: Partial<TranslationKeys> = {
 
   // Goals screen
   goals: {
-    title: 'Mis Metas',
-    addGoal: 'Añadir Meta',
-    editGoal: 'Editar Meta',
-    deleteGoal: 'Eliminar Meta',
+    subline: 'Cosas grandes, paso a paso.',
+    pace: {
+      onPace: 'A buen ritmo',
+      ahead_one: '{{count}} día de adelanto',
+      ahead_other: '{{count}} días de adelanto',
+      behind_one: '{{count}} día de retraso',
+      behind_other: '{{count}} días de retraso',
+      overdue: 'Fecha límite superada',
+      daysLeft_zero: 'Vence hoy',
+      daysLeft_one: 'Queda {{count}} día',
+      daysLeft_other: 'Quedan {{count}} días',
+    },
+    card: {
+      by: 'para el {{date}}',
+      noDeadline: 'Sin fecha límite',
+      other: 'Otra',
+    },
+    log: {
+      undo: 'Deshacer',
+      logged: 'Registrado: {{amount}}',
+      milestone: '{{percent}} % — hito alcanzado',
+      noXpLeft: 'Guardado. Mañana vuelves a ganar XP con esta meta.',
+    },
+    deadlines: {
+      next_zero: 'Próxima: {{title}}, hoy',
+      next_one: 'Próxima: {{title}}, mañana',
+      next_other: 'Próxima: {{title}}, en {{count}} días',
+    },
+    title: 'Mis metas',
+    addGoal: 'Añadir meta',
+    editGoal: 'Editar meta',
+    deleteGoal: 'Eliminar meta',
     noGoals: 'Aún no hay metas. ¡Comienza creando tu primera meta!',
     noGoalsHint: 'Toca + para elegir una meta lista o escribir la tuya.',
 
@@ -1209,7 +1237,7 @@ const es: Partial<TranslationKeys> = {
         note: 'Nota (Opcional)',
         date: 'Fecha',
         preview: 'Vista Previa',
-        submit: 'Añadir Progreso',
+        submit: 'Añadir progreso',
         placeholders: {
           value: '0',
           note: 'Añade una nota sobre tu progreso...',
@@ -1218,7 +1246,7 @@ const es: Partial<TranslationKeys> = {
         types: {
           add: 'Añadir',
           subtract: 'Restar',
-          set: 'Establecer En',
+          set: 'Establecer en',
         },
         errors: {
           valueRequired: 'El valor debe ser mayor que 0',
@@ -1305,11 +1333,11 @@ const es: Partial<TranslationKeys> = {
 
     dashboard: {
       overview: 'Resumen',
-      activeGoals: 'Metas Activas',
-      completedGoals: 'Metas Completadas',
+      activeGoals: 'Metas activas',
+      completedGoals: 'Metas completadas',
       completionRate: 'Tasa de Finalización',
-      onTrack: 'En Camino',
-      deadlines: 'Fechas Límite',
+      onTrack: 'A buen ritmo',
+      deadlines: 'Fechas límite',
       overdue: 'Atrasado',
       dueThisWeek: 'Vence Esta Semana',
       dueThisMonth: 'Vence Este Mes',
@@ -1327,8 +1355,8 @@ const es: Partial<TranslationKeys> = {
     },
 
     sections: {
-      activeGoals: 'Metas Activas',
-      completedGoals: 'Metas Completadas',
+      activeGoals: 'Metas activas',
+      completedGoals: 'Metas completadas',
       otherGoals: 'Otras Metas',
     },
 

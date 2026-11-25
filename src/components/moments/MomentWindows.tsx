@@ -31,11 +31,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useDesign } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
-import { fixed, fonts, radius, space, tier as tierTokens, TierId, withAlpha } from '@/src/design/tokens';
+import { fixed, fonts, onHabitColor, radius, space, tier as tierTokens, TierId, withAlpha } from '@/src/design/tokens';
 import { feel } from '@/src/services/feelService';
 import { FeelMoment } from '@/src/constants/feel';
 import { XP_MULTIPLIERS } from '@/src/constants/gamification';
 import { getHabitIonicon } from '@/src/constants/habitIcons';
+import { goalLook } from '@/src/constants/goalLook';
 import { registerMomentOrigin } from '@/src/services/xpDisplay/xpOriginRegistry';
 import { HoldKind } from '@/src/services/xpDisplay/xpLedger';
 import { LEVEL_TIERS, tierFill, tierOf } from '@/src/services/levels/levelsJourney';
@@ -368,7 +369,9 @@ export function GoalDoneWindow({ goal, xp, onClose }: { goal: Goal; xp: number; 
   const { c } = useDesign();
   const { t } = useI18n();
   const locale = t('common.locale');
-  const color = c.primary;
+  // The goal's own icon and colour (its category, E14) — the same as on its card.
+  const look = goalLook(goal.category);
+  const color = c.habit[look.color];
   const days = Math.max(1, daysBetween(goal.startDate, goal.completedDate ?? formatDateToString(new Date())));
   const message = useMemo(() => t(`goals.completion.message${1 + (goal.id.length % 5)}`), [t, goal.id]);
   const { close, buttonRef, scrimStyle, cardStyle } = useMomentWindow(
@@ -381,7 +384,7 @@ export function GoalDoneWindow({ goal, xp, onClose }: { goal: Goal; xp: number; 
     <Frame scrimStyle={scrimStyle} cardStyle={cardStyle}>
       <Emblem ringColor={color}>
         <LinearGradient colors={[withAlpha(color, 0.2), color]} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={styles.medal}>
-          <Ionicons name="flag" size={42} color={fixed.white} />
+          <Ionicons name={look.icon} size={42} color={onHabitColor(color)} />
         </LinearGradient>
       </Emblem>
       <AppText variant="overline" tone="reward" style={styles.centered}>

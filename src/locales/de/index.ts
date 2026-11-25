@@ -1121,10 +1121,38 @@ const de: Partial<TranslationKeys> = {
 
   // Goals screen
   goals: {
+    subline: 'Große Dinge, Schritt für Schritt.',
+    pace: {
+      onPace: 'Im Plan',
+      ahead_one: '{{count}} Tag voraus',
+      ahead_other: '{{count}} Tage voraus',
+      behind_one: '{{count}} Tag zurück',
+      behind_other: '{{count}} Tage zurück',
+      overdue: 'Termin verstrichen',
+      daysLeft_zero: 'Heute fällig',
+      daysLeft_one: 'noch {{count}} Tag',
+      daysLeft_other: 'noch {{count}} Tage',
+    },
+    card: {
+      by: 'bis {{date}}',
+      noDeadline: 'Ohne Termin',
+      other: 'Andere',
+    },
+    log: {
+      undo: 'Rückgängig',
+      logged: '{{amount}} eingetragen',
+      milestone: '{{percent}} % – Meilenstein erreicht',
+      noXpLeft: 'Gespeichert. XP für dieses Ziel gibt es morgen wieder.',
+    },
+    deadlines: {
+      next_zero: 'Als Nächstes: {{title}} heute',
+      next_one: 'Als Nächstes: {{title}} morgen',
+      next_other: 'Als Nächstes: {{title}} in {{count}} Tagen',
+    },
     title: 'Meine Ziele',
     addGoal: 'Neues Ziel',
-    editGoal: 'Bearbeiten',
-    deleteGoal: 'Löschen',
+    editGoal: 'Ziel bearbeiten',
+    deleteGoal: 'Ziel löschen',
     noGoals: 'Noch keine Ziele. Beginne mit der Erstellung deines ersten Ziels!',
     noGoalsHint: 'Tippe auf +, um ein fertiges Ziel zu wählen oder ein eigenes zu schreiben.',
 
