@@ -58,7 +58,7 @@ u série 0, (c) karta statistik skrytá do prvního naplánovaného dne. 3 DE ry
 4 Sekce sheetu přizpůsobení = nadpis své karty. 5 Řádek trendu jen při růstu, období z výpočtu („Last 30 days“), „this month“
 z vět pryč. 6 Okna úspěchu záchrany série zrušit – potvrzením je plamen; chyby do pruhu (4 věty z C); technické větve bez okna.
 
-**E12.** 1 Klidné věty: „Today’s three are done — your streak grows.“ / „Die drei für heute sind geschafft – deine Serie wächst.“ /
+**E12** (✅ v locales 2026-11-25, test `journalCopy.test.ts`; A celé, C celé). 1 Klidné věty: „Today’s three are done — your streak grows.“ / „Die drei für heute sind geschafft – deine Serie wächst.“ /
 „Las tres de hoy, hechas: tu racha crece.“; bonus „Every extra entry is a bonus.“ / „Jeder weitere Eintrag ist ein Bonus.“ /
 „Cada entrada extra es una bonificación.“
 

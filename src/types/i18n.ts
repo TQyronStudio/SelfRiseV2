@@ -525,6 +525,31 @@ export interface TranslationKeys {
 
   // Journal screen
   journal: {
+    subline: string;
+    write: {
+      gratitudeHint: string;
+      selfPraiseHint: string;
+    };
+    bonusRoad: {
+      title: string;
+      toNext_one: string;
+      toNext_other: string;
+      allCollected: string;
+    };
+    entryCount_one: string;
+    entryCount_other: string;
+    writingLocked: string;
+    composer: {
+      anotherPrompt: string;
+    };
+    quote: {
+      another: string;
+    };
+    iconNames: {
+      star: string;
+      flame: string;
+      crown: string;
+    };
     streakDaysUnit_one: string;
     streakDaysUnit_other: string;
     streakMoment: {
@@ -2496,10 +2521,24 @@ export interface TranslationKeys {
   // Help system
   help: {
     topics: {
+      journalDay: string;
+      frozen: string;
       multiplier: string;
       makeUp: string;
     };
     rules: {
+      three: {
+        title: string;
+        text: string;
+      };
+      bonus: {
+        title: string;
+        text: string;
+      };
+      frozen: {
+        title: string;
+        text: string;
+      };
       harmony: {
         title: string;
         text: string;

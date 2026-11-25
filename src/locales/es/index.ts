@@ -162,7 +162,7 @@ const es: Partial<TranslationKeys> = {
     copyError: 'Error al copiar. Por favor, inténtalo de nuevo.',
     todayHabits: 'Hábitos de hoy',
     // Daily Quote
-    dailyQuote: 'Inspiración Diaria',
+    dailyQuote: 'Inspiración diaria',
     quoteCategories: {
       motivation: 'Motivación',
       gratitude: 'Gratitud',
@@ -538,7 +538,7 @@ const es: Partial<TranslationKeys> = {
         createHabitsFirst: 'Cree algunos hábitos primero para ver sus estadísticas',
       },
       gratitude: {
-        failedToSave: 'No se pudo guardar la gratitud',
+        failedToSave: 'Tu entrada no se guardó. Lo que escribiste sigue ahí.',
       },
       social: {
         failedToLoadHeroes: 'No se pudieron cargar los héroes diarios',
@@ -724,6 +724,31 @@ const es: Partial<TranslationKeys> = {
 
   // Journal screen
   journal: {
+    subline: 'Tres cosas buenas al día.',
+    write: {
+      gratitudeHint: 'Algo bueno de hoy',
+      selfPraiseHint: 'Algo que hiciste bien',
+    },
+    bonusRoad: {
+      title: 'Camino de bonificación',
+      toNext_one: 'Falta {{count}} para',
+      toNext_other: 'Faltan {{count}} para',
+      allCollected: 'Todos los hitos del día conseguidos.',
+    },
+    entryCount_one: '{{count}} entrada',
+    entryCount_other: '{{count}} entradas',
+    writingLocked: 'Podrás volver a escribir en cuanto tu racha esté caliente.',
+    composer: {
+      anotherPrompt: 'Otra pregunta',
+    },
+    quote: {
+      another: 'Otra cita',
+    },
+    iconNames: {
+      star: 'estrella',
+      flame: 'llama',
+      crown: 'corona',
+    },
     streakDaysUnit_one: 'día',
     streakDaysUnit_other: 'días',
     streakMoment: {
@@ -741,18 +766,18 @@ const es: Partial<TranslationKeys> = {
       title: '¿Qué salió bien hoy?',
       body: 'Escribe tres cosas pequeñas por las que estés agradecido, o algo que hayas hecho bien. Lleva un minuto, y tres al día mantienen viva tu racha.',
     },
-    bonusGratitude: 'Entrada Bonus',
-    currentStreak: 'Racha Actual',
-    longestStreak: 'Racha Más Larga',
-    frozenStreak: 'Racha Congelada',
+    bonusGratitude: 'Entrada de bonificación',
+    currentStreak: 'Racha actual',
+    longestStreak: 'Racha más larga',
+    frozenStreak: 'Racha congelada',
     history: 'Historial',
     statistics: 'Estadísticas',
     // Daily Progress Display
     progress: {
       title: 'Progreso del Diario Hoy',
       complete: 'Completo ✓',
-      bonusAmazing: '¡Increíble! ¡Has agregado entradas bonus! 🌟',
-      dailyComplete: '¡Diario completado hoy! ¡Mantén tu racha viva! 🔥',
+      bonusAmazing: 'Cada entrada extra es una bonificación.',
+      dailyComplete: 'Las tres de hoy, hechas: tu racha crece.',
       entriesNeeded_one: '{{count}} entrada más requerida',
       entriesNeeded_other: '{{count}} entradas más requeridas',
     },
@@ -3538,10 +3563,24 @@ const es: Partial<TranslationKeys> = {
   help: {
     // Help rules of the new look (migration E6, 7.10) — one source for the sheet and the rules page
     topics: {
+      journalDay: 'Cómo funciona el día del diario',
+      frozen: 'Cómo funciona una racha congelada',
       multiplier: 'Cómo funciona el multiplicador de XP',
       makeUp: 'Cómo se recuperan los días perdidos',
     },
     rules: {
+      three: {
+        title: 'Tres entradas mantienen tu racha',
+        text: 'Escribe tres al día y la racha crece en uno. Cada una de las tres da {{perEntry}} XP.',
+      },
+      bonus: {
+        title: 'Escribir más tiene premio',
+        text: 'Las entradas 4, 8 y 13 del día suman +{{star}}, +{{flame}} y +{{crown}} XP. De la 4 a la 13 dan {{each}} XP cada una; a partir de la 14, nada más.',
+      },
+      frozen: {
+        title: 'Un día perdido congela la racha',
+        text: 'No se rompe. Mira un anuncio corto por cada día perdido, hasta {{maxDays}} días, y la racha sigue. O empieza de nuevo. Las entradas nuevas esperan hasta que decidas.',
+      },
       harmony: {
         title: '{{days}} días con las tres = {{factor}} XP',
         text: 'Un día cuenta con un hábito hecho, tres entradas en el diario y un paso en una meta. Después de {{days}} seguidos, actívalo desde la insignia de nivel: todo vale {{factor}} XP durante {{hours}} horas. El siguiente es posible {{cooldownDays}} días después.',
@@ -4177,10 +4216,10 @@ const es: Partial<TranslationKeys> = {
       exporting: 'Exportando tu diario...',
     },
     edit: {
-      title: 'Editar Entrada del Diario',
+      title: 'Editar entrada del diario',
     },
     bonus: {
-      label: 'BONIFICACIÓN ⭐',
+      label: 'BONUS',
     },
   } as any,
 

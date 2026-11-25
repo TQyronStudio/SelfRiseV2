@@ -464,7 +464,7 @@ const de: Partial<TranslationKeys> = {
     delete: 'Löschen',
     retry: 'Nochmal',
     tryAgain: 'Erneut versuchen',
-    add: '+ Neu',
+    add: 'Hinzufügen',
     create: 'Neu',
     update: 'Update',
     confirm: 'OK',
@@ -538,7 +538,7 @@ const de: Partial<TranslationKeys> = {
         createHabitsFirst: 'Erstelle Routinen für Statistiken',
       },
       gratitude: {
-        failedToSave: 'Speichern fehlgeschlagen',
+        failedToSave: 'Dein Eintrag wurde nicht gespeichert. Was du geschrieben hast, ist noch da.',
       },
       social: {
         failedToLoadHeroes: 'Laden fehlgeschlagen',
@@ -724,6 +724,31 @@ const de: Partial<TranslationKeys> = {
 
   // Journal screen
   journal: {
+    subline: 'Drei gute Dinge am Tag.',
+    write: {
+      gratitudeHint: 'Etwas Gutes heute',
+      selfPraiseHint: 'Etwas, das du gut gemacht hast',
+    },
+    bonusRoad: {
+      title: 'Bonusweg',
+      toNext_one: 'Noch {{count}} bis',
+      toNext_other: 'Noch {{count}} bis',
+      allCollected: 'Alle Meilensteine des Tages gesammelt.',
+    },
+    entryCount_one: '{{count}} Eintrag',
+    entryCount_other: '{{count}} Einträge',
+    writingLocked: 'Schreiben geht wieder, sobald deine Serie aufgewärmt ist.',
+    composer: {
+      anotherPrompt: 'Andere Frage',
+    },
+    quote: {
+      another: 'Anderes Zitat',
+    },
+    iconNames: {
+      star: 'Stern',
+      flame: 'Flamme',
+      crown: 'Krone',
+    },
     streakDaysUnit_one: 'Tag',
     streakDaysUnit_other: 'Tage',
     streakMoment: {
@@ -751,8 +776,8 @@ const de: Partial<TranslationKeys> = {
     progress: {
       title: 'Tagebuch heute',
       complete: 'Fertig ✓',
-      bonusAmazing: 'Fantastisch! Du hast Bonus-Einträge hinzugefügt! 🌟',
-      dailyComplete: 'Tagebuch heute abgeschlossen! Halte deine Serie am Leben! 🔥',
+      bonusAmazing: 'Jeder weitere Eintrag ist ein Bonus.',
+      dailyComplete: 'Die drei für heute sind geschafft – deine Serie wächst.',
       entriesNeeded_one: '{{count}} weiterer Eintrag erforderlich',
       entriesNeeded_other: '{{count}} weitere Einträge erforderlich',
     },
@@ -3538,10 +3563,24 @@ const de: Partial<TranslationKeys> = {
   help: {
     // Help rules of the new look (migration E6, 7.10) — one source for the sheet and the rules page
     topics: {
+      journalDay: 'So funktioniert der Tagebuch-Tag',
+      frozen: 'So funktioniert eine eingefrorene Serie',
       multiplier: 'So funktioniert der XP-Multiplikator',
       makeUp: 'So werden verpasste Tage ausgeglichen',
     },
     rules: {
+      three: {
+        title: 'Drei Einträge halten deine Serie',
+        text: 'Schreib drei am Tag und die Serie wächst um eins. Jeder der drei bringt {{perEntry}} XP.',
+      },
+      bonus: {
+        title: 'Mehr schreiben bringt einen Bonus',
+        text: 'Die Einträge 4, 8 und 13 eines Tages bringen +{{star}}, +{{flame}} und +{{crown}} XP. Die Einträge 4 bis 13 bringen je {{each}} XP, nach dem 13. nichts mehr.',
+      },
+      frozen: {
+        title: 'Ein verpasster Tag friert die Serie ein',
+        text: 'Sie bricht nicht ab. Sieh dir für jeden verpassten Tag eine kurze Werbung an, bis zu {{maxDays}} Tage, und sie geht weiter. Oder fang neu an. Neue Einträge warten, bis du dich entscheidest.',
+      },
       harmony: {
         title: '{{days}} Tage mit allen dreien = {{factor}} XP',
         text: 'Ein Tag zählt mit einer erledigten Routine, drei Tagebucheinträgen und einem Schritt bei einem Ziel. Nach {{days}} Tagen in Folge schaltest du ihn am Level-Abzeichen ein: {{hours}} Stunden lang bringt alles {{factor}} XP. Der nächste ist {{cooldownDays}} Tage später möglich.',
@@ -4179,7 +4218,7 @@ const de: Partial<TranslationKeys> = {
       title: 'Tagebucheintrag bearbeiten',
     },
     bonus: {
-      label: 'BONUS ⭐',
+      label: 'BONUS',
     },
   } as any,
 

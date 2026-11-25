@@ -265,7 +265,7 @@ const en: TranslationKeys = {
     shareError: 'Failed to share. Please try again.',
     copyError: 'Failed to copy. Please try again.',
     // Daily Quote
-    dailyQuote: 'Daily Inspiration',
+    dailyQuote: 'Daily inspiration',
     quoteCategories: {
       motivation: 'Motivation',
       gratitude: 'Gratitude',
@@ -527,7 +527,7 @@ const en: TranslationKeys = {
         createHabitsFirst: 'Create some habits first to view their statistics',
       },
       gratitude: {
-        failedToSave: 'Failed to save gratitude',
+        failedToSave: 'Your entry wasn’t saved. What you wrote is still there.',
       },
       social: {
         failedToLoadHeroes: 'Failed to load daily heroes',
@@ -714,6 +714,31 @@ const en: TranslationKeys = {
 
   // Journal screen
   journal: {
+    subline: 'Three good things a day.',
+    write: {
+      gratitudeHint: 'Something good today',
+      selfPraiseHint: 'Something you did well',
+    },
+    bonusRoad: {
+      title: 'Bonus road',
+      toNext_one: '{{count}} more to',
+      toNext_other: '{{count}} more to',
+      allCollected: 'Every milestone of the day collected.',
+    },
+    entryCount_one: '{{count}} entry',
+    entryCount_other: '{{count}} entries',
+    writingLocked: 'Writing opens again once your streak is warm.',
+    composer: {
+      anotherPrompt: 'Another prompt',
+    },
+    quote: {
+      another: 'Another quote',
+    },
+    iconNames: {
+      star: 'star',
+      flame: 'flame',
+      crown: 'crown',
+    },
     streakDaysUnit_one: 'day',
     streakDaysUnit_other: 'days',
     streakMoment: {
@@ -735,18 +760,18 @@ const en: TranslationKeys = {
       title: 'What went well today?',
       body: 'Write down three small things you are grateful for, or something you did well. It takes a minute — and three a day keeps your streak alive.',
     },
-    bonusGratitude: 'Bonus Entry',
-    currentStreak: 'Current Streak',
-    longestStreak: 'Longest Streak',
-    frozenStreak: 'Frozen Streak',
+    bonusGratitude: 'Bonus entry',
+    currentStreak: 'Current streak',
+    longestStreak: 'Longest streak',
+    frozenStreak: 'Frozen streak',
     history: 'History',
     statistics: 'Statistics',
     // Daily Progress Display
     progress: {
       title: 'Today\'s Journal Progress',
       complete: 'Complete ✓',
-      bonusAmazing: 'Amazing! You\'ve added bonus entries! 🌟',
-      dailyComplete: 'Daily journal complete! Keep your streak alive! 🔥',
+      bonusAmazing: 'Every extra entry is a bonus.',
+      dailyComplete: 'Today’s three are done — your streak grows.',
       entriesNeeded_one: '{{count}} more entry needed',
       entriesNeeded_other: '{{count}} more entries needed',
     },
@@ -858,7 +883,7 @@ const en: TranslationKeys = {
 
     // Delete confirmation
     deleteConfirm: {
-      title: 'Delete Journal Entry',
+      title: 'Delete journal entry',
       message: 'Are you sure you want to delete this {{type}} entry? This action cannot be undone.',
       gratitude: 'gratitude',
       selfPraise: 'self-praise',
@@ -875,7 +900,7 @@ const en: TranslationKeys = {
       currentStreak: 'Current Streak',
       dailyAverage: 'Daily Average',
       entriesPerDay: 'entries per active day',
-      milestoneBadges: 'Milestone Badges',
+      milestoneBadges: 'Milestone badges',
       bestStreak_one: 'Best streak: {{count}} day',
       bestStreak_other: 'Best streak: {{count}} days',
       startToday: 'Start your streak today!',
@@ -892,12 +917,12 @@ const en: TranslationKeys = {
     // Gratitude Input Component
     input: {
       // Header titles
-      addGratitudeTitle: 'Add Gratitude',
-      addSelfPraiseTitle: 'Add Self-Praise',
+      addGratitudeTitle: 'Add gratitude',
+      addSelfPraiseTitle: 'Add self-praise',
 
       // Entry type labels (used in list and edit modal)
       typeGratitude: 'Gratitude',
-      typeSelfPraise: 'Self-Praise',
+      typeSelfPraise: 'Self-praise',
 
       // Error messages
       emptyError: 'Write a few words first.',
@@ -942,7 +967,7 @@ const en: TranslationKeys = {
     // Warm-up modals
     warmUp: {
       frozenMessage_zero: 'All ads watched — your streak is warming up.',
-      title: 'Warm Up Your Streak',
+      title: 'Warm up your streak',
       frozenDays: 'Frozen Days',
       frozenMessage_one: 'Your streak is frozen. One short ad warms it up again.',
       frozenMessage_other: 'Your streak is frozen. {{count}} short ads — one for each missed day — warm it up again.',
@@ -3564,10 +3589,24 @@ const en: TranslationKeys = {
   help: {
     // Help rules of the new look (migration E6, 7.10) — one source for the sheet and the rules page
     topics: {
+      journalDay: 'How the journal day works',
+      frozen: 'How a frozen streak works',
       multiplier: 'How the XP multiplier works',
       makeUp: 'How missed days are made up',
     },
     rules: {
+      three: {
+        title: 'Three entries keep your streak',
+        text: 'Write three a day and the streak grows by one. Each of the three earns {{perEntry}} XP.',
+      },
+      bonus: {
+        title: 'Writing more pays a bonus',
+        text: 'Entries 4, 8 and 13 of a day add +{{star}}, +{{flame}} and +{{crown}} XP. Entries 4 to 13 earn {{each}} XP each; after the 13th, nothing more.',
+      },
+      frozen: {
+        title: 'A missed day freezes the streak',
+        text: 'It doesn’t break. Watch one short ad for each missed day, up to {{maxDays}} days, and it carries on. Or start fresh. New entries wait until you decide.',
+      },
       harmony: {
         title: '{{days}} days of all three = {{factor}} XP',
         text: 'A day counts with one habit done, three journal entries and one goal step. After {{days}} in a row, switch it on from the level badge: everything earns {{factor}} XP for {{hours}} hours. The next one is possible {{cooldownDays}} days later.',
@@ -4235,10 +4274,10 @@ const en: TranslationKeys = {
       exporting: 'Exporting your journal...',
     },
     edit: {
-      title: 'Edit Journal Entry',
+      title: 'Edit journal entry',
     },
     bonus: {
-      label: 'BONUS ⭐',
+      label: 'BONUS',
     },
   },
 
