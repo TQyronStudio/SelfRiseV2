@@ -33,6 +33,18 @@ o delší onboarding. Správná odpověď je **dobrovolná hloubka**, ne delší
 rozcestník** — hlavní akce zůstává „Rozumím". Ta karta je moment odměny;
 rozhodnutí navíc tam nepatří.
 
+### Tiché „i“ (`HelpLink`) otevírá sheet na úrovni STRÁNKY (`HelpHost`, E12 2026-11-25)
+
+```tsx
+// ✅ CORRECT – stránka obalí obsah, každé „i“ uvnitř otevře JEDEN sheet přes celou stránku
+<HelpHost bottomInset={bottomInset}>…obsah stránky…</HelpHost>
+// ❌ WRONG – „i“ uvnitř karty bez hostitele: sheet se rozloží do malého rámečku vedle tlačítka
+```
+**Proč:** `BottomSheet` není portál – kreslí se přes svého rodiče. Bez hostitele byl sheet nápovědy
+v kartě Dnes oříznutý a nešel zavřít (revize E12). Hostitele mají Deník (`JournalPage`) a detail návyku
+(`HabitDetail`); panel úrovně používá vlastní `onOpen`. Bez hostitele kreslí `HelpLink` sheet sám (jen
+tam, kde je jeho rodičem celá stránka).
+
 ### Co na obrazovku smí — vstupní test
 
 > **„Když to uživatel neví, stojí ho to něco?"**

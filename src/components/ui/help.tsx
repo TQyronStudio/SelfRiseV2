@@ -10,7 +10,7 @@
  *   rules" (`help.allRules`) joins the sheet when that page exists.
  * - Topics come one by one with their screens (7.10): makeUp now (E6).
  */
-import React, { useState } from 'react';
+import React, { createContext, ReactNode, useContext, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useDesign } from '@/src/contexts/ThemeContext';
@@ -60,6 +60,33 @@ function ruleParams(id: string): Record<string, string | number> {
   }
 }
 
+/**
+ * The page that hosts help sheets (E12 review fix). A BottomSheet is not a
+ * portal: drawn next to the "i" it would be laid out against that small box
+ * (and clipped by its card). Wrap a page's content in <HelpHost>: every
+ * HelpLink inside opens ONE sheet at the page's level. Without a host the
+ * link keeps drawing its own sheet (for a link whose parent is the page).
+ */
+const HelpHostContext = createContext<((topic: HelpTopic) => void) | null>(null);
+
+export function HelpHost({
+  bottomInset,
+  children,
+}: {
+  bottomInset: number;
+  children: ReactNode;
+}) {
+  const [topic, setTopic] = useState<HelpTopic | null>(null);
+  return (
+    <HelpHostContext.Provider value={setTopic}>
+      {children}
+      {topic && (
+        <HelpSheet topic={topic} bottomInset={bottomInset} onClosed={() => setTopic(null)} />
+      )}
+    </HelpHostContext.Provider>
+  );
+}
+
 export function HelpLink({
   topic,
   bottomInset,
@@ -77,10 +104,13 @@ export function HelpLink({
   const { c } = useDesign();
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
+  const host = useContext(HelpHostContext);
   return (
     <>
       <PressableScale
-        onPress={() => (onOpen ? onOpen() : setOpen(true))}
+        onPress={() =>
+          onOpen ? onOpen() : host ? host(topic) : setOpen(true)
+        }
         pressScale={0.88}
         accessibilityLabel={t(`help.topics.${topic}`)}
         style={styles.link}

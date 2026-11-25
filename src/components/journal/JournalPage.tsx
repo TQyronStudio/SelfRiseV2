@@ -12,9 +12,24 @@
  * save path keeps its debt gate (journalWritingGate). A failed save keeps the
  * sheet open with the text and shows a calm note (7.9).
  */
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated as RNAnimated, ScrollView, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  Animated as RNAnimated,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
+import Animated, {
+  FadeInDown,
+  FadeOut,
+  LinearTransition,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useDesign } from '@/src/contexts/ThemeContext';
@@ -31,6 +46,7 @@ import { blockingDebtDays } from '@/src/screens/journal/journalWritingGate';
 import {
   AppText,
   ConfirmSheet,
+  HelpHost,
   HelpLink,
   IntroProvider,
   Rise,
@@ -158,7 +174,11 @@ function JournalContent({ bottomInset, openWrite, onAdded }: JournalPageProps) {
         await actions.refreshStats();
         return false;
       }
-      const entry = await actions.createGratitude({ content: text, date: today, type });
+      const entry = await actions.createGratitude({
+        content: text,
+        date: today,
+        type,
+      });
       setFreshId(entry.id);
       onAdded(count + 1);
       return true;
@@ -191,13 +211,18 @@ function JournalContent({ bottomInset, openWrite, onAdded }: JournalPageProps) {
     month: 'long',
   });
   const timeOf = (g: Gratitude) =>
-    new Date(g.createdAt).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+    new Date(g.createdAt).toLocaleTimeString(locale, {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   const sectionWindow = (i: number) =>
-    timeline.sections[Math.min(i, timeline.sections.length - 1)] ?? timeline.hero;
+    timeline.sections[Math.min(i, timeline.sections.length - 1)] ??
+    timeline.hero;
 
   const progress = warmUp.progress;
   const days = Math.max(progress?.total ?? streak?.frozenDays ?? 0, 1);
-  const paid = flame.state === 'warming' ? days : Math.min(progress?.paid ?? 0, days);
+  const paid =
+    flame.state === 'warming' ? days : Math.min(progress?.paid ?? 0, days);
 
   return (
     <View style={[styles.flex, { backgroundColor: c.canvas }]}>
@@ -214,205 +239,241 @@ function JournalContent({ bottomInset, openWrite, onAdded }: JournalPageProps) {
         />
       </TopRow>
       <View ref={pageRef} collapsable={false} style={styles.page}>
-        <ScrollFrameProvider value={frame}>
-          <RNAnimated.ScrollView
-            ref={scrollRef}
-            style={styles.flex}
-            onLayout={onLayout}
-            onScroll={onScroll}
-            scrollEventThrottle={16}
-            {...rest.handlers}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={[
-              contentColumn,
-              { paddingHorizontal: SCREEN_PADDING, paddingBottom: bottomInset + space.xxl },
-            ]}
-          >
-            <Rise window={timeline.header}>
-              <AppText variant="overline" tone="muted">
-                {dateLine}
-              </AppText>
-              <AppText variant="display" style={styles.title}>
-                {t('journal.title')}
-              </AppText>
-              <AppText variant="body" tone="muted" italic style={styles.subline}>
-                {t('journal.subline')}
-              </AppText>
-            </Rise>
-
-            {/* Today */}
-            <ScrollCard variant="hero">
-              <Rise window={timeline.hero} scaleFrom={0.97}>
-                <TodayCard
-                  count={count}
-                  streak={streak?.currentStreak ?? 0}
-                  longest={streak?.longestStreak ?? 0}
-                  flame={flame.state}
-                  onWarmed={flame.onWarmed}
-                  frozen={flame.state === 'ice'}
-                  stars={streak?.starCount ?? 0}
-                  flames={streak?.flameCount ?? 0}
-                  crowns={streak?.crownCount ?? 0}
-                  onOpenStats={() => router.push('/journal-stats')}
-                  rest={rest.signal}
-                  bottomInset={bottomInset}
-                />
+        {/* Help sheets open at the page's level, not inside their card. */}
+        <HelpHost bottomInset={bottomInset}>
+          <ScrollFrameProvider value={frame}>
+            <RNAnimated.ScrollView
+              ref={scrollRef}
+              style={styles.flex}
+              onLayout={onLayout}
+              onScroll={onScroll}
+              scrollEventThrottle={16}
+              {...rest.handlers}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={[
+                contentColumn,
+                {
+                  paddingHorizontal: SCREEN_PADDING,
+                  paddingBottom: bottomInset + space.xxl,
+                },
+              ]}
+            >
+              <Rise window={timeline.header}>
+                <AppText variant="overline" tone="muted">
+                  {dateLine}
+                </AppText>
+                <AppText variant="display" style={styles.title}>
+                  {t('journal.title')}
+                </AppText>
+                <AppText
+                  variant="body"
+                  tone="muted"
+                  italic
+                  style={styles.subline}
+                >
+                  {t('journal.subline')}
+                </AppText>
               </Rise>
-            </ScrollCard>
 
-            {/* Write — or warm up first (R-14) */}
-            <ScrollCard>
-              <Rise window={sectionWindow(0)}>
-                {locked && (
-                  <Animated.View entering={FadeInDown.duration(300)}>
-                    <Surface
-                      style={[styles.frozen, { backgroundColor: c.iceSoft, borderColor: c.iceRing }]}
-                    >
-                      <View style={styles.frozenHead}>
-                        <Ionicons name="snow" size={20} color={c.ice} />
-                        <AppText variant="titleSm" style={[styles.frozenTitle, { color: c.ice }]}>
-                          {t('journal.warmUp.title')}
-                        </AppText>
-                        <View style={styles.flex} />
-                        <HelpLink topic="frozen" bottomInset={bottomInset} />
-                      </View>
-                      <AppText variant="body" style={styles.frozenText}>
-                        {t('journal.warmUp.frozenMessage', { count: Math.max(days - paid, 0) })}
-                      </AppText>
-                      <WarmUpControls
-                        days={days}
-                        paid={paid}
-                        busy={warmUp.isWatchingAd || flame.state === 'warming'}
-                        onWarmUp={() => void warmUp.watchAd()}
-                        onStartFresh={() => setFreshConfirm(true)}
-                      />
-                      <AppText variant="caption" tone="muted" italic style={styles.lockNote}>
-                        {t('journal.writingLocked')}
-                      </AppText>
-                    </Surface>
-                  </Animated.View>
-                )}
-                <View style={styles.tiles}>
-                  {(['gratitude', 'self-praise'] as EntryType[]).map(type => (
-                    <WriteTile
-                      key={type}
-                      type={type}
-                      nextPosition={count + 1}
-                      locked={locked}
-                      onPress={() => startWriting(type)}
-                    />
-                  ))}
-                </View>
-              </Rise>
-            </ScrollCard>
-
-            {/* Daily inspiration — always above today's entries */}
-            <ScrollCard>
-              <Rise window={sectionWindow(1)}>
-                <QuoteCard today={today} />
-              </Rise>
-            </ScrollCard>
-
-            {/* Today's entries */}
-            <ScrollCard>
-              <Rise window={sectionWindow(2)}>
-                <View style={styles.sectionTitle}>
-                  <AppText variant="title" style={styles.flex}>
-                    {t('journal.today')}
-                  </AppText>
-                  <RollingNumber
-                    text={t('journal.entryCount', { count })}
-                    variant="label"
-                    tone="muted"
+              {/* Today */}
+              <ScrollCard variant="hero">
+                <Rise window={timeline.hero} scaleFrom={0.97}>
+                  <TodayCard
+                    count={count}
+                    streak={streak?.currentStreak ?? 0}
+                    longest={streak?.longestStreak ?? 0}
+                    flame={flame.state}
+                    onWarmed={flame.onWarmed}
+                    frozen={flame.state === 'ice'}
+                    stars={streak?.starCount ?? 0}
+                    flames={streak?.flameCount ?? 0}
+                    crowns={streak?.crownCount ?? 0}
+                    onOpenStats={() => router.push('/journal-stats')}
+                    rest={rest.signal}
+                    bottomInset={bottomInset}
                   />
-                </View>
-                {count === 0 ? (
-                  <EmptyDay />
-                ) : (
-                  entries.map((entry, i) => (
-                    <Animated.View
-                      key={entry.id}
-                      ref={(node: View | null) => {
-                        entryRefs.current.set(entry.id, node);
-                      }}
-                      collapsable={false}
-                      entering={FadeInDown.duration(320)}
-                      exiting={FadeOut.duration(180)}
-                      layout={LinearTransition.duration(260)}
-                      style={styles.entryGap}
-                    >
-                      <EntryCard
-                        id={entry.id}
-                        type={entry.type === 'self-praise' ? 'self-praise' : 'gratitude'}
-                        text={entry.content}
-                        time={timeOf(entry)}
-                        position={i + 1}
-                        fresh={freshId === entry.id}
-                        onMore={more}
-                      />
-                    </Animated.View>
-                  ))
-                )}
-              </Rise>
-            </ScrollCard>
-          </RNAnimated.ScrollView>
-        </ScrollFrameProvider>
+                </Rise>
+              </ScrollCard>
 
-        {composer && (
-          <EntryComposer
-            mode={composer}
-            nextPosition={count + 1}
-            bottomInset={bottomInset}
-            onClosed={() => setComposer(null)}
-            onSave={(type, text) => save(composer, type, text)}
-          />
-        )}
-        {actionsFor && (
-          <EntryActionsSheet
-            text={actionsFor.content}
-            bottomInset={bottomInset}
-            onClosed={() => setActionsFor(null)}
-            onEdit={() =>
-              setComposer({
-                kind: 'edit',
-                id: actionsFor.id,
-                type: actionsFor.type === 'self-praise' ? 'self-praise' : 'gratitude',
-                text: actionsFor.content,
-              })
-            }
-            onDelete={() => setDeleting(actionsFor)}
-          />
-        )}
-        {deleting && (
-          <ConfirmSheet
-            title={t('journal.deleteConfirm.title')}
-            message={t('journal.deleteConfirm.message', {
-              type:
-                deleting.type === 'self-praise'
-                  ? t('journal.deleteConfirm.selfPraise')
-                  : t('journal.deleteConfirm.gratitude'),
-            })}
-            confirm={t('common.delete')}
-            cancel={t('common.cancel')}
-            icon="trash-outline"
-            bottomInset={bottomInset}
-            onClosed={() => setDeleting(null)}
-            onConfirm={() => void confirmDelete(deleting)}
-          />
-        )}
-        {freshConfirm && (
-          <ConfirmSheet
-            title={t('journal.warmUp.startFresh.title')}
-            message={t('journal.warmUp.startFresh.message')}
-            confirm={t('common.startFresh')}
-            cancel={t('common.cancel')}
-            icon="refresh"
-            bottomInset={bottomInset}
-            onClosed={() => setFreshConfirm(false)}
-            onConfirm={() => void warmUp.startFresh()}
-          />
-        )}
+              {/* Write — or warm up first (R-14) */}
+              <ScrollCard>
+                <Rise window={sectionWindow(0)}>
+                  {locked && (
+                    <Animated.View entering={FadeInDown.duration(300)}>
+                      <Surface
+                        style={[
+                          styles.frozen,
+                          {
+                            backgroundColor: c.iceSoft,
+                            borderColor: c.iceRing,
+                          },
+                        ]}
+                      >
+                        <View style={styles.frozenHead}>
+                          <Ionicons name="snow" size={20} color={c.ice} />
+                          <AppText
+                            variant="titleSm"
+                            style={[styles.frozenTitle, { color: c.ice }]}
+                          >
+                            {t('journal.warmUp.title')}
+                          </AppText>
+                          <View style={styles.flex} />
+                          <HelpLink topic="frozen" bottomInset={bottomInset} />
+                        </View>
+                        <AppText variant="body" style={styles.frozenText}>
+                          {t('journal.warmUp.frozenMessage', {
+                            count: Math.max(days - paid, 0),
+                          })}
+                        </AppText>
+                        <WarmUpControls
+                          days={days}
+                          paid={paid}
+                          busy={
+                            warmUp.isWatchingAd || flame.state === 'warming'
+                          }
+                          onWarmUp={() => void warmUp.watchAd()}
+                          onStartFresh={() => setFreshConfirm(true)}
+                        />
+                        <AppText
+                          variant="caption"
+                          tone="muted"
+                          italic
+                          style={styles.lockNote}
+                        >
+                          {t('journal.writingLocked')}
+                        </AppText>
+                      </Surface>
+                    </Animated.View>
+                  )}
+                  <View style={styles.tiles}>
+                    {(['gratitude', 'self-praise'] as EntryType[]).map(type => (
+                      <WriteTile
+                        key={type}
+                        type={type}
+                        nextPosition={count + 1}
+                        locked={locked}
+                        onPress={() => startWriting(type)}
+                      />
+                    ))}
+                  </View>
+                </Rise>
+              </ScrollCard>
+
+              {/* Daily inspiration — always above today's entries */}
+              <ScrollCard>
+                <Rise window={sectionWindow(1)}>
+                  <QuoteCard today={today} />
+                </Rise>
+              </ScrollCard>
+
+              {/* Today's entries */}
+              <ScrollCard>
+                <Rise window={sectionWindow(2)}>
+                  <View style={styles.sectionTitle}>
+                    <AppText variant="title" style={styles.flex}>
+                      {t('journal.today')}
+                    </AppText>
+                    <RollingNumber
+                      text={t('journal.entryCount', { count })}
+                      variant="label"
+                      tone="muted"
+                    />
+                  </View>
+                  {count === 0 ? (
+                    <EmptyDay />
+                  ) : (
+                    entries.map((entry, i) => (
+                      <Animated.View
+                        key={entry.id}
+                        ref={(node: View | null) => {
+                          entryRefs.current.set(entry.id, node);
+                        }}
+                        collapsable={false}
+                        entering={FadeInDown.duration(320)}
+                        exiting={FadeOut.duration(180)}
+                        layout={LinearTransition.duration(260)}
+                        style={styles.entryGap}
+                      >
+                        <EntryCard
+                          id={entry.id}
+                          type={
+                            entry.type === 'self-praise'
+                              ? 'self-praise'
+                              : 'gratitude'
+                          }
+                          text={entry.content}
+                          time={timeOf(entry)}
+                          position={i + 1}
+                          fresh={freshId === entry.id}
+                          onMore={more}
+                        />
+                      </Animated.View>
+                    ))
+                  )}
+                </Rise>
+              </ScrollCard>
+            </RNAnimated.ScrollView>
+          </ScrollFrameProvider>
+
+          {composer && (
+            <EntryComposer
+              mode={composer}
+              nextPosition={count + 1}
+              bottomInset={bottomInset}
+              onClosed={() => setComposer(null)}
+              onSave={(type, text) => save(composer, type, text)}
+            />
+          )}
+          {actionsFor && (
+            <EntryActionsSheet
+              text={actionsFor.content}
+              bottomInset={bottomInset}
+              onClosed={() => setActionsFor(null)}
+              onEdit={() =>
+                setComposer({
+                  kind: 'edit',
+                  id: actionsFor.id,
+                  type:
+                    actionsFor.type === 'self-praise'
+                      ? 'self-praise'
+                      : 'gratitude',
+                  text: actionsFor.content,
+                })
+              }
+              onDelete={() => setDeleting(actionsFor)}
+            />
+          )}
+          {deleting && (
+            <ConfirmSheet
+              title={t('journal.deleteConfirm.title')}
+              message={t('journal.deleteConfirm.message', {
+                type:
+                  deleting.type === 'self-praise'
+                    ? t('journal.deleteConfirm.selfPraise')
+                    : t('journal.deleteConfirm.gratitude'),
+              })}
+              confirm={t('common.delete')}
+              cancel={t('common.cancel')}
+              icon="trash-outline"
+              bottomInset={bottomInset}
+              onClosed={() => setDeleting(null)}
+              onConfirm={() => void confirmDelete(deleting)}
+            />
+          )}
+          {freshConfirm && (
+            <ConfirmSheet
+              title={t('journal.warmUp.startFresh.title')}
+              message={t('journal.warmUp.startFresh.message')}
+              confirm={t('common.startFresh')}
+              cancel={t('common.cancel')}
+              icon="refresh"
+              bottomInset={bottomInset}
+              onClosed={() => setFreshConfirm(false)}
+              onConfirm={() => void warmUp.startFresh()}
+            />
+          )}
+        </HelpHost>
       </View>
     </View>
   );

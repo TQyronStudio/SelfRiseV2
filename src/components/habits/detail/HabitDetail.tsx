@@ -61,6 +61,7 @@ import {
   DetailFrame,
   DetailRect,
   DetailScroll,
+  HelpHost,
   HelpLink,
   IconBadge,
   PageTopBar,
@@ -111,7 +112,8 @@ export function HabitDetail({
       onClosed={onClosed}
     >
       {(close, p) => (
-        <>
+        // Help sheets open at the detail's level, not inside the legend row.
+        <HelpHost bottomInset={bottomInset}>
           <DetailScroll
             p={p}
             close={close}
@@ -139,7 +141,7 @@ export function HabitDetail({
               { height: insets.top, backgroundColor: c.surface },
             ]}
           />
-        </>
+        </HelpHost>
       )}
     </DetailFrame>
   );
