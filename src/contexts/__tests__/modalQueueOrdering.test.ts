@@ -115,7 +115,7 @@ describe('ModalQueue: the presented modal is never displaced', () => {
     expect(queue[0]!.type).toBe('celebration_bonus_milestone');
 
     // A higher-priority arrival may still overtake it — it is not on screen yet.
-    queue = enqueue(queue, modal('celebration_daily_complete', ACTIVITY_CELEBRATION), null);
+    queue = enqueue(queue, modal('celebration_streak_milestone', ACTIVITY_CELEBRATION), null);
     expect(queue).toHaveLength(2);
   });
 
@@ -126,7 +126,7 @@ describe('ModalQueue: the presented modal is never displaced', () => {
     // Arrive out of priority order.
     queue = enqueue(queue, modal('level_up', LEVEL_UP), presentedId);
     queue = enqueue(queue, modal('achievement', ACHIEVEMENT), presentedId);
-    queue = enqueue(queue, modal('celebration_daily_complete', ACTIVITY_CELEBRATION), presentedId);
+    queue = enqueue(queue, modal('celebration_streak_milestone', ACTIVITY_CELEBRATION), presentedId);
 
     expect(queue.slice(1).map(m => m.priority)).toEqual([
       ACTIVITY_CELEBRATION,

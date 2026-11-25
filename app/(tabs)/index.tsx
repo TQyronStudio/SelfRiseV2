@@ -8,7 +8,7 @@ import {
 } from '@/src/components/challenges';
 import { MonthlyProgressTracker } from '@/src/services/monthlyProgressTracker';
 import { MonthlyProgressIntegration } from '@/src/services/monthlyProgressIntegration';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useHabits } from '@/src/contexts/HabitsContext';
 // useOptimizedGamification removed - components use GamificationService directly
 import { GamificationService } from '@/src/services/gamificationService';
@@ -31,16 +31,12 @@ export default function HomeScreen() {
   const { t } = useI18n();
   const { c } = useDesign();
   const router = useRouter();
-  const params = useLocalSearchParams();
   const { actions, state: habitsState } = useHabits();
   const { state: customizationState, actions: customizationActions } = useHomeCustomization();
   const [showCustomizationModal, setShowCustomizationModal] = useState(false);
   const [selectedChallenge, setSelectedChallenge] = useState<MonthlyChallenge | null>(null);
   const [selectedChallengeProgress, setSelectedChallengeProgress] = useState<MonthlyChallengeProgress | null>(null);
   const [showChallengeDetail, setShowChallengeDetail] = useState(false);
-  // A frozen streak sent here from the Journal: Home scrolls to the streak
-  // card, where the rescue is (E11c — no window to open any more).
-  const [reveal, setReveal] = useState<{ id: string; key: number } | null>(null);
 
   // The customize button of the top row (migration E3; was the tab header)
   useEffect(() => {
@@ -83,12 +79,7 @@ export default function HomeScreen() {
     initializeMonthlyProgress();
   }, []); // Run once on mount
 
-  useEffect(() => {
-    if (params.openDebtModal !== 'true') return;
-    setReveal({ id: 'journalStreak', key: Date.now() });
-    // Clear it, so the next redirect is a change again.
-    router.setParams({ openDebtModal: undefined });
-  }, [params.openDebtModal, router]);
+
 
   // Load progress for selected challenge and setup real-time updates
   useEffect(() => {
@@ -242,7 +233,6 @@ export default function HomeScreen() {
         onWriteEntry={() =>
           router.push('/(tabs)/journal?quickAction=addGratitude')
         }
-        reveal={reveal}
         customizing={showCustomizationModal}
         onCustomizeClosed={() => setShowCustomizationModal(false)}
       />

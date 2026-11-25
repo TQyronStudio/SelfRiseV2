@@ -86,6 +86,15 @@ const CONVERTED: readonly string[] = [
   'src/components/home/InsightsCard.tsx',
   'src/components/home/ForYouCard.tsx',
   'src/screens/home/homeInsightsLogic.ts',
+  // E12 – Journal
+  'src/components/journal/JournalPage.tsx',
+  'src/components/journal/TodayCard.tsx',
+  'src/components/journal/JournalBlocks.tsx',
+  'src/components/journal/EntryCard.tsx',
+  'src/components/journal/EntryComposer.tsx',
+  'src/screens/journal/journalDayLogic.ts',
+  'src/screens/journal/journalWritingGate.ts',
+  'src/utils/journalXp.ts',
   'src/components/ui/ProblemNote.tsx',
   'src/hooks/useJournalFlame.ts',
   // E7 (part 1) – the XP display: books, origins, multiplier mark rules

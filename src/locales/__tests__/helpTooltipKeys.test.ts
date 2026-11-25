@@ -47,8 +47,10 @@ const resolve = (locale: any, key: string) =>
 describe('help tooltip keys', () => {
   it('finds the tooltips that are actually wired up', () => {
     // A guard on the guard: if the scan silently matched nothing, every test
-    // below would pass while checking absolutely nothing.
-    expect(usedKeys.size).toBeGreaterThanOrEqual(10);
+    // below would pass while checking absolutely nothing. The old bubbles go
+    // one by one as their hosts are converted (7.10: the journal's two moved to
+    // the quiet "i" in E12); E22 rewrites this test for the help topics.
+    expect(usedKeys.size).toBeGreaterThanOrEqual(5);
   });
 
   for (const [name, locale] of Object.entries({ en, de, es } as Record<string, any>)) {

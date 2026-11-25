@@ -16,29 +16,48 @@ import { Ionicons } from '@expo/vector-icons';
 import { useDesign } from '@/src/contexts/ThemeContext';
 import { useI18n } from '@/src/hooks/useI18n';
 import { space } from '@/src/design/tokens';
-import { XP_MULTIPLIERS } from '@/src/constants/gamification';
+import { MAX_DEBT_DAYS, XP_MULTIPLIERS, XP_REWARDS } from '@/src/constants/gamification';
 import { AppText, PressableScale } from './primitives';
 import { BottomSheet } from './sheets';
 
-export type HelpTopic = 'makeUp' | 'multiplier';
+export type HelpTopic = 'makeUp' | 'multiplier' | 'journalDay' | 'frozen';
 
 /** Which rules a topic shows (keys under help.rules). */
 export const HELP_TOPIC_RULES: Record<HelpTopic, string[]> = {
   makeUp: ['makeUp'],
   // E9: the harmony multiplier (new host for the old home.xpSystem tooltip, 7.10)
   multiplier: ['harmony'],
+  // E12: the journal day (new host for help.journal.selfRiseStreak) and the
+  // frozen streak (new host for help.journal.debtRecovery), 7.10
+  journalDay: ['three', 'bonus'],
+  frozen: ['frozen'],
 };
 
 /** Numbers a rule's text prints — from the app's constants, never written into the text. */
 function ruleParams(id: string): Record<string, string | number> {
-  if (id !== 'harmony') return {};
-  const factor = `${XP_MULTIPLIERS.HARMONY_STREAK_MULTIPLIER}×`;
-  return {
-    days: XP_MULTIPLIERS.HARMONY_STREAK_DAYS_REQUIRED,
-    factor,
-    hours: XP_MULTIPLIERS.HARMONY_STREAK_DURATION,
-    cooldownDays: Math.round(XP_MULTIPLIERS.HARMONY_STREAK_COOLDOWN / 24),
-  };
+  const J = XP_REWARDS.JOURNAL;
+  switch (id) {
+    case 'harmony':
+      return {
+        days: XP_MULTIPLIERS.HARMONY_STREAK_DAYS_REQUIRED,
+        factor: `${XP_MULTIPLIERS.HARMONY_STREAK_MULTIPLIER}×`,
+        hours: XP_MULTIPLIERS.HARMONY_STREAK_DURATION,
+        cooldownDays: Math.round(XP_MULTIPLIERS.HARMONY_STREAK_COOLDOWN / 24),
+      };
+    case 'three':
+      return { perEntry: J.FIRST_ENTRY };
+    case 'bonus':
+      return {
+        star: J.FIRST_BONUS_MILESTONE,
+        flame: J.FIFTH_BONUS_MILESTONE,
+        crown: J.TENTH_BONUS_MILESTONE,
+        each: J.BONUS_ENTRY,
+      };
+    case 'frozen':
+      return { maxDays: MAX_DEBT_DAYS };
+    default:
+      return {};
+  }
 }
 
 export function HelpLink({

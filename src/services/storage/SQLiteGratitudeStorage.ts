@@ -14,13 +14,14 @@
  * CRITICAL: This class replaces AsyncStorage-based gratitudeStorage.ts
  */
 
+import { journalEntryXp, journalMilestoneXp } from '../../utils/journalXp';
 import * as SQLite from 'expo-sqlite';
 import { Gratitude, GratitudeStreak, CreateGratitudeInput, WarmUpPayment } from '../../types/gratitude';
 import { DateString } from '../../types/common';
 import { getDatabase } from '../database/init';
 import { GamificationService } from '../gamificationService';
 import { XPSourceType } from '../../types/gamification';
-import { XP_REWARDS } from '../../constants/gamification';
+import { MAX_DEBT_DAYS, XP_REWARDS } from '../../constants/gamification';
 import { StorageError, STORAGE_ERROR_CODES } from './base';
 import { v4 as uuidv4 } from 'uuid';
 import { today, subtractDays, formatDateToString, calculateStreakWithWarmUp, daysBetween } from '../../utils/date';
@@ -358,12 +359,7 @@ export class SQLiteGratitudeStorage {
    * milestone XP.
    */
   private getMilestoneXP(position: number): number {
-    switch (position) {
-      case 4: return XP_REWARDS.JOURNAL.FIRST_BONUS_MILESTONE;  // ⭐
-      case 8: return XP_REWARDS.JOURNAL.FIFTH_BONUS_MILESTONE;  // 🔥
-      case 13: return XP_REWARDS.JOURNAL.TENTH_BONUS_MILESTONE; // 👑
-      default: return 0;
-    }
+    return journalMilestoneXp(position);
   }
 
   /** Human-readable milestone suffix for transaction descriptions. */
@@ -385,18 +381,9 @@ export class SQLiteGratitudeStorage {
     return position > 3 ? XPSourceType.JOURNAL_BONUS : XPSourceType.JOURNAL_ENTRY;
   }
 
+  /** The entry's own XP by daily position — the shared rule (src/utils/journalXp.ts). */
   private getXPForJournalEntry(position: number): number {
-    switch (position) {
-      case 1: return XP_REWARDS.JOURNAL.FIRST_ENTRY;   // 20 XP
-      case 2: return XP_REWARDS.JOURNAL.SECOND_ENTRY;  // 20 XP
-      case 3: return XP_REWARDS.JOURNAL.THIRD_ENTRY;   // 20 XP
-      default:
-        if (position >= 4 && position <= 13) {
-          return XP_REWARDS.JOURNAL.BONUS_ENTRY;  // 8 XP (4th-13th entries)
-        } else {
-          return XP_REWARDS.JOURNAL.FOURTEENTH_PLUS_ENTRY;  // 0 XP (14+ entries - anti-spam)
-        }
-    }
+    return journalEntryXp(position);
   }
 
   /**
@@ -1120,8 +1107,8 @@ export class SQLiteGratitudeStorage {
       console.log(`📊 [FULL STREAK] Debt excluding today: ${debtExcludingToday}`);
 
       // AUTO-RESET if debt exceeds 3 days (excluding today)
-      if (debtExcludingToday > 3) {
-        console.log(`🔄 [FULL STREAK] AUTO-RESET triggered (debt=${debtExcludingToday} > 3)`);
+      if (debtExcludingToday > MAX_DEBT_DAYS) {
+        console.log(`🔄 [FULL STREAK] AUTO-RESET triggered (debt=${debtExcludingToday} > ${MAX_DEBT_DAYS})`);
 
         const todayComplete = completedDates.includes(currentDate);
         const newCurrentStreak = todayComplete ? 1 : 0;
@@ -1171,7 +1158,7 @@ export class SQLiteGratitudeStorage {
       }
 
       // Update recovery logic for debt system
-      const canRecoverWithAd = frozenDays > 0 && frozenDays <= 3;
+      const canRecoverWithAd = frozenDays > 0 && frozenDays <= MAX_DEBT_DAYS;
 
       const todayComplete = completedDates.includes(currentDate);
 
@@ -1363,7 +1350,7 @@ export class SQLiteGratitudeStorage {
       const effectiveFrozenDays = await this.calculateFrozenDays();
 
       // If debt > 3, automatic reset (handled elsewhere)
-      if (effectiveFrozenDays > 3) return 0;
+      if (effectiveFrozenDays > MAX_DEBT_DAYS) return 0;
 
       // Return effective unpaid debt (each ad pays 1 day)
       return effectiveFrozenDays;
@@ -1462,7 +1449,7 @@ export class SQLiteGratitudeStorage {
         ...currentStreakInfo,
         frozenDays: newFrozenDays,
         isFrozen: newFrozenDays > 0,
-        canRecoverWithAd: newFrozenDays > 0 && newFrozenDays <= 3,
+        canRecoverWithAd: newFrozenDays > 0 && newFrozenDays <= MAX_DEBT_DAYS,
         justUnfrozeToday: justUnfrozeNow,
         warmUpPayments, // Updated list from SQLite
         streakBeforeFreeze: currentStreakInfo.streakBeforeFreeze ?? null,

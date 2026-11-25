@@ -22,7 +22,6 @@ import React, { createContext, useContext, useState, useCallback, useRef, useMem
 import { insertModal } from './modalQueueOrdering';
 import { DeviceEventEmitter, View, StyleSheet, Platform } from 'react-native';
 import { WINDOW_LAYER_Z } from './windowLayer';
-import CelebrationModal from '../components/gratitude/CelebrationModal';
 import { TrophyWindow } from '../components/achievements/TrophyWindow';
 import {
   BonusEntryWindow,
@@ -47,7 +46,7 @@ import { MultiplierActivationModal } from '../components/gamification/Multiplier
  * Lower number = shown first when multiple modals arrive simultaneously.
  */
 export enum ModalPriority {
-  ACTIVITY_CELEBRATION = 1,  // Journal daily_complete, streak_milestone, bonus_milestone
+  ACTIVITY_CELEBRATION = 1,  // Journal streak_milestone, bonus_milestone (the day's third entry is celebrated in place, R-13)
   GOAL_COMPLETION = 2,       // Goal reaches 100%
   MONTHLY_CHALLENGE = 3,     // Monthly challenge completion, milestone 25/50/75%
   STAR_LEVEL_CHANGE = 4,     // Star promotion/demotion
@@ -57,7 +56,6 @@ export enum ModalPriority {
 }
 
 export type ModalType =
-  | 'celebration_daily_complete'
   | 'celebration_streak_milestone'
   | 'celebration_bonus_milestone'
   | 'goal_completion'
@@ -240,18 +238,7 @@ const ModalRenderer: React.FC<ModalRendererProps> = ({ currentModal, onClose }) 
   // overlay, which looks exactly like the app "freezing" after dismissing
   // a celebration modal. Keying by `id` forces a clean remount per item.
   switch (type) {
-    // --- Journal celebrations ---
-    case 'celebration_daily_complete':
-      return (
-        <CelebrationModal
-          key={id}
-          visible={true}
-          onClose={onClose}
-          type="daily_complete"
-          disableXpAnimations={false}
-        />
-      );
-
+    // --- Journal celebrations (the third entry is celebrated in place, R-13) ---
     // E10: the windows below are views in the window layer (MomentWindows).
     case 'celebration_streak_milestone':
       return <StreakWindow key={id} days={props.streakDays} onClose={onClose} />;

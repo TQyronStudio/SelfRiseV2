@@ -10,6 +10,13 @@ import i18next from 'i18next';
  * Base XP rewards for different actions
  * Balanced to encourage diverse engagement without exploitation
  */
+/**
+ * Missed journal days a frozen streak can be warmed up for (one ad each). Over
+ * this the streak resets on its own (SQLiteGratitudeStorage). The help text of
+ * the frozen streak prints this number (help.rules.frozen, E12).
+ */
+export const MAX_DEBT_DAYS = 3;
+
 export const XP_REWARDS = {
   // Habit System XP
   HABIT: {

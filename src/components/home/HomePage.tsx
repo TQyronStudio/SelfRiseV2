@@ -36,7 +36,6 @@ import React, {
 } from 'react';
 import {
   Animated as RNAnimated,
-  ScrollView,
   StyleSheet,
   useWindowDimensions,
   View,
@@ -143,11 +142,6 @@ interface HomePageProps {
   onToggleHabit: (habitId: string) => Promise<void>;
   onOpenJournal: () => void;
   onWriteEntry: () => void;
-  /**
-   * Scroll a section into view (a new `key` each time): the Journal sends a
-   * frozen streak here, to its rescue on the streak card.
-   */
-  reveal?: { id: string; key: number } | null;
   /** The customise sheet is open (the top row's button). */
   customizing: boolean;
   onCustomizeClosed: () => void;
@@ -170,7 +164,6 @@ function HomeContent({
   onToggleHabit,
   onOpenJournal,
   onWriteEntry,
-  reveal,
   customizing,
   onCustomizeClosed,
 }: HomePageProps) {
@@ -373,31 +366,6 @@ function HomeContent({
   // "Start fresh" asks first; the sheet covers the page, so it lives here.
   const [freshConfirm, setFreshConfirm] = useState<(() => void) | null>(null);
 
-  // Scroll a section into view (the Journal's frozen-streak redirect).
-  const scrollRef = useRef<ScrollView>(null);
-  const pageRef = useRef<View>(null);
-  const sectionRefs = useRef(new Map<string, View | null>());
-  useEffect(() => {
-    if (!reveal) return;
-    // After the tab switch has laid the page out.
-    const id = setTimeout(() => {
-      const section = sectionRefs.current.get(reveal.id);
-      const page = pageRef.current;
-      if (!section || !page) return;
-      page.measureInWindow((_px, pageY) =>
-        section.measureInWindow((_x, y) => {
-          const target = Math.max(
-            0,
-            frame.getScrollY() + y - pageY - COMPACT_HEIGHT - space.lg
-          );
-          scrollRef.current?.scrollTo({ y: target, animated: true });
-        })
-      );
-    }, 350);
-    return () => clearTimeout(id);
-    // `frame` is stable for the read it needs (getScrollY).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reveal?.key]);
 
   const renderOwn = (id: string) => {
     if (id === 'quickActions') return <QuickActions />;
@@ -436,10 +404,9 @@ function HomeContent({
         <TopRow>{actions}</TopRow>
       </View>
 
-      <View style={styles.page} ref={pageRef} collapsable={false}>
+      <View style={styles.page}>
         <ScrollFrameProvider value={frame}>
           <RNAnimated.ScrollView
-            ref={scrollRef}
             style={styles.flex}
             onLayout={onLayout}
             onScroll={onScroll}
@@ -589,18 +556,11 @@ function HomeContent({
             {sections.map((id, i) => (
               <ScrollCard key={id}>
                 <Rise window={sectionWindow(i)}>
-                  <View
-                    ref={view => {
-                      sectionRefs.current.set(id, view);
-                    }}
-                    collapsable={false}
-                  >
-                    {OWN_SECTIONS.has(id) ? (
-                      renderOwn(id)
-                    ) : (
-                      <View style={styles.legacy}>{renderSection(id)}</View>
-                    )}
-                  </View>
+                  {OWN_SECTIONS.has(id) ? (
+                    renderOwn(id)
+                  ) : (
+                    <View style={styles.legacy}>{renderSection(id)}</View>
+                  )}
                 </Rise>
               </ScrollCard>
             ))}

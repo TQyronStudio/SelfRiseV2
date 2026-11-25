@@ -545,7 +545,7 @@ Journal celebrations represent immediate user actions and MUST have highest prio
 ```typescript
 // 3-TIER MODAL PRIORITY SYSTEM for Journal:
 1. ACTIVITY MODALS (Tier 1 - HIGHEST Priority - Journal is HERE)
-   ✅ Daily completion celebrations (3 gratitude entries)
+   ✅ Daily completion — IN PLACE on the Today card since E12 (R-13), no window
    ✅ Bonus milestone celebrations (⭐ 4th, 🔥 8th, 👑 13th entries)
    ✅ Streak milestone celebrations (17 days — see below)
    ✅ All Journal-specific celebrations
@@ -556,6 +556,26 @@ Journal celebrations represent immediate user actions and MUST have highest prio
 3. LEVEL-UP MODALS (Tier 3 - Wait for Journal + Achievement modals)
    - Level celebrations caused by journal XP
 ```
+
+### 📓 Obrazovka Deníku v novém vzhledu (E12, 2026-11-25)
+`app/(tabs)/journal.tsx` → `src/components/journal/JournalPage.tsx`. **Pořadí shora:** horní řádek (Historie,
+Statistiky – jen tam, P35) → nadpis → karta **Dnes** (`TodayCard`: počet / 3, tři dílky, plamen a série,
+bonusová cesta ⭐ 4 · 🔥 8 · 👑 13, nejdelší série, ⭐🔥👑 → statistiky) → dvě **dlaždice zápisu** (co další
+záznam přinese) → **citát dne (vždy nad dnešními záznamy)** → dnešní záznamy 1..N s „⋯“ (upravit / smazat).
+- **Psaní i úprava = jeden sheet** nad klávesnicí (`EntryComposer`): typ, otázka, „+N XP“. Neúspěšné uložení
+  → sheet zůstane otevřený s textem + pruh `ProblemNote` (`common.errors.gratitude.failedToSave`).
+- **XP podle pořadí = jedno pravidlo** `src/utils/journalXp.ts` (úložiště podle něj připisuje i vrací;
+  dlaždice a sheet ho jen ukazují). Smazání: úložiště vrátí XP poslední pozice dne, záznamy se přečíslují.
+- **R-13:** třetí záznam = oslava na místě (zezelenání, jedno rozzáření, `feel('dayDone')`) – jen skutečný
+  třetí záznam na viditelné obrazovce (`completedTheDay`, test), nikdy načtení záznamů po startu. Okno
+  `celebration_daily_complete` i `CelebrationModal` zanikly. Okno série a okno ⭐🔥👑 zůstávají (E10).
+- **R-14:** zamrzlá série zamkne dlaždice **dřív, než uživatel začne psát**; zahřátí je přímo v Deníku
+  (`WarmUpControls` + `useStreakWarmUp`, stejné jako Home). **Pojistka v ukládání zůstává**
+  (`src/screens/journal/journalWritingGate.ts`, beze změny přenesená z `GratitudeInput`): dluh → nic se
+  neuloží, pruh `journal.writingLocked`. Přesměrování na Home (`?openDebtModal=true`) zrušeno na obou koncích.
+- Reklamní pruh se schová, když je nahoře klávesnice (P30). `?quickAction=addGratitude|addSelfPraise` otevře sheet.
+- Nápověda: tiché „i“ `journalDay` (u „Dnes“) a `frozen` (u zamrzlé série); čísla z konstant
+  (`XP_REWARDS.JOURNAL`, `MAX_DEBT_DAYS` – limit dluhu, který používá i úložiště).
 
 ### 🔥 Zahřátí zamrzlé série – jeden hook, záchrana přímo na kartě (E11a + E11c, 2026-11-25)
 Logika žije v `src/hooks/useStreakWarmUp.ts` (dřív celá uvnitř staré `GratitudeStreakCard`, smazané v E11c).
@@ -628,12 +648,14 @@ import { useModalQueue, ModalPriority } from '@/src/contexts/ModalQueueContext';
 
 const { enqueue: enqueueModal } = useModalQueue();
 
-// Journal celebrations enqueued directly:
+// Journal celebrations enqueued directly (app/(tabs)/journal.tsx, handleAdded):
 enqueueModal({
-  type: 'celebration_daily_complete',
+  type: 'celebration_bonus_milestone',            // ⭐ 🔥 👑 at entries 4 / 8 / 13
   priority: ModalPriority.ACTIVITY_CELEBRATION,  // Priority 1 - highest
-  props: {},
+  props: { bonusCount, xpAmount },
 });
+// R-13 (E12, 2026-11-25): the day's THIRD entry has no window any more — the
+// Today card turns green and glows once in place (TodayCard, completedTheDay).
 
 // No notify functions needed - queue handles priority ordering automatically
 // No local modal state needed - ModalRenderer in ModalQueueContext renders modals
