@@ -52,7 +52,6 @@ import { Habit } from '@/src/types/habit';
 import { DateString } from '@/src/types/common';
 import {
   getDateRange,
-  getDayOfWeekFromDateString,
   parseDate,
   subtractDays,
   today as todayString,
@@ -77,6 +76,7 @@ import {
   keptRate,
   monthLayout,
   planStreaks,
+  scheduleLabel,
   weekOf,
 } from '@/src/screens/habits/habitListLogic';
 
@@ -231,17 +231,12 @@ function HabitDetailBody({
   };
 
   const weekDays = weekOf(today);
-  const scheduleText =
-    habit.scheduledDays.length === 7
-      ? t('habits.schedule.everyDay')
-      : weekDays
-          .filter(day =>
-            habit.scheduledDays.includes(getDayOfWeekFromDateString(day))
-          )
-          .map(day =>
-            parseDate(day).toLocaleDateString(locale, { weekday: 'short' })
-          )
-          .join(' · ');
+  const scheduleText = scheduleLabel(
+    habit,
+    today,
+    locale,
+    t('habits.schedule.everyDay')
+  );
   const weekLetters = weekDays.map(day =>
     parseDate(day).toLocaleDateString(locale, { weekday: 'narrow' })
   );

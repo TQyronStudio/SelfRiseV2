@@ -20,6 +20,7 @@ import {
   formatDateToString,
   getDayOfWeekFromDateString,
   getWeekDates,
+  parseDate,
 } from '@/src/utils/date';
 import {
   isHabitPausedOnDate,
@@ -46,6 +47,26 @@ export interface DayStatus {
 /** Monday … Sunday of the week `day` lies in. */
 export function weekOf(day: DateString): DateString[] {
   return getWeekDates(day);
+}
+
+/**
+ * The habit's schedule in words: "Every day", or its days in week order
+ * ("Mon · Wed · Fri"), in the app's language. One copy for the Habits list, the
+ * habit detail and Home's today section.
+ */
+export function scheduleLabel(
+  habit: Habit,
+  today: DateString,
+  locale: string,
+  everyDay: string
+): string {
+  if (habit.scheduledDays.length === 7) return everyDay;
+  return weekOf(today)
+    .filter(day =>
+      habit.scheduledDays.includes(getDayOfWeekFromDateString(day))
+    )
+    .map(day => parseDate(day).toLocaleDateString(locale, { weekday: 'short' }))
+    .join(' · ');
 }
 
 function creationDay(habit: Habit): DateString {

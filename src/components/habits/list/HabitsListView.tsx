@@ -37,7 +37,6 @@ import { GamificationService } from '@/src/services/gamificationService';
 import { Habit } from '@/src/types/habit';
 import { addAppEventListener } from '@/src/utils/appEvents';
 import {
-  getDayOfWeekFromDateString,
   parseDate,
   today as todayString,
 } from '@/src/utils/date';
@@ -61,6 +60,7 @@ import {
   dayStatuses,
   doneToday,
   pausedDays,
+  scheduleLabel,
   splitHabits,
   weekFractions,
   weekOf,
@@ -278,16 +278,7 @@ function HabitsListContent({
     timeline.hero;
 
   const scheduleText = (habit: Habit) =>
-    habit.scheduledDays.length === 7
-      ? t('habits.schedule.everyDay')
-      : days
-          .filter(day =>
-            habit.scheduledDays.includes(getDayOfWeekFromDateString(day))
-          )
-          .map(day =>
-            parseDate(day).toLocaleDateString(locale, { weekday: 'short' })
-          )
-          .join(' · ');
+    scheduleLabel(habit, today, locale, t('habits.schedule.everyDay'));
 
   const renderCard = (habit: Habit, kind: 'planned' | 'bonus') => {
     const week = weeks.get(habit.id);

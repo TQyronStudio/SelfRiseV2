@@ -14,6 +14,7 @@ import {
   makeupLinks,
   sameCardProps,
   pausedDays,
+  scheduleLabel,
   splitHabits,
   weekFractions,
   weekOf,
@@ -314,5 +315,20 @@ describe('monthLayout()', () => {
     expect(lead).toBe(6);
     expect(days).toHaveLength(30);
     expect(days[0]).toBe('2026-11-01');
+  });
+});
+
+describe('scheduleLabel', () => {
+  const base = { scheduledDays: [] } as unknown as Habit;
+  it('every day says so', () => {
+    const habit = {
+      ...base,
+      scheduledDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+    } as Habit;
+    expect(scheduleLabel(habit, '2026-11-25', 'en-US', 'Every day')).toBe('Every day');
+  });
+  it('other days in week order, whatever order they were stored in', () => {
+    const habit = { ...base, scheduledDays: ['friday', 'monday', 'wednesday'] } as Habit;
+    expect(scheduleLabel(habit, '2026-11-25', 'en-US', 'Every day')).toBe('Mon · Wed · Fri');
   });
 });

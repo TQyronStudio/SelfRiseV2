@@ -1,21 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, View, DeviceEventEmitter, EmitterSubscription } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
+import { StyleSheet, View, DeviceEventEmitter, EmitterSubscription } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
-import { useTheme } from '@/src/contexts/ThemeContext';
-import { Layout } from '@/src/constants';
-import { contentColumn } from '@/src/utils/layout';
+import { useDesign } from '@/src/contexts/ThemeContext';
 import { JournalStreakCard } from '@/src/components/home/GratitudeStreakCard';
 import { StreakHistoryGraph } from '@/src/components/home/StreakHistoryGraph';
 import { HabitStatsDashboard } from '@/src/components/home/HabitStatsDashboard';
 import { HabitPerformanceIndicators } from '@/src/components/home/HabitPerformanceIndicators';
 import { HabitTrendAnalysis } from '@/src/components/home/HabitTrendAnalysis';
-import { QuickActionButtons } from '@/src/components/home/QuickActionButtons';
 import { PersonalizedRecommendations } from '@/src/components/home/PersonalizedRecommendations';
 import { HomeCustomizationModal } from '@/src/components/home/HomeCustomizationModal';
 import { OptimizedXpProgressBar } from '@/src/components/gamification/OptimizedXpProgressBar';
-import { PremiumTrophyIcon } from '@/src/components/home/PremiumTrophyIcon';
 import {
   MonthlyChallengeSection,
   MonthlyChallengeDetailModal
@@ -35,11 +29,15 @@ import {
 } from '@/src/types/gamification';
 import { XP_REWARDS } from '@/src/constants/gamification';
 import { AdBanner } from '@/src/components/ads/AdBanner';
-import { RoundButton, TopRow } from '@/src/components/ui/TopRow';
+import { RoundButton } from '@/src/components/ui/TopRow';
+import { HomePage } from '@/src/components/home/HomePage';
+
+/** Room kept at the bottom for the ad banner (as on the Habits tab). */
+const BANNER_ROOM = 60;
 
 export default function HomeScreen() {
   const { t } = useI18n();
-  const { colors } = useTheme();
+  const { c } = useDesign();
   const router = useRouter();
   const params = useLocalSearchParams();
   const { actions, state: habitsState } = useHabits();
@@ -50,10 +48,6 @@ export default function HomeScreen() {
   const [showChallengeDetail, setShowChallengeDetail] = useState(false);
   // 🚀 DEBT RECOVERY AUTO-MODAL: Reference to JournalStreakCard for auto-opening debt modal
   const journalStreakCardRef = useRef<any>(null);
-
-  // Tutorial scroll reference
-  const mainScrollRef = useRef<ScrollView>(null);
-
 
   // The customize button of the top row (migration E3; was the tab header)
   useEffect(() => {
@@ -184,45 +178,45 @@ export default function HomeScreen() {
     setSelectedChallengeProgress(null);
   };
 
-  const handleHabitToggle = async (habitId: string) => {
+  // One check at a time per habit: the storage toggle reads, then writes — two
+  // at once could store twice or give the XP twice (the Habits tab has the same
+  // guard). XP is handled entirely by the storage layer.
+  // Stable (actions change with every habits state): the habit rows are
+  // memoized, so one check re-renders only its own row.
+  const inFlight = useRef(new Set<string>());
+  const latestActions = useRef(actions);
+  latestActions.current = actions;
+  const handleHabitToggle = useCallback(async (habitId: string) => {
+    if (inFlight.current.has(habitId)) return;
+    inFlight.current.add(habitId);
     try {
-      const completion = await actions.toggleCompletion(habitId, today(), false);
-      
-      // XP is now handled entirely by HabitStorage - no duplicate logic needed
-      console.log(`✅ Habit completion toggled successfully - XP handled by storage layer`);
+      await latestActions.current.toggleCompletion(habitId, today(), false);
     } catch (error) {
       console.error('Failed to toggle habit:', error);
+    } finally {
+      inFlight.current.delete(habitId);
     }
-  };
+  }, []);
 
-  // Get visible components ordered by user preference
-  const getVisibleComponents = () => {
-    if (customizationState.isLoading) {
-      return []; // Show nothing while loading
-    }
-    
-    
-    return customizationState.preferences.components
-      .filter(component => component.visible)
-      .sort((a, b) => a.order - b.order);
-  };
-
-  const visibleComponents = getVisibleComponents();
-  const isComponentVisible = (componentId: string) => 
-    visibleComponents.some(c => c.id === componentId);
+  // Visible sections in the user's order. Today's habits follow the quick
+  // actions (they used to be the bottom row of that card); E11e makes them a
+  // section of their own in the stored layout. The multiplier section is gone
+  // (E9: it lives on the level badge) — skipped, not drawn as an empty card.
+  const visibleComponents = customizationState.isLoading
+    ? []
+    : customizationState.preferences.components
+        .filter(component => component.visible)
+        .sort((a, b) => a.order - b.order);
+  const sectionIds = visibleComponents
+    .map(component => component.id as string)
+    .filter(id => id !== 'xpMultiplier')
+    .flatMap(id => (id === 'quickActions' ? [id, 'todayHabits'] : [id]));
 
   // Component rendering map for dynamic ordering
   const renderComponent = (componentId: string) => {
     switch (componentId) {
       case 'xpProgressBar':
         return <OptimizedXpProgressBar key={componentId} />;
-      case 'xpMultiplier':
-        // E9: the multiplier lives on the level badge and in its panel now (its
-        // announcements moved to the badge layer). The stored section id stays
-        // until Home's customisation is converted (E11).
-        return null;
-      case 'quickActions':
-        return <QuickActionButtons key={componentId} onHabitToggle={handleHabitToggle} />;
       case 'journalStreak':
         return (
           <JournalStreakCard 
@@ -260,60 +254,32 @@ export default function HomeScreen() {
   // ModalQueue). Removed together with its duplicate completion modal.
   // New events must be declared in src/utils/appEvents.ts (typed event bus).
 
-  // Styles using theme colors
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.backgroundSecondary,
-    },
-    scrollView: {
-      flex: 1,
-    },
-    content: {
-      ...contentColumn,
-      paddingVertical: Layout.spacing.md,
-      paddingBottom: 80, // Extra padding for banner (50px banner + 30px spacing)
-    },
-    bannerContainer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      backgroundColor: colors.backgroundSecondary,
-    },
-  });
-
   return (
-    <SafeAreaView style={styles.container} edges={[]}>
-      {/* Top row (E3): the level badge (E7) sits in the left place; the
-          multiplier is on it (E9); trophy room and customize get their final
-          form in E11. */}
-      <TopRow>
-        <RoundButton
-          signature="trophy"
-          tone="reward"
-          label={t('achievements.title')}
-          onPress={() => router.push('/achievements')}
-        />
-        <RoundButton
-          icon="options-outline"
-          label={t('home.customization.title')}
-          onPress={() => DeviceEventEmitter.emit('openHomeCustomization')}
-        />
-      </TopRow>
-      <ScrollView
-        ref={mainScrollRef}
-        style={styles.scrollView}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        nativeID="main-content"
-      >
-        {/* Dynamic component rendering based on user order preferences */}
-        {visibleComponents.map(component => renderComponent(component.id))}
-      </ScrollView>
+    <View style={[styles.container, { backgroundColor: c.canvas }]}>
+      <HomePage
+        actions={
+          <>
+            <RoundButton
+              signature="trophy"
+              tone="reward"
+              label={t('achievements.title')}
+              onPress={() => router.push('/achievements')}
+            />
+            <RoundButton
+              icon="options-outline"
+              label={t('home.customization.title')}
+              onPress={() => DeviceEventEmitter.emit('openHomeCustomization')}
+            />
+          </>
+        }
+        sections={sectionIds}
+        renderSection={renderComponent}
+        bottomInset={BANNER_ROOM}
+        onToggleHabit={handleHabitToggle}
+      />
 
       {/* AdMob Banner - Fixed at bottom */}
-      <View style={styles.bannerContainer}>
+      <View style={[styles.bannerContainer, { backgroundColor: c.canvas }]}>
         <AdBanner />
       </View>
 
@@ -331,6 +297,18 @@ export default function HomeScreen() {
         onClose={handleCloseChallengeDetail}
       />
 
-    </SafeAreaView>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  bannerContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+});

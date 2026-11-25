@@ -76,6 +76,10 @@ const CONVERTED: readonly string[] = [
   'src/services/moments/chapterShown.ts',
   // E11 – Home
   'src/hooks/useStreakWarmUp.ts',
+  'src/components/home/HomePage.tsx',
+  'src/components/home/TodayHabits.tsx',
+  'src/components/home/QuickActions.tsx',
+  'src/screens/home/homeHeroLogic.ts',
   // E7 (part 1) – the XP display: books, origins, multiplier mark rules
   'src/services/xpDisplay/xpLedger.ts',
   'src/services/xpDisplay/xpOriginRegistry.ts',
