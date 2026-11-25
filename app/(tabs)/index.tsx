@@ -2,12 +2,9 @@ import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, DeviceEventEmitter, EmitterSubscription } from 'react-native';
 import { useI18n } from '@/src/hooks/useI18n';
 import { useDesign } from '@/src/contexts/ThemeContext';
-import { StreakHistoryGraph } from '@/src/components/home/StreakHistoryGraph';
 import { HabitPerformanceIndicators } from '@/src/components/home/HabitPerformanceIndicators';
 import { HabitTrendAnalysis } from '@/src/components/home/HabitTrendAnalysis';
 import { PersonalizedRecommendations } from '@/src/components/home/PersonalizedRecommendations';
-import { HomeCustomizationModal } from '@/src/components/home/HomeCustomizationModal';
-import { OptimizedXpProgressBar } from '@/src/components/gamification/OptimizedXpProgressBar';
 import {
   MonthlyChallengeSection,
   MonthlyChallengeDetailModal
@@ -191,27 +188,18 @@ export default function HomeScreen() {
     }
   }, []);
 
-  // Visible sections in the user's order. Today's habits follow the quick
-  // actions (they used to be the bottom row of that card); E11e makes them a
-  // section of their own in the stored layout. The multiplier section is gone
-  // (E9: it lives on the level badge) — skipped, not drawn as an empty card.
-  const visibleComponents = customizationState.isLoading
+  // Visible sections in the user's order (E11e: the seven sections of the new
+  // Home; stored layouts of the old ten are translated by mergeHomeComponents).
+  const sectionIds = customizationState.isLoading
     ? []
     : customizationState.preferences.components
         .filter(component => component.visible)
-        .sort((a, b) => a.order - b.order);
-  const sectionIds = visibleComponents
-    .map(component => component.id as string)
-    .filter(id => id !== 'xpMultiplier')
-    .flatMap(id => (id === 'quickActions' ? [id, 'todayHabits'] : [id]));
+        .sort((a, b) => a.order - b.order)
+        .map(component => component.id);
 
   // Component rendering map for dynamic ordering
   const renderComponent = (componentId: string) => {
     switch (componentId) {
-      case 'xpProgressBar':
-        return <OptimizedXpProgressBar key={componentId} />;
-      case 'streakHistory':
-        return <StreakHistoryGraph key={componentId} />;
       case 'monthlyChallenges':
         return (
           <MonthlyChallengeSection 
@@ -222,10 +210,14 @@ export default function HomeScreen() {
         );
       case 'recommendations':
         return <PersonalizedRecommendations key={componentId} />;
-      case 'habitPerformance':
-        return <HabitPerformanceIndicators key={componentId} />;
-      case 'habitTrends':
-        return <HabitTrendAnalysis key={componentId} />;
+      case 'insights':
+        // E11e part 2 replaces these two with the Insights card.
+        return (
+          <>
+            <HabitPerformanceIndicators />
+            <HabitTrendAnalysis />
+          </>
+        );
       default:
         return null;
     }
@@ -264,6 +256,8 @@ export default function HomeScreen() {
           router.push('/(tabs)/journal?quickAction=addGratitude')
         }
         reveal={reveal}
+        customizing={showCustomizationModal}
+        onCustomizeClosed={() => setShowCustomizationModal(false)}
       />
 
       {/* AdMob Banner - Fixed at bottom */}
@@ -271,11 +265,6 @@ export default function HomeScreen() {
         <AdBanner />
       </View>
 
-      {/* Customization Modal */}
-      <HomeCustomizationModal
-        visible={showCustomizationModal}
-        onClose={() => setShowCustomizationModal(false)}
-      />
 
       {/* Monthly Challenge Detail Modal */}
       <MonthlyChallengeDetailModal

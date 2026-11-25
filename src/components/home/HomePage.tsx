@@ -103,6 +103,7 @@ import {
   useScrollRest,
 } from '@/src/components/ui';
 import { HabitStatsCard } from './HabitStatsCard';
+import { HomeCustomizeSheet } from './HomeCustomizeSheet';
 import { JournalStreakCard } from './JournalStreakCard';
 import { QuickActions } from './QuickActions';
 import { TodayHabitItem, TodayHabits } from './TodayHabits';
@@ -143,6 +144,9 @@ interface HomePageProps {
    * frozen streak here, to its rescue on the streak card.
    */
   reveal?: { id: string; key: number } | null;
+  /** The customise sheet is open (the top row's button). */
+  customizing: boolean;
+  onCustomizeClosed: () => void;
 }
 
 export function HomePage(props: HomePageProps) {
@@ -163,6 +167,8 @@ function HomeContent({
   onOpenJournal,
   onWriteEntry,
   reveal,
+  customizing,
+  onCustomizeClosed,
 }: HomePageProps) {
   const { c, mode } = useDesign();
   const { t } = useI18n();
@@ -636,6 +642,12 @@ function HomeContent({
           </View>
         </RNAnimated.View>
 
+        {customizing && (
+          <HomeCustomizeSheet
+            bottomInset={bottomInset}
+            onClosed={onCustomizeClosed}
+          />
+        )}
         {freshConfirm && (
           <ConfirmSheet
             title={t('journal.warmUp.startFresh.title')}

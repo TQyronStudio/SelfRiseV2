@@ -42,11 +42,12 @@ interface HomeCustomizationContextType {
   state: HomeCustomizationState;
   actions: {
     loadPreferences: () => Promise<void>;
-    toggleComponentVisibility: (componentId: string) => Promise<void>;
-    reorderComponents: (componentIds: string[]) => Promise<void>;
+    /** True = saved. False = not saved (state.error says why; the screen shows a note). */
+    toggleComponentVisibility: (componentId: string) => Promise<boolean>;
+    reorderComponents: (componentIds: string[]) => Promise<boolean>;
     updateQuickActions: (settings: HomeScreenPreferences['quickActions']) => Promise<void>;
     updateTheme: (theme: HomeScreenPreferences['theme']) => Promise<void>;
-    resetToDefaults: () => Promise<void>;
+    resetToDefaults: () => Promise<boolean>;
     clearError: () => void;
   };
 }
@@ -77,11 +78,13 @@ export function HomeCustomizationProvider({ children }: HomeCustomizationProvide
     try {
       const updatedPreferences = await homePreferencesStorage.toggleComponentVisibility(componentId);
       dispatch({ type: 'SET_PREFERENCES', payload: updatedPreferences });
+      return true;
     } catch (error) {
       dispatch({ 
         type: 'SET_ERROR', 
         payload: error instanceof Error ? error.message : 'Failed to update component visibility' 
       });
+      return false;
     }
   };
 
@@ -89,11 +92,13 @@ export function HomeCustomizationProvider({ children }: HomeCustomizationProvide
     try {
       const updatedPreferences = await homePreferencesStorage.reorderComponents(componentIds);
       dispatch({ type: 'SET_PREFERENCES', payload: updatedPreferences });
+      return true;
     } catch (error) {
       dispatch({ 
         type: 'SET_ERROR', 
         payload: error instanceof Error ? error.message : 'Failed to reorder components' 
       });
+      return false;
     }
   };
 
@@ -125,11 +130,13 @@ export function HomeCustomizationProvider({ children }: HomeCustomizationProvide
     try {
       const defaultPreferences = await homePreferencesStorage.resetToDefaults();
       dispatch({ type: 'SET_PREFERENCES', payload: defaultPreferences });
+      return true;
     } catch (error) {
       dispatch({ 
         type: 'SET_ERROR', 
         payload: error instanceof Error ? error.message : 'Failed to reset preferences' 
       });
+      return false;
     }
   };
 

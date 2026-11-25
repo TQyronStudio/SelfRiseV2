@@ -20,77 +20,20 @@ export interface HomeScreenPreferences {
   };
 }
 
+/**
+ * The Home sections below the hero, in the default order (migration E11e; the
+ * hero of the day is fixed on top, R-4b). Stored layouts of the old ten
+ * sections are translated by mergeHomeComponents (src/utils/homeComponents.ts).
+ * `name` is an internal label; the sheet shows each card's own title.
+ */
 export const defaultHomeComponents: HomeScreenComponent[] = [
-  {
-    id: 'xpProgressBar',
-    name: 'XP Progress',
-    visible: true,
-    order: 0,
-    configurable: true,
-  },
-  {
-    id: 'xpMultiplier',
-    name: 'XP Multiplier',
-    visible: true,
-    order: 1,
-    configurable: true,
-  },
-  {
-    id: 'quickActions',
-    name: 'Quick Actions',
-    visible: true,
-    order: 2,
-    configurable: true,
-  },
-  {
-    id: 'journalStreak',
-    name: 'Journal Streak',
-    visible: true,
-    order: 3,
-    configurable: true,
-  },
-  {
-    id: 'streakHistory',
-    name: 'Streak History',
-    visible: true,
-    order: 4,
-    configurable: true,
-  },
-  {
-    id: 'monthlyChallenges',
-    name: 'Monthly Challenges',
-    visible: true,
-    order: 5,
-    configurable: true,
-  },
-  {
-    id: 'habitStats',
-    name: 'Habit Statistics',
-    visible: true,
-    order: 6,
-    configurable: true,
-  },
-  {
-    id: 'recommendations',
-    name: 'Recommendations',
-    visible: true,
-    order: 7,
-    configurable: true,
-  },
-  {
-    id: 'habitPerformance',
-    name: 'Performance Indicators',
-    visible: true,
-    order: 8,
-    configurable: true,
-  },
-  {
-    id: 'habitTrends',
-    name: 'Trend Analysis',
-    visible: true,
-    order: 9,
-    configurable: true,
-  },
+  { id: 'quickActions', name: 'Quick Actions', visible: true, order: 1, configurable: true },
+  { id: 'todayHabits', name: "Today's Habits", visible: true, order: 2, configurable: true },
+  { id: 'journalStreak', name: 'Journal Streak', visible: true, order: 3, configurable: true },
+  { id: 'monthlyChallenges', name: 'Monthly Challenge', visible: true, order: 4, configurable: true },
+  { id: 'habitStats', name: 'Habit Statistics', visible: true, order: 5, configurable: true },
+  { id: 'insights', name: 'Insights', visible: true, order: 6, configurable: true },
+  { id: 'recommendations', name: 'For You', visible: true, order: 7, configurable: true },
 ];
 
 export const defaultHomePreferences: HomeScreenPreferences = {

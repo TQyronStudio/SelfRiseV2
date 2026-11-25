@@ -19,9 +19,9 @@
 
 *Stav: převod designu E11 běží po krocích. **E11b hotová** (2026-11-25): hrdina, pozdrav,
 kompaktní hlavička, rychlé akce, dnešní návyky. **E11c hotová** (2026-11-25): karta série se
-záchranou. **E11d hotová** (2026-11-25): statistiky návyků. Přehledy, Pro tebe, nový sheet
-přizpůsobení a převod uloženého rozložení (E11e) zatím zůstávají ve staré podobě – jejich části se
-doplní sem se svým kódem.*
+záchranou. **E11d hotová** (2026-11-25): statistiky návyků. **E11e část 1** (2026-11-25): sedm sekcí,
+převod uloženého rozložení, nový sheet přizpůsobení. Karty Přehledy a Pro tebe (E11e část 2) zatím
+ve staré podobě.*
 
 ---
 
@@ -185,12 +185,26 @@ jedna věta z locales (nikdy `error.message`), „Zkusit znovu“ jen když pom�
 nový pruh nahradí starý. Sedí nad spodní lištou a místem pro reklamu. Home je první obrazovka, která
 ho používá (chyby záchrany série); další obrazovky ho převezmou ve svých etapách (plán 7.9).
 
-### Pořadí sekcí
-Pořadí a viditelnost z `useHomeCustomization()`. Stránka sama kreslí `quickActions`, `todayHabits`
-a `journalStreak`; ostatní dodá `renderSection` z `index.tsx`. Do E11e: „Dnešní návyky“ jdou hned za rychlé akce
-(dřív byly spodním řádkem jejich karty), sekce `xpMultiplier` se přeskakuje (násobič je na
-odznaku, E9). Staré karty (`renderSection`) dostávají zpět svůj okraj 16 bodů, dokud je E11c–E11e
-nenahradí.
+### Sekce a jejich pořadí (E11e)
+Sedm sekcí pod hrdinou (`defaultHomeComponents` v `src/types/homeCustomization.ts`): rychlé akce,
+dnešní návyky, série deníku, výzva měsíce, statistiky návyků, Přehledy, Pro tebe. Hrdina je pevně
+nahoře a v přizpůsobení není (R-4b). Stránka sama kreslí `quickActions`, `todayHabits`,
+`journalStreak`, `habitStats`; ostatní dodá `renderSection` z `index.tsx`.
+
+**Uložené rozložení = jedno pravidlo** `mergeHomeComponents` (`src/utils/homeComponents.ts`, test
+`src/utils/__tests__/homeComponents.test.ts`); `migrateHomeSections` z laboratoře ho jen volá:
+- staré sekce se přeloží (`LEGACY_HOME_SECTIONS`): `xpProgressBar`, `xpMultiplier`, `streakHistory`
+  zmizí; `habitPerformance` + `habitTrends` → `insights`, vidět, když byla vidět aspoň jedna;
+- viditelnost je vždy uživatelova; **pořadí jen když uživatel řadil** (`hasCustomOrder`), jinak
+  aktuální výchozí; sekce, kterou nikdy neumístil, jde na konec – dnešní návyky hned za rychlé akce;
+- rozložení uložené už v novém tvaru (s `todayHabits`, `insights`) projde beze změny – skrytá sekce
+  zůstane skrytá (test „the trap“).
+
+**Sheet přizpůsobení** (`src/components/home/HomeCustomizeSheet.tsx`, otevírá ho tlačítko horního
+řádku přes `openHomeCustomization`): přetažení za úchyt + přepínač u každé sekce. Sekce se jmenuje
+přesně jako nadpis své karty (E11/4). Při přetažení se posílají **všechna** id, i skrytá – chybějící
+by se vrátilo jako nová viditelná sekce. Neuložená změna = přepínač zůstane a pruh `ProblemNote`
+„Změna Home se neuložila“ (akce kontextu vracejí `true`/`false`); „Obnovit výchozí“ se neptá.
 
 ### Odškrtnutí
 `handleHabitToggle` v `index.tsx`: jeden zápis na návyk naráz (druhé ťuknutí během ukládání se
@@ -213,6 +227,8 @@ ignoruje – úložiště čte a pak píše, dva zápisy naráz by mohly dát XP
 10. **Okno místo pruhu u chyby záchrany** → rozhodnutí E11/6: potvrzením je plamen, chyba je pruh.
 11. **Vlastní počítání dne ve statistikách** → čísla se rozejdou s kalendářem návyku (vždy `countDay`).
 12. **Rok počítaný při každém vykreslení** → 365 dní × návyky při každém odškrtnutí; jen po přepnutí.
+13. **Druhý filtr rozložení vedle `mergeHomeComponents`** → dvě pravidla se rozejdou; vždy jen to jedno.
+14. **Přetažení, které pošle jen viditelné sekce** → skryté se vrátí jako nové a viditelné.
 
 ---
 
@@ -237,7 +253,8 @@ PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH" npx jest src/screens/home src
 
 - Stejné „x/y“ na Home i v Návycích.
 - Rychlé akce otevírají správné okno v cílové záložce.
-- Přizpůsobení Home (pořadí, viditelnost, událost `openHomeCustomization`).
+- Přizpůsobení Home (pořadí, viditelnost, událost `openHomeCustomization`); staré uložené rozložení
+  se přeloží beze ztráty skrytých sekcí.
 - `?openDebtModal=true` dorolluje ke kartě série se záchranou (do E12).
 - Zaplacený den na Home je hned zaplacený i v Deníku (jeden stav).
 - Jiskry XP letí z odškrtnutí k odznaku.

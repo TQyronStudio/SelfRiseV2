@@ -20,8 +20,10 @@
  * survives, hidden stays hidden.
  *
  * Moved 1:1 from the Design Lab in migration E11 prep (2026-11-24; the lab keeps
- * its copy — O-6). Not wired yet: the screen of E11 uses it.
+ * its copy — O-6). E11e: the section list is the app's (defaultHomeComponents)
+ * and the stored-layout rule is mergeHomeComponents — migrateHomeSections calls it.
  */
+import { mergeHomeComponents } from '@/src/utils/homeComponents';
 
 export type HomeSectionId =
   | 'quickActions'
@@ -75,49 +77,30 @@ export function reorderSections(
   return [...named, ...byId.values()];
 }
 
-const MERGED_INTO: Record<string, HomeSectionId | null> = {
-  xpProgressBar: null,
-  xpMultiplier: null,
-  streakHistory: null,
-  habitPerformance: 'insights',
-  habitTrends: 'insights',
-  quickActions: 'quickActions',
-  journalStreak: 'journalStreak',
-  monthlyChallenges: 'monthlyChallenges',
-  habitStats: 'habitStats',
-  recommendations: 'recommendations',
-};
-
 /**
- * Stored customisation of the old Home → the new seven sections.
+ * Stored customisation of the old Home → the new seven sections. Since E11e
+ * this is the app's own rule, mergeHomeComponents (src/utils/homeComponents.ts),
+ * applied as for a user who reordered (the stored order is kept) — so these
+ * tests guard the code that really runs, not a copy of it.
  * - The user's order is kept; a merged section takes the place of the first of
  *   its parts and is visible if ANY part was.
  * - Sections that are gone are dropped; unknown ids are ignored.
- * - A section the old Home did not have (today's habits) goes where the default
- *   puts it: right after quick actions, wherever the user moved those.
+ * - A section the old Home did not have (today's habits) goes right after quick
+ *   actions, wherever the user moved those.
  */
 export function migrateHomeSections(
   stored: readonly { id: string; visible: boolean }[]
 ): HomeSection[] {
-  const result: HomeSection[] = [];
-  for (const old of stored) {
-    // Own keys only: a stored "constructor" must not resolve to Object's.
-    const id = Object.prototype.hasOwnProperty.call(MERGED_INTO, old.id)
-      ? MERGED_INTO[old.id]
-      : null;
-    if (!id) continue;
-    const existing = result.find(s => s.id === id);
-    if (existing) existing.visible = existing.visible || old.visible;
-    else result.push({ id, visible: old.visible });
-  }
-  for (const section of DEFAULT_HOME_SECTIONS) {
-    if (result.some(s => s.id === section.id)) continue;
-    if (section.id === 'todayHabits') {
-      const after = result.findIndex(s => s.id === 'quickActions');
-      result.splice(after + 1, 0, { ...section });
-    } else {
-      result.push({ ...section });
-    }
-  }
-  return result;
+  const asComponent = (id: string, visible: boolean, order: number) => ({
+    id,
+    name: id,
+    visible,
+    order,
+    configurable: true,
+  });
+  return mergeHomeComponents(
+    DEFAULT_HOME_SECTIONS.map((s, i) => asComponent(s.id, s.visible, i + 1)),
+    stored.map((s, i) => asComponent(s.id, s.visible, i + 1)),
+    true
+  ).map(c => ({ id: c.id as HomeSectionId, visible: c.visible }));
 }
