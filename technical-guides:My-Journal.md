@@ -594,6 +594,18 @@ záznam přinese) → **citát dne (vždy nad dnešními záznamy)** → dnešn�
   (úložiště hledalo stejně v JavaScriptu) – okamžité a nemůže selhat. Výsledky dál ve `FlatList` (N9).
 - Chyba úpravy / smazání = pruh `ProblemNote`, nikdy `Alert.alert`. `EditGratitudeModal` a `GratitudeList` smazány.
 
+### 📊 Statistiky deníku (E13, 2026-11-25)
+`app/journal-stats.tsx` → `src/components/journal/JournalStatsPage.tsx`, výpočty
+`src/screens/journal/journalStatsLogic.ts` (test). Shora: série (plamen, číslo, rekord), čtyři čísla, graf
+posledních 30 dní, poměr typů, ⭐🔥👑, povzbuzení.
+- **Čísla celkem / aktivní dny / průměr = `state.stats` kontextu, čtená při každém vykreslení** – nikdy místní
+  kopie (živá chyba 2026-11-24; hlídá `__tests__/screens/journalStatsLive.test.tsx`).
+- Pod sérií: nový rekord → „Osobní rekord!“; jinak „Nejlepší: N dní“; **bez jakékoli série „Začni dnes“**,
+  nikdy „Nejlepší: 0 dní“ (rozhodnutí E13/1, `streakNote`).
+- **Graf 30 dní** (ten, který zmizel z Home v E11): sloupec na den, splněné v barvě, bonus nahoře zlatě,
+  nesplněné šedě, čárkovaná čára denního cíle, měřítko končí na 8 záznamech a vyšší den nese své číslo.
+  Ťuknutí / tah ukáže den. Barvy = paleta `chart` v tokenech (vč. `selfPraise` pro poměr typů).
+
 ### 🔥 Zahřátí zamrzlé série – jeden hook, záchrana přímo na kartě (E11a + E11c, 2026-11-25)
 Logika žije v `src/hooks/useStreakWarmUp.ts` (dřív celá uvnitř staré `GratitudeStreakCard`, smazané v E11c).
 **Home i Deník (od E12) používají tentýž hook** – nikdy druhou kopii. Hlídá `src/hooks/__tests__/useStreakWarmUp.test.tsx`.

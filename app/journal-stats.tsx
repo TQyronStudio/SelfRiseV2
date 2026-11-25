@@ -1,320 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, ScrollView, Text, TouchableOpacity } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { AdBanner } from '@/src/components/ads/AdBanner';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useI18n } from '@/src/hooks/useI18n';
-import { useGratitude } from '@/src/contexts/GratitudeContext';
-import { GratitudeStats } from '@/src/types/gratitude';
-import { Layout } from '@/src/constants';
-import { contentColumn } from '@/src/utils/layout';
-import { useTheme } from '@/src/contexts/ThemeContext';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import StatisticsCard from '@/src/components/gratitude/StatisticsCard';
+import { AdBanner } from '@/src/components/ads/AdBanner';
+import { JournalStatsPage } from '@/src/components/journal/JournalStatsPage';
+import { useDesign } from '@/src/contexts/ThemeContext';
 
+/** Room kept at the bottom for the ad banner. */
+const BANNER_ROOM = 60;
+
+/**
+ * Journal statistics (migration E13: the page is JournalStatsPage — the streak,
+ * four numbers, the last 30 days, entry types, ⭐ 🔥 👑). The route stays.
+ */
 export default function JournalStatsScreen() {
-  const { t } = useI18n();
+  const { c } = useDesign();
   const router = useRouter();
-  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { state, actions } = useGratitude();
-  // Read live from the context: a local copy taken while loading kept the
-  // numbers from before the refresh and never followed later changes (until
-  // 2026-11-24).
-  const stats: GratitudeStats | null = state.stats;
-  const [isLoading, setIsLoading] = useState(true);
-  const [typeBreakdown, setTypeBreakdown] = useState<{ gratitude: number; selfPraise: number }>({ gratitude: 0, selfPraise: 0 });
-
-  useEffect(() => {
-    loadStats();
-  }, []);
-
-  useEffect(() => {
-    // Recalculate type breakdown when gratitudes change
-    const gratitudeCount = state.gratitudes.filter(g => g.type === 'gratitude').length;
-    const selfPraiseCount = state.gratitudes.filter(g => g.type === 'self-praise').length;
-    
-    setTypeBreakdown({
-      gratitude: gratitudeCount,
-      selfPraise: selfPraiseCount,
-    });
-  }, [state.gratitudes]);
-
-  const loadStats = async () => {
-    try {
-      setIsLoading(true);
-      await actions.refreshStats();
-      
-      // Ensure we have the latest data
-      await actions.loadGratitudes();
-    } catch (error) {
-      console.error('Failed to load stats:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const getStreakDescription = () => {
-    if (!state.streakInfo) return '';
-
-    const { currentStreak, longestStreak } = state.streakInfo;
-
-    if (currentStreak === 0) {
-      return longestStreak > 0 ? t('journal.stats.bestStreak', { count: longestStreak }) : t('journal.stats.startToday');
-    }
-
-    if (currentStreak === longestStreak) {
-      return t('journal.stats.personalBest');
-    }
-
-    return t('journal.stats.best', { count: longestStreak });
-  };
-
-  const getBadgeTotal = () => {
-    if (!state.streakInfo) return 0;
-    return (state.streakInfo.starCount || 0) + 
-           (state.streakInfo.flameCount || 0) + 
-           (state.streakInfo.crownCount || 0);
-  };
-
-  const formatPercentage = (value: number) => {
-    return `${(value * 100).toFixed(1)}%`;
-  };
-
-  const getCompletionRate = () => {
-    if (!stats || stats.totalDays === 0) return 0;
-    // This is a simplified calculation - in a real app you'd calculate based on actual days since start
-    return stats.totalDays > 0 ? 1 : 0;
-  };
-
-  const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.primary,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: Layout.spacing.md,
-      paddingVertical: Layout.spacing.md,
-      backgroundColor: colors.primary,
-    },
-    backButton: {
-      width: 40,
-      padding: Layout.spacing.xs,
-    },
-    headerTitle: {
-      flex: 1,
-      fontSize: 18,
-      fontWeight: 'bold',
-      color: colors.textInverse,
-      textAlign: 'center',
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: colors.backgroundSecondary,
-    },
-    loadingText: {
-      fontSize: 16,
-      color: colors.textSecondary,
-    },
-    headerButton: {
-      padding: Layout.spacing.xs,
-    },
-    content: {
-      flex: 1,
-      backgroundColor: colors.backgroundSecondary,
-    },
-    contentContainer: {
-      ...contentColumn,
-      flexGrow: 1,
-      paddingBottom: 60 + insets.bottom, // Extra padding for banner + safe area
-    },
-    bannerContainer: {
-      position: 'absolute',
-      bottom: insets.bottom,
-      left: 0,
-      right: 0,
-      backgroundColor: colors.backgroundSecondary,
-    },
-    statsGrid: {
-      padding: Layout.spacing.md,
-    },
-    breakdownCard: {
-      backgroundColor: colors.cardBackgroundElevated,
-      borderRadius: 12,
-      padding: Layout.spacing.md,
-      marginBottom: Layout.spacing.md,
-    },
-    breakdownTitle: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: colors.textSecondary,
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
-      marginBottom: Layout.spacing.md,
-    },
-    breakdownContent: {
-      gap: Layout.spacing.sm,
-    },
-    breakdownItem: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    breakdownLabel: {
-      fontSize: 16,
-      color: colors.text,
-    },
-    breakdownValue: {
-      fontSize: 16,
-      fontWeight: 'bold',
-    },
-    motivationCard: {
-      backgroundColor: colors.cardBackgroundElevated,
-      borderRadius: 12,
-      padding: Layout.spacing.lg,
-      alignItems: 'center',
-      marginBottom: Layout.spacing.md,
-    },
-    motivationIcon: {
-      fontSize: 32,
-      marginBottom: Layout.spacing.sm,
-    },
-    motivationTitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      color: colors.text,
-      marginBottom: Layout.spacing.sm,
-    },
-    motivationText: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      textAlign: 'center',
-      lineHeight: 20,
-    },
-  });
-
   return (
-    <>
-      <Stack.Screen 
-        options={{
-          headerShown: false,
-          presentation: 'card',
-          animationTypeForReplace: 'push',
-        }} 
+    <View style={[styles.container, { backgroundColor: c.canvas }]}>
+      <JournalStatsPage
+        topInset={insets.top}
+        bottomInset={BANNER_ROOM + insets.bottom}
+        onClose={() => router.back()}
       />
-      <StatusBar style="light" />
-      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-        {/* Custom Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <IconSymbol name="chevron.left" size={24} color={colors.textInverse} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{t('journal.stats.title')}</Text>
-          <TouchableOpacity onPress={loadStats} style={styles.headerButton}>
-            <IconSymbol name="arrow.clockwise" size={20} color={colors.textInverse} />
-          </TouchableOpacity>
-        </View>
-
-        {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>{t('journal.loadingStats')}</Text>
-          </View>
-        ) : (
-          <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
-        <View style={styles.statsGrid}>
-          {/* Total Entries */}
-          <StatisticsCard
-            title={t('journal.stats.totalEntries')}
-            value={stats?.totalGratitudes || 0}
-            subtitle={t('journal.stats.allTime')}
-            icon="📝"
-            color={colors.primary}
-          />
-
-          {/* Active Days */}
-          <StatisticsCard
-            title={t('journal.stats.activeDays')}
-            value={stats?.totalDays || 0}
-            subtitle={t('journal.stats.daysWithEntries', { count: stats?.totalDays || 0 })}
-            icon="📅"
-            color={colors.success}
-          />
-
-          {/* Current Streak */}
-          <StatisticsCard
-            title={t('journal.stats.currentStreak')}
-            value={t('common.daysCount', { count: state.streakInfo?.currentStreak || 0 })}
-            subtitle={getStreakDescription()}
-            icon="🔥"
-            color={colors.habitOrange}
-          />
-
-          {/* Average Per Day */}
-          <StatisticsCard
-            title={t('journal.stats.dailyAverage')}
-            value={stats?.averagePerDay ? stats.averagePerDay.toFixed(1) : '0.0'}
-            subtitle={t('journal.stats.entriesPerDay')}
-            icon="📊"
-            color={colors.secondary || colors.primary}
-          />
-
-          {/* Milestone Badges */}
-          <StatisticsCard
-            title={t('journal.stats.milestoneBadges')}
-            value={getBadgeTotal()}
-            subtitle={`⭐ ${state.streakInfo?.starCount || 0} • 🔥 ${state.streakInfo?.flameCount || 0} • 👑 ${state.streakInfo?.crownCount || 0}`}
-            icon="🏆"
-            color={colors.gold || '#FFD700'}
-          />
-
-          {/* Gratitude vs Self-Praise Breakdown */}
-          <View style={styles.breakdownCard}>
-            <Text style={styles.breakdownTitle}>📋 {t('journal.stats.entryTypes')}</Text>
-            <View style={styles.breakdownContent}>
-              <View style={styles.breakdownItem}>
-                <Text style={styles.breakdownLabel}>🙏 {t('journal.input.typeGratitude')}</Text>
-                <Text style={[styles.breakdownValue, { color: colors.primary }]}>
-                  {typeBreakdown.gratitude}
-                </Text>
-              </View>
-              <View style={styles.breakdownItem}>
-                <Text style={styles.breakdownLabel}>💪 {t('journal.input.typeSelfPraise')}</Text>
-                <Text style={[styles.breakdownValue, { color: colors.success }]}>
-                  {typeBreakdown.selfPraise}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Motivational Message */}
-          <View style={styles.motivationCard}>
-            <Text style={styles.motivationIcon}>🌟</Text>
-            <Text style={styles.motivationTitle}>{t('journal.stats.motivationTitle')}</Text>
-            <Text style={styles.motivationText}>
-              {state.streakInfo?.currentStreak === 0
-                ? t('journal.stats.motivationNoStreak')
-                : state.streakInfo?.currentStreak === 1
-                ? t('journal.stats.motivationDay1')
-                : t('journal.stats.motivationDays', { days: state.streakInfo?.currentStreak || 0 })
-              }
-            </Text>
-          </View>
-        </View>
-      </ScrollView>
-        )}
-
-      {/* AdMob Banner - Fixed at bottom */}
-      <View style={styles.bannerContainer}>
+      {/* The page scrolls under the status bar: a strip keeps the clock readable. */}
+      <View
+        pointerEvents="none"
+        style={[styles.statusStrip, { height: insets.top, backgroundColor: c.canvas }]}
+      />
+      <View style={[styles.banner, { bottom: insets.bottom, backgroundColor: c.canvas }]}>
         <AdBanner />
       </View>
-      </SafeAreaView>
-    </>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  banner: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+  },
+  statusStrip: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+  },
+});

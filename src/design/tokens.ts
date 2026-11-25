@@ -359,16 +359,24 @@ export const sun: Record<DesignMode, Record<Daypart, string>> = {
  */
 export const chart: Record<
   DesignMode,
-  { done: string; bonus: string; ramp: readonly [string, string, string, string] }
+  {
+    done: string;
+    bonus: string;
+    /** Self-praise in the journal's entry types (E13). */
+    selfPraise: string;
+    ramp: readonly [string, string, string, string];
+  }
 > = {
   light: {
     done: '#0A62D8',
     bonus: '#B97F0E',
+    selfPraise: '#1E9E5A',
     ramp: ['#86AFEF', '#5A92EA', '#2E76E2', '#0A55C2'],
   },
   dark: {
     done: '#3F86F0',
     bonus: '#BE8A1A',
+    selfPraise: '#22A062',
     ramp: ['#2F5FAF', '#3F7BDD', '#6EA3F5', '#A9CCFF'],
   },
 };

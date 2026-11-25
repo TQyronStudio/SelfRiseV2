@@ -25,6 +25,11 @@ export default function JournalHistoryScreen() {
         bottomInset={BANNER_ROOM + insets.bottom}
         onClose={() => router.back()}
       />
+      {/* The page scrolls under the status bar: a strip keeps the clock readable. */}
+      <View
+        pointerEvents="none"
+        style={[styles.statusStrip, { height: insets.top, backgroundColor: c.canvas }]}
+      />
       <View style={[styles.banner, { bottom: insets.bottom, backgroundColor: c.canvas }]}>
         <AdBanner />
       </View>
@@ -38,6 +43,12 @@ const styles = StyleSheet.create({
   },
   banner: {
     position: 'absolute',
+    left: 0,
+    right: 0,
+  },
+  statusStrip: {
+    position: 'absolute',
+    top: 0,
     left: 0,
     right: 0,
   },

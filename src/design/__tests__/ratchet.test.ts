@@ -99,6 +99,9 @@ const CONVERTED: readonly string[] = [
   'src/components/journal/JournalHistoryPage.tsx',
   'src/screens/journal/journalHistoryLogic.ts',
   'app/journal-history.tsx',
+  'app/journal-stats.tsx',
+  'src/components/journal/JournalStatsPage.tsx',
+  'src/screens/journal/journalStatsLogic.ts',
   'src/components/ui/ProblemNote.tsx',
   'src/hooks/useJournalFlame.ts',
   // E7 (part 1) – the XP display: books, origins, multiplier mark rules
