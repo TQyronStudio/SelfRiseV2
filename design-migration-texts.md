@@ -67,7 +67,7 @@ z vět pryč. 6 Okna úspěchu záchrany série zrušit – potvrzením je plame
 **E14** (✅ v locales 2026-11-25, test `goalsListCopy.test.ts`; A celé, C celé). 1 Čip „Deadline passed“ (`goals.pace.overdue`) v teplé barvě, řádek „days left“ zmizí, nic se nepočítá dál; nové
 datum přes „⋯ → Edit goal“.
 
-**E15.** 1 Stejný vzor jako návyk: „New goal / Neues Ziel / Nueva meta“ a „Create goal / Ziel erstellen / Crear meta“.
+**E15** (✅ v locales 2026-11-28; A celé, C celé). 1 Stejný vzor jako návyk: „New goal / Neues Ziel / Nueva meta“ a „Create goal / Ziel erstellen / Crear meta“.
 
 **Zastavení z mapy dat (`design-migration-datamaps.md`):**
 - E10/E14 ikona a barva cíle podle kategorie → převést mapu z kulis do konstant (`src/constants`), s testem, že každá

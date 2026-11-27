@@ -8,8 +8,8 @@
  *   the goal_completion window, read against the goal's status BEFORE the log;
  * - Undo deletes the entry through the existing path (its XP reversal included);
  * - errors are one calm sentence in the ProblemNote bar, never error.message.
- * Creating and editing still use GoalModal and the templates modal until E15
- * moves both into one composer.
+ * Creating and editing is one composer sheet (E15, GoalComposer): ideas, the
+ * deadline presets and the calendar live inside it.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -20,7 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RoundButton, TopRow } from '@/src/components/ui/TopRow';
 import { useProblemNote } from '@/src/components/ui';
 import { AdBanner } from '@/src/components/ads/AdBanner';
-import { GoalModal, GoalTemplatesModal } from '@/src/components/goals';
+import { GoalComposer } from '@/src/components/goals/composer/GoalComposer';
 import { GoalsPage } from '@/src/components/goals/page/GoalsPage';
 import { GoalsReorderView } from '@/src/components/goals/page/GoalsReorderView';
 import {
@@ -67,15 +67,12 @@ export function GoalsScreen() {
 
   const [modalVisible, setModalVisible] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | undefined>();
-  const [templateData, setTemplateData] = useState<CreateGoalInput | undefined>();
-  const [showTemplatesModal, setShowTemplatesModal] = useState(false);
   const [freshId, setFreshId] = useState<string | null>(null);
 
   // A quick action from Home opens the new-goal window.
   useEffect(() => {
     if (params.quickAction === 'addGoal') {
       setEditingGoal(undefined);
-      setTemplateData(undefined);
       setModalVisible(true);
       // Clear the parameter after a moment so it does not fire again.
       setTimeout(() => router.replace('/(tabs)/goals'), 100);
@@ -91,21 +88,12 @@ export function GoalsScreen() {
 
   const handleAddGoal = () => {
     setEditingGoal(undefined);
-    setTemplateData(undefined);
-    setModalVisible(true);
-  };
-
-  const handleSelectTemplate = (selected: CreateGoalInput) => {
-    setShowTemplatesModal(false);
-    setEditingGoal(undefined);
-    setTemplateData(selected);
     setModalVisible(true);
   };
 
   const handleCloseModal = () => {
     setModalVisible(false);
     setEditingGoal(undefined);
-    setTemplateData(undefined);
   };
 
   /** The completion window (through the queue), remembered so it never shows twice. */
@@ -122,24 +110,25 @@ export function GoalsScreen() {
     await AsyncStorage.setItem(SHOWN_CELEBRATIONS_KEY, JSON.stringify(Array.from(shown)));
   };
 
+  // The composer keeps itself open until this resolves; a throw keeps the
+  // user's input in the sheet with its own error line.
   const handleSubmitGoal = async (data: CreateGoalInput | UpdateGoalInput) => {
-    try {
-      if (editingGoal) {
-        const updated = await actions.updateGoal(editingGoal.id, data as UpdateGoalInput);
-        // Lowering the target under the progress completes the goal (storage
-        // pays the XP) — it gets its window like a completion by progress.
-        if (updated.status === GoalStatus.COMPLETED && editingGoal.status !== GoalStatus.COMPLETED) {
+    if (editingGoal) {
+      const updated = await actions.updateGoal(editingGoal.id, data as UpdateGoalInput);
+      glow(updated.id);
+      // Lowering the target under the progress completes the goal (storage
+      // pays the XP) — it gets its window like a completion by progress.
+      if (updated.status === GoalStatus.COMPLETED && editingGoal.status !== GoalStatus.COMPLETED) {
+        try {
           await celebrateCompletion(updated);
+        } catch (error) {
+          // The goal IS saved: a failed window must not keep the sheet open.
+          console.error('Goal completion window failed:', error);
         }
-        glow(updated.id);
-      } else {
-        const created = await actions.createGoal(data as CreateGoalInput);
-        glow(created.id);
       }
-      handleCloseModal();
-    } catch (error) {
-      console.error('Goal not saved:', error);
-      showProblem({ message: t('goals.errors.saveFailed') });
+    } else {
+      const created = await actions.createGoal(data as CreateGoalInput);
+      glow(created.id);
     }
   };
 
@@ -221,8 +210,6 @@ export function GoalsScreen() {
             {goals.length > 1 && (
               <RoundButton icon="swap-vertical" label={t('goals.actions.reorder')} onPress={() => setIsEditMode(true)} />
             )}
-            {/* Until E15 puts the ideas inside the new-goal window. */}
-            <RoundButton icon="library-outline" label={t('goals.useTemplate')} onPress={() => setShowTemplatesModal(true)} />
             <RoundButton icon="add" tone="primary" label={t('goals.addGoal')} onPress={handleAddGoal} />
           </>
         )}
@@ -241,32 +228,26 @@ export function GoalsScreen() {
           onOpenDetail={goal => router.push(`/goal-stats?goalId=${goal.id}` as never)}
           onEdit={goal => {
             setEditingGoal(goal);
-            setTemplateData(undefined);
             setModalVisible(true);
           }}
           onDelete={handleDeleteGoal}
         />
       )}
 
-      {/* AdMob banner, fixed at the bottom */}
+      {modalVisible && (
+        <GoalComposer
+          goal={editingGoal}
+          today={today}
+          bottomInset={BANNER_ROOM}
+          onSubmit={handleSubmitGoal}
+          onClosed={handleCloseModal}
+        />
+      )}
+
+      {/* AdMob banner, fixed at the bottom — stays above the composer */}
       <View style={styles.banner}>
         <AdBanner />
       </View>
-
-      <GoalModal
-        visible={modalVisible}
-        goal={editingGoal}
-        {...(templateData && { templateData })}
-        onClose={handleCloseModal}
-        onSubmit={handleSubmitGoal}
-        isLoading={false}
-      />
-
-      <GoalTemplatesModal
-        visible={showTemplatesModal}
-        onClose={() => setShowTemplatesModal(false)}
-        onSelectTemplate={handleSelectTemplate}
-      />
     </SafeAreaView>
   );
 }

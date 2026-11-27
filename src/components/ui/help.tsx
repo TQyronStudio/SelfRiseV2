@@ -20,7 +20,7 @@ import { MAX_DEBT_DAYS, XP_MULTIPLIERS, XP_REWARDS } from '@/src/constants/gamif
 import { AppText, PressableScale } from './primitives';
 import { BottomSheet } from './sheets';
 
-export type HelpTopic = 'makeUp' | 'multiplier' | 'journalDay' | 'frozen';
+export type HelpTopic = 'makeUp' | 'multiplier' | 'journalDay' | 'frozen' | 'pace';
 
 /** Which rules a topic shows (keys under help.rules). */
 export const HELP_TOPIC_RULES: Record<HelpTopic, string[]> = {
@@ -31,6 +31,8 @@ export const HELP_TOPIC_RULES: Record<HelpTopic, string[]> = {
   // frozen streak (new host for help.journal.debtRecovery), 7.10
   journalDay: ['three', 'bonus'],
   frozen: ['frozen'],
+  // E15: a goal's pace (new host for help.goals.predictions, whose card goes), 7.10
+  pace: ['pace'],
 };
 
 /** Numbers a rule's text prints — from the app's constants, never written into the text. */

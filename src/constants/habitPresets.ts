@@ -17,7 +17,7 @@ import { DayOfWeek, HabitColor, HabitIcon } from '../types/common';
  * language later does not rewrite already-created habits — that is expected;
  * the name is the user's own data from that point on.
  *
- * Goal templates deliberately live elsewhere (`GoalTemplatesModal.tsx`) — they
+ * Goal templates deliberately live elsewhere (`goalTemplates.ts`) — they
  * already existed and are reused for onboarding screen 2 rather than duplicated.
  */
 export interface HabitPreset {

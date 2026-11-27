@@ -1,9 +1,6 @@
-export { GoalModal } from './GoalModal';
-export { GoalForm } from './GoalForm';
 export { GoalStatsCard } from './GoalStatsCard';
 export { ProgressHistoryList } from './ProgressHistoryList';
 export { GoalCompletionModal } from './GoalCompletionModal';
 export { GoalPerformanceDashboard } from './GoalPerformanceDashboard';
 export { ProgressTrendAnalysis } from './ProgressTrendAnalysis';
 export { GoalCompletionPredictions } from './GoalCompletionPredictions';
-export { GoalTemplatesModal } from './GoalTemplatesModal';

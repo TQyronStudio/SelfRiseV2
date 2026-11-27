@@ -108,6 +108,8 @@ const CONVERTED: readonly string[] = [
   'src/components/goals/page/GoalLogSheet.tsx',
   'src/components/goals/page/GoalActionsSheet.tsx',
   'src/components/goals/page/GoalsReorderView.tsx',
+  // E15 — goal composer
+  'src/components/goals/composer/GoalComposer.tsx',
   'src/screens/journal/journalStatsLogic.ts',
   'src/components/ui/ProblemNote.tsx',
   'src/hooks/useJournalFlame.ts',

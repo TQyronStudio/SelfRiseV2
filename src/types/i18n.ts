@@ -865,6 +865,32 @@ export interface TranslationKeys {
   
   // Goals screen
   goals: {
+    composer: {
+      title: string;
+      create: string;
+      previewTitle: string;
+      paceHint: string;
+      ideas: string;
+      deadline: string;
+      presetMonths_one: string;
+      presetMonths_other: string;
+      presetYear: string;
+      presetPick: string;
+      inDays_zero: string;
+      inDays_one: string;
+      inDays_other: string;
+    };
+    detail: {
+      neededPerWeek: string;
+      yourPerWeek: string;
+      finish: string;
+      paceTitle: string;
+      plan: string;
+      you: string;
+      chartHint: string;
+      milestones: string;
+      reached: string;
+    };
     errors: {
       saveFailed: string;
       logFailed: string;
@@ -2578,12 +2604,17 @@ export interface TranslationKeys {
   // Help system
   help: {
     topics: {
+      pace: string;
       journalDay: string;
       frozen: string;
       multiplier: string;
       makeUp: string;
     };
     rules: {
+      pace: {
+        title: string;
+        text: string;
+      };
       three: {
         title: string;
         text: string;

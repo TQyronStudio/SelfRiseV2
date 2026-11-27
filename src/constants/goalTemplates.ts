@@ -4,7 +4,7 @@ import { useI18n } from '@/src/hooks/useI18n';
 
 /**
  * Ready-made goals, shared by two very different presentations:
- *   - GoalTemplatesModal (Goals tab) — a searchable list of wide rows
+ *   - the goal composer (Goals tab, E15) — "Start from an idea" chips
  *   - onboarding screen 2 — a compact tile grid
  *
  * Only the DATA is shared. The onboarding screen deliberately does not reuse

@@ -1119,6 +1119,32 @@ const en: TranslationKeys = {
   
   // Goals screen
   goals: {
+    composer: {
+      title: 'New goal',
+      create: 'Create goal',
+      previewTitle: 'Your new goal',
+      paceHint: 'That’s about {{amount}} {{unit}} a week',
+      ideas: 'Start from an idea',
+      deadline: 'Deadline',
+      presetMonths_one: '{{count}} month',
+      presetMonths_other: '{{count}} months',
+      presetYear: 'End of year',
+      presetPick: 'Pick a date',
+      inDays_zero: 'today',
+      inDays_one: 'tomorrow',
+      inDays_other: 'in {{count}} days',
+    },
+    detail: {
+      neededPerWeek: '{{amount}} a week needed',
+      yourPerWeek: '{{amount}} a week so far',
+      finish: 'At this pace: {{date}}',
+      paceTitle: 'You vs. the plan',
+      plan: 'Plan',
+      you: 'You',
+      chartHint: 'Tap or slide along the line',
+      milestones: 'Milestones',
+      reached: 'reached {{date}}',
+    },
     errors: {
       saveFailed: 'The goal wasn’t saved. Try again.',
       logFailed: 'The progress wasn’t saved. The goal stays as it was.',
@@ -1207,9 +1233,9 @@ const en: TranslationKeys = {
     
     form: {
       title: 'Goal Title',
-      description: 'Description (Optional)',
+      description: 'Description (optional)',
       unit: 'Unit',
-      targetValue: 'Target Value',
+      targetValue: 'Target value',
       category: 'Category',
       targetDate: 'Target Date (Recommended)',
       targetDateHint: 'Tap to open step-by-step date selector',
@@ -1236,10 +1262,10 @@ const en: TranslationKeys = {
     },
     
     progress: {
-      addProgress: 'Add Progress',
-      progressHistory: 'Progress History',
+      addProgress: 'Add progress',
+      progressHistory: 'Progress history',
       noProgress: 'No progress entries yet',
-      confirmDelete: 'Delete Progress Entry',
+      confirmDelete: 'Delete progress entry',
       deleteMessage: 'Are you sure you want to delete this progress entry? This action cannot be undone.',
       form: {
         progressType: 'Progress Type',
@@ -3646,12 +3672,17 @@ const en: TranslationKeys = {
   help: {
     // Help rules of the new look (migration E6, 7.10) — one source for the sheet and the rules page
     topics: {
+      pace: 'How the pace is worked out',
       journalDay: 'How the journal day works',
       frozen: 'How a frozen streak works',
       multiplier: 'How the XP multiplier works',
       makeUp: 'How missed days are made up',
     },
     rules: {
+      pace: {
+        title: 'Your pace, in plain words',
+        text: 'A goal with a deadline compares your pace with the straight line to it and tells you whether you’ll make it.',
+      },
       three: {
         title: 'Three entries keep your streak',
         text: 'Write three a day and the streak grows by one. Each of the three earns {{perEntry}} XP.',

@@ -1121,6 +1121,32 @@ const es: Partial<TranslationKeys> = {
 
   // Goals screen
   goals: {
+    composer: {
+      title: 'Nueva meta',
+      create: 'Crear meta',
+      previewTitle: 'Tu nueva meta',
+      paceHint: 'Son unos {{amount}} {{unit}} por semana',
+      ideas: 'Empieza con una idea',
+      deadline: 'Fecha límite',
+      presetMonths_one: '{{count}} mes',
+      presetMonths_other: '{{count}} meses',
+      presetYear: 'Fin de año',
+      presetPick: 'Elegir fecha',
+      inDays_zero: 'hoy',
+      inDays_one: 'mañana',
+      inDays_other: 'en {{count}} días',
+    },
+    detail: {
+      neededPerWeek: 'Hacen falta {{amount}} por semana',
+      yourPerWeek: '{{amount}} por semana hasta ahora',
+      finish: 'A este ritmo: {{date}}',
+      paceTitle: 'Tú frente al plan',
+      plan: 'Plan',
+      you: 'Tú',
+      chartHint: 'Toca o desliza a lo largo de la línea',
+      milestones: 'Hitos',
+      reached: 'alcanzado el {{date}}',
+    },
     errors: {
       saveFailed: 'La meta no se guardó. Inténtalo de nuevo.',
       logFailed: 'El progreso no se guardó. La meta sigue como estaba.',
@@ -1205,9 +1231,9 @@ const es: Partial<TranslationKeys> = {
 
     form: {
       title: 'Título de la Meta',
-      description: 'Descripción (Opcional)',
+      description: 'Descripción (opcional)',
       unit: 'Unidad',
-      targetValue: 'Valor Objetivo',
+      targetValue: 'Valor objetivo',
       category: 'Categoría',
       targetDate: 'Fecha Objetivo (Recomendado)',
       targetDateHint: 'Toca para abrir el selector de fecha paso a paso',
@@ -1234,10 +1260,10 @@ const es: Partial<TranslationKeys> = {
     },
 
     progress: {
-      addProgress: 'Añadir Progreso',
-      progressHistory: 'Historial de Progreso',
+      addProgress: 'Añadir progreso',
+      progressHistory: 'Historial de progreso',
       noProgress: 'Aún no hay entradas de progreso',
-      confirmDelete: 'Eliminar Entrada de Progreso',
+      confirmDelete: 'Eliminar entrada de progreso',
       deleteMessage: '¿Estás seguro de que quieres eliminar esta entrada de progreso? Esta acción no se puede deshacer.',
       form: {
         progressType: 'Tipo de Progreso',
@@ -3620,12 +3646,17 @@ const es: Partial<TranslationKeys> = {
   help: {
     // Help rules of the new look (migration E6, 7.10) — one source for the sheet and the rules page
     topics: {
+      pace: 'Cómo se calcula el ritmo',
       journalDay: 'Cómo funciona el día del diario',
       frozen: 'Cómo funciona una racha congelada',
       multiplier: 'Cómo funciona el multiplicador de XP',
       makeUp: 'Cómo se recuperan los días perdidos',
     },
     rules: {
+      pace: {
+        title: 'Tu ritmo, en pocas palabras',
+        text: 'Una meta con fecha límite compara tu ritmo con la línea recta hasta ella y te dice si llegarás a tiempo.',
+      },
       three: {
         title: 'Tres entradas mantienen tu racha',
         text: 'Escribe tres al día y la racha crece en uno. Cada una de las tres da {{perEntry}} XP.',

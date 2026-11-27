@@ -1121,6 +1121,32 @@ const de: Partial<TranslationKeys> = {
 
   // Goals screen
   goals: {
+    composer: {
+      title: 'Neues Ziel',
+      create: 'Ziel erstellen',
+      previewTitle: 'Dein neues Ziel',
+      paceHint: 'Das sind etwa {{amount}} {{unit}} pro Woche',
+      ideas: 'Mit einer Idee starten',
+      deadline: 'Termin',
+      presetMonths_one: '{{count}} Monat',
+      presetMonths_other: '{{count}} Monate',
+      presetYear: 'Jahresende',
+      presetPick: 'Datum wählen',
+      inDays_zero: 'heute',
+      inDays_one: 'morgen',
+      inDays_other: 'in {{count}} Tagen',
+    },
+    detail: {
+      neededPerWeek: '{{amount}} pro Woche nötig',
+      yourPerWeek: 'bisher {{amount}} pro Woche',
+      finish: 'In diesem Tempo: {{date}}',
+      paceTitle: 'Du und der Plan',
+      plan: 'Plan',
+      you: 'Du',
+      chartHint: 'Tippe oder streiche über die Linie',
+      milestones: 'Meilensteine',
+      reached: 'erreicht am {{date}}',
+    },
     errors: {
       saveFailed: 'Das Ziel wurde nicht gespeichert. Versuch es noch einmal.',
       logFailed: 'Der Fortschritt wurde nicht gespeichert. Das Ziel bleibt, wie es war.',
@@ -1205,7 +1231,7 @@ const de: Partial<TranslationKeys> = {
 
     form: {
       title: 'Zieltitel',
-      description: 'Beschreibung (Optional)',
+      description: 'Beschreibung (optional)',
       unit: 'Einheit',
       targetValue: 'Zielwert',
       category: 'Kategorie',
@@ -3620,12 +3646,17 @@ const de: Partial<TranslationKeys> = {
   help: {
     // Help rules of the new look (migration E6, 7.10) — one source for the sheet and the rules page
     topics: {
+      pace: 'So wird das Tempo berechnet',
       journalDay: 'So funktioniert der Tagebuch-Tag',
       frozen: 'So funktioniert eine eingefrorene Serie',
       multiplier: 'So funktioniert der XP-Multiplikator',
       makeUp: 'So werden verpasste Tage ausgeglichen',
     },
     rules: {
+      pace: {
+        title: 'Dein Tempo, in klaren Worten',
+        text: 'Ein Ziel mit Termin vergleicht dein Tempo mit der geraden Linie bis dahin und sagt dir, ob du es schaffst.',
+      },
       three: {
         title: 'Drei Einträge halten deine Serie',
         text: 'Schreib drei am Tag und die Serie wächst um eins. Jeder der drei bringt {{perEntry}} XP.',
